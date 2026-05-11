@@ -1,0 +1,35 @@
+version: "2"
+
+linters:
+  exclusions: 
+    paths:
+      - tests/
+  enable:
+    - loggercheck
+    - sloglint
+  settings:
+    sloglint:
+      # Enforce not mixing key-value pairs and attributes.
+      # Default: true
+      no-mixed-args: false
+      # Enforce using attributes only (overrides no-mixed-args, incompatible with kv-only).
+      # Default: false
+      attr-only: true
+      # Enforce using methods that accept a context.
+      # Default: false
+      context: scope
+      # Enforce using static values for log messages.
+      # Default: false
+      static-msg: true
+      # Enforce a single key naming convention.
+      # Values: snake, kebab, camel, pascal
+      # Default: ""
+      key-naming-case: snake
+      # Enforce putting arguments on separate lines.
+      # Default: false
+      args-on-sep-lines: true
+      forbidden-keys:
+        - given_name
+        - middle_name
+        - last_name
+        - password
