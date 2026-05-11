@@ -1,0 +1,20 @@
+edition = "2023";
+
+package doctryne.check.v1;
+
+option go_package = "github.com/domsnail/doctryne/api/gen/go/check/v1;check_v1";
+option features.(pb.go).api_level = API_OPAQUE;
+option features.field_presence = IMPLICIT;
+
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "google/protobuf/go_features.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/empty.proto";
+
+import "check/v1/file.proto";
+
+service CheckService {
+  rpc CheckFile(FileChunk) returns ();
+
+  rpc CheckFileStream(stream FileChunk) returns ();
+}
