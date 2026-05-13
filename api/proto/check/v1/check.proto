@@ -11,11 +11,8 @@ import "google/protobuf/go_features.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/empty.proto";
 
-import "check/v1/file.proto";
-import "check/v1/check.proto";
+import "evaluation/v1/evaluation.proto";
 
-service CheckService {
-  rpc CheckFile(FileChunk) returns (CheckResponse);
+message CheckResponse {
 
-  rpc CheckFileStream(stream FileChunk) returns (CheckResponse);
 }
