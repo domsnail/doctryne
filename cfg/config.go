@@ -11,29 +11,32 @@ type Config struct {
 
 	Credentials Credentials `json:"credentials" yaml:"credentials"`
 
-	Server Server `json:"server" yaml:"server" env-prefix:"SERVER_"`
+	Server  Server  `json:"server" yaml:"server" env-prefix:"SRV_"`
+	Logging Logging `json:"logs" yaml:"logs" env-prefix:"LOGS_"`
+
+	FilePath string `json:"-" yaml:"-"`
 }
 
-func (c *Config) Defaults() *Config {
-	return c
-}
-
-func (c *Config) IsValid() (bool, error) {
-	if c.Target == "" {
-		return false, errors.New("no target provided")
-	}
-
+func (c *Config) IsValid() error {
 	if c.Server.Enabled {
 		if c.Server.Host == "" {
-			return false, errors.New("no server host provided")
+			return errors.New("no server host provided")
 		}
 
 		if c.Server.Port == 0 {
-			return false, errors.New("no server port provided")
+			return errors.New("no server port provided")
+		}
+	} else {
+		if c.Target == "" {
+			return errors.New("no target provided")
 		}
 	}
 
-	return true, nil
+	if c.Logging.Format != "text" && c.Logging.Format != "json" {
+		return errors.New("invalid logging format, only 'text' and 'json' are supported")
+	}
+
+	return nil
 }
 
 type Credentials struct {
@@ -47,4 +50,10 @@ type Server struct {
 	Port uint32 `json:"port" yaml:"port" env:"PORT"`
 
 	AccessKey string `json:"api_key" yaml:"api_key" env:"ACCESS_KEY"`
+}
+
+type Logging struct {
+	Level     int    `json:"level" yaml:"level" env:"LEVEL"`
+	Format    string `json:"format" yaml:"format" env:"FORMAT"`
+	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE"`
 }
