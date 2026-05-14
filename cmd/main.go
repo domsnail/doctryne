@@ -5,14 +5,21 @@ import (
 	"fmt"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/domsnail/doctryne/cfg"
 )
 
 func main() {
-	rootCtx := context.Background()
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer stop()
 
-	config, _ := cfg.NewConfigFromFlags(rootCtx)
+	config, err := cfg.NewConfigFromFlags(rootCtx)
+	if err != nil {
+		slog.ErrorContext(rootCtx, err.Error())
+		os.Exit(1)
+	}
 
 	var handler slog.Handler
 	switch config.Logging.Format {
@@ -35,6 +42,11 @@ func main() {
 
 	slog.DebugContext(rootCtx, "loaded configuration variables",
 		slog.String("config_file_path", config.FilePath),
+		slog.String("http_proxy", config.HttpProxy.Redacted()),
+		slog.Duration("timeout", config.Timeout),
+		slog.Group("output",
+			slog.String("format", string(config.Output.Format)),
+		),
 		slog.Group("server",
 			slog.Bool("enabled", config.Server.Enabled),
 			slog.String("host", config.Server.Host),
@@ -47,4 +59,28 @@ func main() {
 			slog.Bool("add_source", config.Logging.AddSource),
 		),
 	)
+
+	if config.Server.Enabled {
+		err := RunServer(rootCtx, config.Server)
+		if err != nil {
+			return
+		}
+
+		<-rootCtx.Done()
+	}
+
+	if !config.HasScan() {
+		var err error
+		config.Scan, err = cfg.NewScanFromArgs(rootCtx)
+
+		if err != nil {
+			slog.ErrorContext(rootCtx, fmt.Sprintf("failed to determine scan target(s): %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = RunCLI(rootCtx)
+	if err != nil {
+		return
+	}
 }

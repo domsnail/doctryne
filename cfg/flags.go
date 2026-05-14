@@ -7,13 +7,19 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"time"
+
+	"github.com/domsnail/doctryne/pkg/types"
 )
 
 func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
-	config = new(Config)
+	config = NewConfigWithDefaultValues()
 
 	// === Configuration file
 	configFile := flag.String("config", "", "configuration file path")
+
+	// === Output
+	format := flag.String("format", "json", "output report format")
 
 	// === Logging setup
 	logLevel := flag.Int("log-level", 0, "log level (-4, 8)")
@@ -27,12 +33,18 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 
 	// === Client setup
 	proxy := flag.String("http-proxy", "", "http proxy server")
+	insecure := flag.Bool("insecure", false, "use insecure http")
+	timeout := flag.Duration("timeout", time.Second*30, "operation timeout")
 
 	flag.Parse()
 
 	if configFile != nil && *configFile != "" {
 		slog.InfoContext(ctx, "loading configuration from file, cli flags will be ignored", slog.String("file_path", *configFile))
 		return NewConfigFromFile(*configFile)
+	}
+
+	if format != nil && *format != "" {
+		config.Output.Format = types.ReportFormat(*format)
 	}
 
 	if server != nil && *server {
@@ -44,6 +56,10 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 		config.Server.AccessKey = *accessKey
 	}
 
+	if insecure != nil {
+		config.Insecure = *insecure
+	}
+
 	if proxy != nil && *proxy != "" {
 		config.HttpProxy, err = url.Parse(*proxy)
 		if err != nil {
@@ -51,8 +67,17 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 		}
 	}
 
-	config.Logging.Format = *logFormat
-	config.Logging.Level = *logLevel
+	if logFormat != nil && *logFormat != "" {
+		config.Logging.Format = *logFormat
+	}
+
+	if logLevel != nil && *logLevel != 0 {
+		config.Logging.Level = *logLevel
+	}
+
+	if timeout != nil && *timeout > 0 {
+		config.Timeout = *timeout
+	}
 
 	err = config.IsValid()
 	if err != nil {
