@@ -88,6 +88,8 @@ type Scan struct {
 	// DeepRepositoryInspection requests full repository source code to analyze source code to find comments and other
 	// text structures that might be interesting
 	DeepRepositoryInspection bool `json:"deep_repository_inspection" yaml:"deep_repository_inspection"`
+
+	// todo: ActivityPeriod (month, year)
 }
 
 type Output struct {

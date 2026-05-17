@@ -90,4 +90,21 @@ func TestClient_GetPackage(t *testing.T) {
 		require.NoError(t, err)
 		require.EqualValues(t, "2025-10-05 12:46:33.558 +0000 UTC", at.String())
 	})
+
+	t.Run("npm client get package stats", func(t *testing.T) {
+		client, err := NewClient(Options{
+			Timeout: time.Second * 30,
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, client)
+
+		stats, err := client.GetPackageStats(context.Background(), "", "")
+		require.Error(t, err)
+		require.Nil(t, stats)
+
+		stats, err = client.GetPackageStats(context.Background(), "detect-libc", "last-month")
+		require.NoError(t, err)
+		require.NotNil(t, stats)
+	})
 }

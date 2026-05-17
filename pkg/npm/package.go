@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"maps"
+	"net/url"
 	"time"
 )
 
@@ -106,6 +107,20 @@ func (pkg Package) GetUniqueEmails() map[string]PersonAffiliation {
 	return emails
 }
 
+func (pkg Package) GetGitURL() (*url.URL, error) {
+	if pkg.Repository.Url == "" {
+		slog.Debug(fmt.Sprintf("no repository url for package '%s'", pkg.Name))
+		return nil, nil
+	}
+
+	git, err := url.Parse(pkg.Repository.Url)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse git url: %w", err)
+	}
+
+	return git, nil
+}
+
 func (pkg Package) GetCreatedAt() (time.Time, error) {
 	at, ok := pkg.Time["created"]
 	if !ok {
@@ -122,4 +137,22 @@ func (pkg Package) GetModifiedAt() (time.Time, error) {
 	}
 
 	return at, nil
+}
+
+func (pkg Package) IsLatest(version string) bool {
+	return version == pkg.DistTags.Latest
+}
+
+func (pkg Package) GetVersion(version string) (*Version, error) {
+	if version == "" {
+		return nil, errors.New("version name required")
+	}
+
+	v, ok := pkg.Versions[version]
+	if !ok {
+		slog.Debug(fmt.Sprintf("version '%s' for package '%s' not found", version, pkg.Name))
+		return nil, errors.New("version not found")
+	}
+
+	return &v, nil
 }
