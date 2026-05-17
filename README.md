@@ -91,6 +91,7 @@ List of supported rules:
 - contributors
     - name
     - email
+    - privacy
     - country/region
     - other projects
     - other companies
