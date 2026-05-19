@@ -24,7 +24,8 @@ type Client struct {
 }
 
 type Options struct {
-	Timeout time.Duration
+	Timeout  time.Duration
+	ProxyURL *url.URL
 
 	BearerToken string
 
@@ -41,6 +42,13 @@ func NewClient(opts Options) (*Client, error) {
 	}
 
 	var transport http.RoundTripper = &http.Transport{}
+	if opts.ProxyURL != nil {
+		slog.Debug("using proxy for npm client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
+		transport = &http.Transport{
+			Proxy: http.ProxyURL(opts.ProxyURL),
+		}
+	}
+
 	if opts.BearerToken == "" {
 		slog.Debug("npm bearer token is not set")
 	} else {
@@ -48,7 +56,7 @@ func NewClient(opts Options) (*Client, error) {
 
 		transport = &bearerTransport{
 			token: opts.BearerToken,
-			base:  http.DefaultTransport,
+			base:  transport,
 		}
 	}
 
