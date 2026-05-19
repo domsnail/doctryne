@@ -18,9 +18,10 @@ type Version struct {
 
 	License string `json:"license"`
 
-	Maintainers []Person   `json:"maintainers"`
-	NpmUser     Person     `json:"_npmUser"`
-	Repository  Repository `json:"repository"`
+	Maintainers  []Person   `json:"maintainers"`
+	Contributors []Person   `json:"contributors"`
+	NpmUser      Person     `json:"_npmUser"`
+	Repository   Repository `json:"repository"`
 
 	Bugs struct {
 		Url string `json:"url"`

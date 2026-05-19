@@ -13,7 +13,7 @@ import (
 // ref: https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md#package,
 // for example: https://registry.npmjs.org/detect-libc
 type Package struct {
-	Id          string   `json:"_id"`
+	ID          string   `json:"_id"`
 	Rev         string   `json:"_rev"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
@@ -121,22 +121,22 @@ func (pkg Package) GetGitURL() (*url.URL, error) {
 	return git, nil
 }
 
-func (pkg Package) GetCreatedAt() (time.Time, error) {
+func (pkg Package) GetCreatedAt() time.Time {
 	at, ok := pkg.Time["created"]
 	if !ok {
-		return time.Time{}, errors.New("no creation date found")
+		return time.Time{}
 	}
 
-	return at, nil
+	return at
 }
 
-func (pkg Package) GetModifiedAt() (time.Time, error) {
+func (pkg Package) GetModifiedAt() time.Time {
 	at, ok := pkg.Time["modified"]
 	if !ok {
-		return time.Time{}, errors.New("no modification date found")
+		return time.Time{}
 	}
 
-	return at, nil
+	return at
 }
 
 func (pkg Package) IsLatest(version string) bool {

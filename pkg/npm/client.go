@@ -159,12 +159,12 @@ func (c *Client) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) GetPackage(ctx context.Context, name, version string) (*Package, error) {
+func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) {
 	if len(name) == 0 {
 		return nil, fmt.Errorf("package name is required")
 	}
 
-	queryURL := fmt.Sprintf("%s/%s/%s", c.registry, name, version)
+	queryURL := fmt.Sprintf("%s/%s", c.registry, name)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
@@ -205,7 +205,7 @@ func (c *Client) GetPackage(ctx context.Context, name, version string) (*Package
 			slog.Int("status_code", resp.StatusCode),
 		)
 
-		return nil, fmt.Errorf("failed fetch npm package info: status code %d", resp.StatusCode)
+		return nil, fmt.Errorf("failed to fetch npm package info: status code %d", resp.StatusCode)
 	}
 
 	var info Package
@@ -217,18 +217,18 @@ func (c *Client) GetPackage(ctx context.Context, name, version string) (*Package
 			slog.String("error", err.Error()),
 		)
 
-		return nil, fmt.Errorf("failed unmarshal npm response: %w", err)
+		return nil, fmt.Errorf("failed to unmarshal npm package response: %w", err)
 	}
 
 	slog.DebugContext(ctx, "successfully fetched npm package",
 		slog.String("package_name", name),
-		slog.String("package_version", version),
+		slog.Int("versions_count", len(info.Versions)),
 	)
 
 	return &info, nil
 }
 
-func (c *Client) GetPackageStats(ctx context.Context, name, period string) (*Stats, error) {
+func (c *Client) GetPackageStats(ctx context.Context, name string, period PackageStatsPeriod) (*Stats, error) {
 	if len(name) == 0 || len(period) == 0 {
 		return nil, fmt.Errorf("package name and period are required")
 	}
@@ -285,7 +285,7 @@ func (c *Client) GetPackageStats(ctx context.Context, name, period string) (*Sta
 			slog.String("error", err.Error()),
 		)
 
-		return nil, fmt.Errorf("failed unmarshal npm response: %w", err)
+		return nil, fmt.Errorf("failed unmarshal npm stats response: %w", err)
 	}
 
 	slog.DebugContext(ctx, "successfully fetched npm package stats",

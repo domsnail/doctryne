@@ -8,3 +8,11 @@ type Stats struct {
 	Start string `json:"start"`
 	End   string `json:"end"`
 }
+
+type PackageStatsPeriod string
+
+const (
+	PackageStatsPeriod_LastMonth PackageStatsPeriod = "last-month"
+	PackageStatsPeriod_LastWeek  PackageStatsPeriod = "last-week"
+	PackageStatsPeriod_LastYear  PackageStatsPeriod = "last-year"
+)
