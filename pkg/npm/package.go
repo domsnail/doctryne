@@ -53,8 +53,10 @@ func (pkg Package) GetUniqueURLs() map[string]URLAffiliation {
 	var urls = make(map[string]URLAffiliation)
 
 	// iterate over each available version
-	for _, v := range pkg.Versions {
-		maps.Copy(urls, v.GetUniqueURLs())
+	if pkg.Versions != nil {
+		for _, v := range pkg.Versions {
+			maps.Copy(urls, v.GetUniqueURLs())
+		}
 	}
 
 	// top values should override version values
@@ -84,8 +86,10 @@ func (pkg Package) GetUniqueEmails() map[string]PersonAffiliation {
 	var emails = make(map[string]PersonAffiliation)
 
 	// iterate over each available version
-	for _, v := range pkg.Versions {
-		maps.Copy(emails, v.GetUniqueEmails())
+	if pkg.Versions != nil {
+		for _, v := range pkg.Versions {
+			maps.Copy(emails, v.GetUniqueEmails())
+		}
 	}
 
 	if pkg.Author.Email != "" {
@@ -107,21 +111,30 @@ func (pkg Package) GetUniqueEmails() map[string]PersonAffiliation {
 	return emails
 }
 
-func (pkg Package) GetGitURL() (*url.URL, error) {
+func (pkg Package) GetGitURL() *url.URL {
 	if pkg.Repository.Url == "" {
 		slog.Debug(fmt.Sprintf("no repository url for package '%s'", pkg.Name))
-		return nil, nil
+		return nil
 	}
 
 	git, err := url.Parse(pkg.Repository.Url)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse git url: %w", err)
+		slog.Warn("invalid npm package repository url",
+			slog.String("url", pkg.Repository.Url),
+			slog.String("error", err.Error()),
+		)
+
+		return nil
 	}
 
-	return git, nil
+	return git
 }
 
 func (pkg Package) GetCreatedAt() time.Time {
+	if pkg.Time == nil {
+		return time.Time{}
+	}
+
 	at, ok := pkg.Time["created"]
 	if !ok {
 		return time.Time{}
@@ -131,6 +144,10 @@ func (pkg Package) GetCreatedAt() time.Time {
 }
 
 func (pkg Package) GetModifiedAt() time.Time {
+	if pkg.Time == nil {
+		return time.Time{}
+	}
+
 	at, ok := pkg.Time["modified"]
 	if !ok {
 		return time.Time{}

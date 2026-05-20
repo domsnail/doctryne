@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -34,14 +35,17 @@ type Options struct {
 }
 
 func NewClient(opts Options) (*Client, error) {
-	slog.Debug("initializing npm client...")
+	slog.Debug("initializing npm client...",
+		slog.Bool("using_bearer_token", opts.BearerToken != ""),
+	)
+
 	var err error
 
 	if opts.Timeout == 0 {
 		return nil, errors.New("timeout is required")
 	}
 
-	var transport http.RoundTripper = &http.Transport{}
+	var transport = http.DefaultTransport
 	if opts.ProxyURL != nil {
 		slog.Debug("using proxy for npm client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
 		transport = &http.Transport{
@@ -49,11 +53,7 @@ func NewClient(opts Options) (*Client, error) {
 		}
 	}
 
-	if opts.BearerToken == "" {
-		slog.Debug("npm bearer token is not set")
-	} else {
-		slog.Debug("setting npm bearer token...")
-
+	if opts.BearerToken != "" {
 		transport = &bearerTransport{
 			token: opts.BearerToken,
 			base:  transport,
@@ -159,16 +159,16 @@ func (c *Client) Ping(ctx context.Context) error {
 	return nil
 }
 
-func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) {
+func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.RawMessage, error) {
 	if len(name) == 0 {
-		return nil, fmt.Errorf("package name is required")
+		return nil, nil, fmt.Errorf("package name is required")
 	}
 
 	queryURL := fmt.Sprintf("%s/%s", c.registry, name)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare request: %w", err)
+		return nil, nil, fmt.Errorf("failed to prepare request: %w", err)
 	}
 
 	slog.DebugContext(ctx, "querying npm registry",
@@ -184,18 +184,17 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) 
 			slog.String("error", err.Error()),
 		)
 
-		return nil, fmt.Errorf("failed fetch npm package info: %w", err)
+		return nil, nil, fmt.Errorf("failed fetch npm package info: %w", err)
 	}
 
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
 		slog.WarnContext(ctx, "package not found",
 			slog.String("package_name", name),
-			slog.String("package_version", version),
 			slog.Int("status_code", resp.StatusCode),
 		)
 
-		return nil, nil
+		return nil, nil, nil
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -205,11 +204,23 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) 
 			slog.Int("status_code", resp.StatusCode),
 		)
 
-		return nil, fmt.Errorf("failed to fetch npm package info: status code %d", resp.StatusCode)
+		return nil, nil, fmt.Errorf("failed to fetch npm package info: status code %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		slog.DebugContext(ctx, "failed to read npm package response",
+			slog.String("method", http.MethodGet),
+			slog.String("query_url", queryURL),
+			slog.Int("status_code", resp.StatusCode),
+			slog.String("error", err.Error()),
+		)
+
+		return nil, nil, fmt.Errorf("failed to read npm package info: %w", err)
 	}
 
 	var info Package
-	if err = json.NewDecoder(resp.Body).Decode(&info); err != nil {
+	if err = json.Unmarshal(body, &info); err != nil {
 		slog.DebugContext(ctx, "failed to unmarshal npm response",
 			slog.String("method", http.MethodGet),
 			slog.String("query_url", queryURL),
@@ -217,7 +228,7 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) 
 			slog.String("error", err.Error()),
 		)
 
-		return nil, fmt.Errorf("failed to unmarshal npm package response: %w", err)
+		return nil, nil, fmt.Errorf("failed to unmarshal npm package response: %w", err)
 	}
 
 	slog.DebugContext(ctx, "successfully fetched npm package",
@@ -225,7 +236,7 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, error) 
 		slog.Int("versions_count", len(info.Versions)),
 	)
 
-	return &info, nil
+	return &info, body, nil
 }
 
 func (c *Client) GetPackageStats(ctx context.Context, name string, period PackageStatsPeriod) (*Stats, error) {

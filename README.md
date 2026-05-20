@@ -20,7 +20,7 @@ List of supported rules:
 - [ ] project last update
 - [ ] project archivation status
 - [ ] project funding status
-- [ ] project category/labels/badges
+- [ ] project category/topics/labels/badges
 
 ## Data extraction pipelines
 
@@ -65,6 +65,7 @@ List of supported rules:
 ### GitHub data extraction (github.com)
 
 - stars
+- topics
 - forks
 - license
 - readme

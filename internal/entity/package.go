@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"encoding/json"
 	"net/url"
 	"time"
 
@@ -8,10 +9,11 @@ import (
 )
 
 type Package struct {
-	Name string
+	Name      string
+	Ecosystem types.Ecosystem
+	Language  types.Language
 
-	Version string
-	Ref     string
+	Git *url.URL
 
 	// Resolved url from which dependency was downloaded
 	Resolved   *url.URL
@@ -31,6 +33,8 @@ type Package struct {
 
 	PublishedAt time.Time
 	ModifiedAt  time.Time
+
+	Raw json.RawMessage
 }
 
 type PackageMetadata struct {

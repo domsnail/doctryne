@@ -9,6 +9,7 @@ import (
 
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/pkg/npm"
+	"github.com/domsnail/doctryne/pkg/types"
 )
 
 type NodePackageManagerServiceImpl struct {
@@ -22,23 +23,24 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 		return nil, errors.New("name is required")
 	}
 
-	npmPkg, err := service.c.GetPackage(ctx, name)
+	npmPkg, raw, err := service.c.GetPackage(ctx, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package '%s': %w", name, err)
+		return nil, fmt.Errorf("failed to fetch package '%s': %w", name, err)
 	} else if npmPkg == nil {
 		return nil, nil
 	}
 
 	npmStats, err := service.c.GetPackageStats(ctx, name, npm.PackageStatsPeriod_LastMonth)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get package stats '%s': %w", name, err)
+		return nil, fmt.Errorf("failed to fetch package stats '%s': %w", name, err)
 	} else if npmStats == nil {
 		return nil, fmt.Errorf("no package stats found for package '%s'", name)
 	}
 
-	slog.Debug("converting npm package...", slog.String("package_name", npmPkg.Name))
+	slog.DebugContext(ctx, "converting npm package...", slog.String("package_name", npmPkg.Name))
 	var pkg = getPackage(npmPkg)
 	pkg.Stats = getPackageStats(npmStats)
+	pkg.Raw = raw
 
 	return pkg, nil
 }
@@ -46,9 +48,10 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 func getPackage(n *npm.Package) *entity.Package {
 	pkg := entity.Package{
 		Name:       n.Name,
-		Ref:        n.Rev,
-		Registry:   "",
+		Ecosystem:  types.Ecosystem_NPM,
+		Language:   types.Language_JavaScript,
 		RegistryID: n.ID,
+		Git:        n.GetGitURL(),
 		License:    n.License,
 		Metadata: &entity.PackageMetadata{
 			Description: n.Description,

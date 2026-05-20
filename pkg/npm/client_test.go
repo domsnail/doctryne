@@ -2,6 +2,7 @@ package npm
 
 import (
 	"context"
+	"encoding/json"
 	"log/slog"
 	"os"
 	"testing"
@@ -32,7 +33,10 @@ func TestClient_GetPackage(t *testing.T) {
 		require.NotNil(t, client)
 	})
 
-	var testPackage *Package
+	var (
+		testPackage1 *Package
+		testPackage2 *Package
+	)
 
 	t.Run("npm client get package test", func(t *testing.T) {
 		client, err := NewClient(Options{
@@ -45,20 +49,31 @@ func TestClient_GetPackage(t *testing.T) {
 		err = client.Ping(context.Background())
 		require.Error(t, err, "must be unauthorized")
 
-		testPackage, err = client.GetPackage(context.Background(), "detect-libc", "")
+		var raw json.RawMessage
+		testPackage1, raw, err = client.GetPackage(context.Background(), "detect-libc")
 		require.NoError(t, err)
-		require.NotNil(t, testPackage)
+		require.NotNil(t, raw)
+		require.NotNil(t, testPackage1)
 
-		pkg, err := client.GetPackage(context.Background(), "detect-libc", "2.0.1")
+		testPackage2, raw, err = client.GetPackage(context.Background(), "react")
 		require.NoError(t, err)
+		require.NotNil(t, raw)
+		require.NotNil(t, testPackage2)
+
+		pkg, raw, err := client.GetPackage(context.Background(), "detect-libc")
+		require.NoError(t, err)
+		require.NotNil(t, raw)
 		require.NotNil(t, pkg)
 
-		pkg, err = client.GetPackage(context.Background(), "package-that-not-exist", "9999")
+		pkg, raw, err = client.GetPackage(context.Background(), "package-that-not-exist")
 		require.NoError(t, err)
+		require.Nil(t, raw)
 		require.Nil(t, pkg)
 	})
 
 	t.Run("npm client get package test with bearer token", func(t *testing.T) {
+		require.NotEmpty(t, os.Getenv("NPM_API_KEY"))
+
 		client, err := NewClient(Options{
 			Timeout:     time.Second * 30,
 			BearerToken: os.Getenv("NPM_API_KEY"),
@@ -70,25 +85,33 @@ func TestClient_GetPackage(t *testing.T) {
 	})
 
 	t.Run("npm client get package emails", func(t *testing.T) {
-		emails := testPackage.GetUniqueEmails()
+		emails := testPackage1.GetUniqueEmails()
 		require.Len(t, emails, 4)
 	})
 
 	t.Run("npm client get package urls", func(t *testing.T) {
-		urls := testPackage.GetUniqueURLs()
+		urls := testPackage1.GetUniqueURLs()
 		require.Len(t, urls, 26)
 	})
 
 	t.Run("npm client get creation date", func(t *testing.T) {
-		at, err := testPackage.GetCreatedAt()
-		require.NoError(t, err)
+		at := testPackage1.GetCreatedAt()
 		require.EqualValues(t, "2017-07-03 20:58:20.378 +0000 UTC", at.String())
 	})
 
 	t.Run("npm client get modification date", func(t *testing.T) {
-		at, err := testPackage.GetModifiedAt()
-		require.NoError(t, err)
+		at := testPackage1.GetModifiedAt()
 		require.EqualValues(t, "2025-10-05 12:46:33.558 +0000 UTC", at.String())
+	})
+
+	t.Run("npm client get git repository url", func(t *testing.T) {
+		git := testPackage1.GetGitURL()
+		require.EqualValues(t, "git://github.com/lovell/detect-libc.git", git.String())
+	})
+
+	t.Run("npm client get git repository url (2 schemas)", func(t *testing.T) {
+		git := testPackage2.GetGitURL()
+		require.EqualValues(t, "git+https://github.com/facebook/react.git", git.String())
 	})
 
 	t.Run("npm client get package stats", func(t *testing.T) {
