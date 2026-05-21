@@ -118,10 +118,11 @@ func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner,
 	}
 
 	var repository entity.Repository
+
 	return &repository, nil
 }
 
-func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link url.URL) (*entity.Repository, error) {
+func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.Repository, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -162,14 +163,16 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 	return &person, nil
 }
 
-func repositoryFromURL(link url.URL) (owner, name string, err error) {
+func repositoryFromURL(link *url.URL) (owner, name string, err error) {
 	slog.Debug("trying to determine github repository owner/name...",
 		slog.String("repository_url", link.Redacted()),
 	)
 
+	path := strings.TrimSuffix(strings.Trim(link.EscapedPath(), "/"), ".git")
+
 	switch link.Hostname() {
 	case "github.com":
-		parts := strings.SplitN(link.Path, "/", 2)
+		parts := strings.SplitN(path, "/", 2)
 		if len(parts) != 2 {
 			return "", "", fmt.Errorf("repository url not supported: '%s'", link.String())
 		}
@@ -178,4 +181,95 @@ func repositoryFromURL(link url.URL) (owner, name string, err error) {
 	default:
 		return "", "", fmt.Errorf("unsupported git hostname '%s'", link.Hostname())
 	}
+}
+
+func repositoryToEntity(g *github.Repository) *entity.Repository {
+	r := entity.Repository{
+		Name:             g.GetFullName(),
+		Description:      g.GetDescription(),
+		DefaultBranch:    g.GetDefaultBranch(),
+		Homepage:         g.GetHomepage(),
+		Owner:            userToEntity(g.GetOwner()),
+		Organization:     organizationToEntity(g.GetOrganization()),
+		Language:         g.GetLanguage(),
+		Size:             uint64(g.GetSize()),
+		IsArchived:       g.GetArchived(),
+		IsDisabled:       g.GetDisabled(),
+		IsFork:           g.GetFork(),
+		ForksCount:       uint64(g.GetForksCount()),
+		NetworkCount:     uint64(g.GetNetworkCount()),
+		OpenIssuesCount:  uint64(g.GetOpenIssuesCount()),
+		StargazersCount:  uint64(g.GetStargazersCount()),
+		SubscribersCount: uint64(g.GetSubscribersCount()),
+		GithubID:         g.GetID(),
+	}
+
+	if g.GitURL != nil {
+		var err error
+		r.GitURL, err = url.Parse(g.GetGitURL())
+		if err != nil {
+			slog.Warn(fmt.Sprintf("failed to parse github url: %s", err.Error()))
+		}
+	}
+
+	if g.License != nil {
+		r.License = g.GetLicense().GetName()
+	}
+
+	if g.CreatedAt != nil {
+		r.CreatedAt = g.CreatedAt.Time
+	}
+
+	if g.UpdatedAt != nil {
+		r.UpdatedAt = g.UpdatedAt.Time
+	}
+
+	if g.PushedAt != nil {
+		r.PushedAt = g.PushedAt.Time
+	}
+
+	return &r
+}
+
+func userToEntity(g *github.User) *entity.Person {
+	if g == nil {
+		return nil
+	}
+
+	p := entity.Person{
+		GithubID:          g.ID,
+		Name:              g.GetName(),
+		Emails:            []string{g.GetEmail()},
+		TwitterUsername:   g.GetTwitterUsername(),
+		Location:          g.GetLocation(),
+		Company:           g.GetCompany(),
+		Blog:              g.GetBlog(),
+		Bio:               g.GetBio(),
+		IsHireable:        g.GetHireable(),
+		IsSiteAdmin:       g.GetSiteAdmin(),
+		FollowersCount:    uint64(g.GetFollowers()),
+		FollowingCount:    uint64(g.GetFollowing()),
+		PublicReposCount:  uint64(g.GetPublicRepos()),
+		PrivateReposCount: uint64(g.GetOwnedPrivateRepos()),
+	}
+
+	if g.CreatedAt != nil {
+		p.CreatedAt = g.CreatedAt.Time
+	}
+
+	if g.UpdatedAt != nil {
+		p.UpdatedAt = g.UpdatedAt.Time
+	}
+
+	if g.SuspendedAt != nil {
+		p.SuspendedAt = g.SuspendedAt.Time
+	}
+
+	return &p
+}
+
+func organizationToEntity(g *github.Organization) *entity.Organization {
+	p := entity.Organization{}
+
+	return &p
 }

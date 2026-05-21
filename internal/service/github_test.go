@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"log/slog"
-	"net/http"
+	"net/url"
 	"os"
 	"testing"
 	"time"
@@ -79,26 +79,22 @@ func TestGithubServiceImpl_GetRepositoryInfo(t *testing.T) {
 	require.NotNil(t, service)
 
 	t.Run("get user repository info", func(t *testing.T) {
-		repo, resp, err := service.c.Repositories.Get(context.Background(), "Qvineox", "cyclonedx-ui")
+		repo, err := service.GetRepositoryByName(context.Background(), "Qvineox", "cyclonedx-ui")
 		require.NoError(t, err)
-
-		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, repo)
 	})
 
 	t.Run("get organization repository info", func(t *testing.T) {
-		repo, resp, err := service.c.Repositories.Get(context.Background(), "domsnail", "doctryne")
+		repo, err := service.GetRepositoryByName(context.Background(), "domsnail", "doctryne")
 		require.NoError(t, err)
-
-		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotNil(t, repo)
 	})
 
 	t.Run("get repository by git url", func(t *testing.T) {
-		repo, resp, err := service.c.Repositories.Get(context.Background(), "domsnail", "doctryne")
-		require.NoError(t, err)
+		link, _ := url.Parse("https://github.com/facebook/react.git")
 
-		require.Equal(t, http.StatusOK, resp.StatusCode)
+		repo, err := service.GetRepositoryByURL(context.Background(), link)
+		require.NoError(t, err)
 		require.NotNil(t, repo)
 	})
 }
