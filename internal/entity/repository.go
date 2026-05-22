@@ -11,7 +11,7 @@ type Repository struct {
 
 	DefaultBranch string
 	Homepage      string
-	Owner         *Person
+	Owner         *Owner
 	Organization  *Organization
 
 	Language string
@@ -23,7 +23,7 @@ type Repository struct {
 	ForksCount uint64
 
 	NetworkCount     uint64
-	OpenIssuesCount  uint64
+	OpenIssuesCount  uint64 // including open pull requests
 	StargazersCount  uint64
 	SubscribersCount uint64
 

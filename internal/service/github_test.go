@@ -82,12 +82,29 @@ func TestGithubServiceImpl_GetRepositoryInfo(t *testing.T) {
 		repo, err := service.GetRepositoryByName(context.Background(), "Qvineox", "cyclonedx-ui")
 		require.NoError(t, err)
 		require.NotNil(t, repo)
+
+		require.EqualValues(t, "qvineox/cyclonedx-ui", repo.Name)
+
+		require.NotNil(t, repo.Owner)
+		require.EqualValues(t, "Qvineox", repo.Owner.Username)
+		require.False(t, repo.Owner.IsPrivate)
+
+		require.Nil(t, repo.Organization)
 	})
 
 	t.Run("get organization repository info", func(t *testing.T) {
 		repo, err := service.GetRepositoryByName(context.Background(), "domsnail", "doctryne")
 		require.NoError(t, err)
 		require.NotNil(t, repo)
+
+		require.EqualValues(t, "domsnail/doctryne", repo.Name)
+
+		require.NotNil(t, repo.Owner)
+		require.EqualValues(t, "domsnail", repo.Owner.Username)
+		require.False(t, repo.Owner.IsPrivate)
+
+		require.NotNil(t, repo.Organization)
+		require.EqualValues(t, "domsnail", repo.Organization.Username)
 	})
 
 	t.Run("get repository by git url", func(t *testing.T) {
@@ -96,5 +113,77 @@ func TestGithubServiceImpl_GetRepositoryInfo(t *testing.T) {
 		repo, err := service.GetRepositoryByURL(context.Background(), link)
 		require.NoError(t, err)
 		require.NotNil(t, repo)
+	})
+}
+
+func TestGithubServiceImpl_GetUserInfo(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	})))
+
+	service, err := NewGithubServiceImpl(GithubServiceOpts{
+		Timeout:     time.Second * 30,
+		AccessToken: os.Getenv("GITHUB_API_KEY"),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	t.Run("get user info", func(t *testing.T) {
+		user, err := service.GetUserByUsername(context.Background(), "Qvineox")
+		require.NoError(t, err)
+		require.NotNil(t, user)
+
+		require.EqualValues(t, 43321560, *user.GithubID)
+		require.EqualValues(t, "qvineox", user.Username)
+		require.EqualValues(t, "lysak yaroslav", user.Name)
+		require.EqualValues(t, "Moscow, Russia", user.Location)
+
+		require.GreaterOrEqual(t, 30, user.PublicReposCount)
+		require.GreaterOrEqual(t, 30, user.PublicReposCount)
+
+		require.False(t, user.IsPrivate)
+		require.False(t, user.IsHireable)
+		require.False(t, user.IsSiteAdmin)
+
+		require.NotNil(t, user.CreatedAt)
+		require.NotNil(t, user.UpdatedAt)
+		require.Nil(t, user.SuspendedAt)
+	})
+}
+
+func TestGithubServiceImpl_GetOrganizationInfo(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	})))
+
+	service, err := NewGithubServiceImpl(GithubServiceOpts{
+		Timeout:     time.Second * 30,
+		AccessToken: os.Getenv("GITHUB_API_KEY"),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	t.Run("get organization info", func(t *testing.T) {
+		org, err := service.GetOrganizationByName(context.Background(), "domsnail")
+		require.NoError(t, err)
+		require.NotNil(t, org)
+
+		require.EqualValues(t, 227165210, *org.GithubID)
+		require.EqualValues(t, "domsnail", org.Username)
+		require.EqualValues(t, "Domsnail", org.Name)
+		require.EqualValues(t, "Russian Federation", org.Location)
+
+		require.GreaterOrEqual(t, uint64(2), org.PublicReposCount)
+		require.GreaterOrEqual(t, uint64(1), org.FollowersCount)
+
+		require.False(t, org.IsVerified)
+
+		require.NotNil(t, org.CreatedAt)
+		require.NotNil(t, org.UpdatedAt)
+		require.Nil(t, org.ArchivedAt)
 	})
 }

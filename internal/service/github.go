@@ -14,6 +14,8 @@ import (
 	"github.com/google/go-github/v87/github"
 )
 
+const itemsPerPage = 100
+
 type GithubServiceImpl struct {
 	c *github.Client
 }
@@ -23,6 +25,8 @@ type GithubServiceOpts struct {
 	ProxyURL *url.URL
 
 	AccessToken string
+
+	LatestActivityDepth int
 }
 
 func NewGithubServiceImpl(opts GithubServiceOpts) (*GithubServiceImpl, error) {
@@ -107,7 +111,7 @@ func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner,
 		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
 	)
 
-	_, _, err := service.c.Repositories.Get(ctx, strings.ToLower(owner), strings.ToLower(name))
+	githubRepo, _, err := service.c.Repositories.Get(ctx, strings.ToLower(owner), strings.ToLower(name))
 	if err != nil {
 		slog.DebugContext(ctx, "failed to fetch repository",
 			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -117,9 +121,7 @@ func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner,
 		return nil, fmt.Errorf("failed to fetch repository: %w", err)
 	}
 
-	var repository entity.Repository
-
-	return &repository, nil
+	return repositoryToEntity(githubRepo), nil
 }
 
 func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.Repository, error) {
@@ -138,7 +140,7 @@ func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *u
 	return service.GetRepositoryByName(ctx, owner, name)
 }
 
-func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Person, error) {
+func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Owner, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if username == "" {
@@ -149,7 +151,7 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 		slog.String("username", username),
 	)
 
-	_, _, err := service.c.Users.Get(ctx, username)
+	user, _, err := service.c.Users.Get(ctx, username)
 	if err != nil {
 		slog.DebugContext(ctx, "failed to fetch github user",
 			slog.String("username", username),
@@ -159,8 +161,51 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 		return nil, fmt.Errorf("failed to fetch github user: %w", err)
 	}
 
-	var person entity.Person
-	return &person, nil
+	return userToEntity(user), nil
+}
+
+// GetUserActivity returns up to 300 events (max past 90 days)
+func (service GithubServiceImpl) GetUserActivity(ctx context.Context, username string, depth time.Duration) (*entity.Activity, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	} else if username == "" {
+		return nil, fmt.Errorf("github username is required")
+	}
+
+	slog.DebugContext(ctx, "fetching github user activity...",
+		slog.String("username", username),
+		slog.Duration("depth", depth),
+	)
+
+	_, _, err := service.c.Activity.ListEventsPerformedByUser(ctx, username, true, &github.ListOptions{
+		PerPage: itemsPerPage,
+	})
+
+	return nil, err
+}
+
+func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	} else if name == "" {
+		return nil, fmt.Errorf("github organization name is required")
+	}
+
+	slog.DebugContext(ctx, "fetching github organization...",
+		slog.String("name", name),
+	)
+
+	organization, _, err := service.c.Organizations.Get(ctx, name)
+	if err != nil {
+		slog.DebugContext(ctx, "failed to fetch github organization",
+			slog.String("name", name),
+			slog.String("error", err.Error()),
+		)
+
+		return nil, fmt.Errorf("failed to fetch github organization: %w", err)
+	}
+
+	return organizationToEntity(organization), nil
 }
 
 func repositoryFromURL(link *url.URL) (owner, name string, err error) {
@@ -185,7 +230,7 @@ func repositoryFromURL(link *url.URL) (owner, name string, err error) {
 
 func repositoryToEntity(g *github.Repository) *entity.Repository {
 	r := entity.Repository{
-		Name:             g.GetFullName(),
+		Name:             strings.TrimSpace(strings.ToLower(g.GetFullName())),
 		Description:      g.GetDescription(),
 		DefaultBranch:    g.GetDefaultBranch(),
 		Homepage:         g.GetHomepage(),
@@ -231,15 +276,15 @@ func repositoryToEntity(g *github.Repository) *entity.Repository {
 	return &r
 }
 
-func userToEntity(g *github.User) *entity.Person {
+func userToEntity(g *github.User) *entity.Owner {
 	if g == nil {
 		return nil
 	}
 
-	p := entity.Person{
+	p := entity.Owner{
 		GithubID:          g.ID,
 		Name:              g.GetName(),
-		Emails:            []string{g.GetEmail()},
+		Username:          strings.ToLower(g.GetLogin()),
 		TwitterUsername:   g.GetTwitterUsername(),
 		Location:          g.GetLocation(),
 		Company:           g.GetCompany(),
@@ -253,6 +298,14 @@ func userToEntity(g *github.User) *entity.Person {
 		PrivateReposCount: uint64(g.GetOwnedPrivateRepos()),
 	}
 
+	if g.UserViewType != nil {
+		p.IsPrivate = *g.UserViewType != "public"
+	}
+
+	if g.Email != nil {
+		p.Emails = []string{g.GetEmail()}
+	}
+
 	if g.CreatedAt != nil {
 		p.CreatedAt = g.CreatedAt.Time
 	}
@@ -262,14 +315,53 @@ func userToEntity(g *github.User) *entity.Person {
 	}
 
 	if g.SuspendedAt != nil {
-		p.SuspendedAt = g.SuspendedAt.Time
+		p.SuspendedAt = &g.SuspendedAt.Time
 	}
 
 	return &p
 }
 
 func organizationToEntity(g *github.Organization) *entity.Organization {
-	p := entity.Organization{}
+	if g == nil {
+		return nil
+	}
+
+	p := entity.Organization{
+		GithubID:           g.ID,
+		Name:               g.GetName(),
+		Username:           strings.ToLower(g.GetLogin()),
+		Description:        g.GetDescription(),
+		TwitterUsername:    g.GetTwitterUsername(),
+		Location:           g.GetLocation(),
+		Company:            g.GetCompany(),
+		Blog:               g.GetBlog(),
+		IsVerified:         g.GetIsVerified(),
+		FollowersCount:     uint64(g.GetFollowers()),
+		FollowingCount:     uint64(g.GetFollowing()),
+		CollaboratorsCount: uint64(g.GetCollaborators()),
+		PublicReposCount:   uint64(g.GetPublicRepos()),
+		PrivateReposCount:  uint64(g.GetOwnedPrivateRepos()),
+	}
+
+	if g.Email != nil {
+		p.Emails = []string{g.GetEmail()}
+	}
+
+	if g.BillingEmail != nil {
+		p.Emails = []string{g.GetBillingEmail()}
+	}
+
+	if g.CreatedAt != nil {
+		p.CreatedAt = g.CreatedAt.Time
+	}
+
+	if g.UpdatedAt != nil {
+		p.UpdatedAt = g.UpdatedAt.Time
+	}
+
+	if g.ArchivedAt != nil {
+		p.ArchivedAt = &g.ArchivedAt.Time
+	}
 
 	return &p
 }

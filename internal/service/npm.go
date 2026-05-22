@@ -68,45 +68,45 @@ func getPackage(n *npm.Package) *entity.Package {
 
 func getPackageContributors(n *npm.Package) *entity.PackageContributors {
 	var contrib = entity.PackageContributors{
-		Authors:      make([]entity.Person, 0),
-		Contributors: make([]entity.Person, 0),
-		Maintainers:  make([]entity.Person, 0),
+		Authors:      make([]entity.Owner, 0),
+		Contributors: make([]entity.Owner, 0),
+		Maintainers:  make([]entity.Owner, 0),
 	}
 
-	contrib.Authors = append(contrib.Authors, entity.Person{
+	contrib.Authors = append(contrib.Authors, entity.Owner{
 		Name:   n.Author.Name,
 		Emails: []string{n.Author.Email},
 	})
 
 	for _, item := range n.Contributors {
-		contrib.Authors = append(contrib.Contributors, entity.Person{
+		contrib.Authors = append(contrib.Contributors, entity.Owner{
 			Name:   item.Name,
 			Emails: []string{item.Email},
 		})
 	}
 
 	for _, item := range n.Maintainers {
-		contrib.Authors = append(contrib.Maintainers, entity.Person{
+		contrib.Authors = append(contrib.Maintainers, entity.Owner{
 			Name:   item.Name,
 			Emails: []string{item.Email},
 		})
 	}
 
 	for _, version := range n.Versions {
-		contrib.Authors = append(contrib.Authors, entity.Person{
+		contrib.Authors = append(contrib.Authors, entity.Owner{
 			Name:   version.Author.Name,
 			Emails: []string{version.Author.Email},
 		})
 
 		for _, item := range version.Contributors {
-			contrib.Authors = append(contrib.Contributors, entity.Person{
+			contrib.Authors = append(contrib.Contributors, entity.Owner{
 				Name:   item.Name,
 				Emails: []string{item.Email},
 			})
 		}
 
 		for _, item := range version.Maintainers {
-			contrib.Authors = append(contrib.Maintainers, entity.Person{
+			contrib.Authors = append(contrib.Maintainers, entity.Owner{
 				Name:   item.Name,
 				Emails: []string{item.Email},
 			})
