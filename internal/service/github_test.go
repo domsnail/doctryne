@@ -186,4 +186,66 @@ func TestGithubServiceImpl_GetOrganizationInfo(t *testing.T) {
 		require.NotNil(t, org.UpdatedAt)
 		require.Nil(t, org.ArchivedAt)
 	})
+
+	t.Run("get organization info", func(t *testing.T) {
+		org, err := service.GetOrganizationByName(context.Background(), "atlassian")
+		require.NoError(t, err)
+		require.NotNil(t, org)
+
+		require.EqualValues(t, 168166, *org.GithubID)
+		require.EqualValues(t, "atlassian", org.Username)
+		require.EqualValues(t, "Atlassian", org.Name)
+		require.EqualValues(t, "Australia", org.Location)
+
+		require.Len(t, org.Emails, 1)
+
+		require.GreaterOrEqual(t, uint64(1600), org.FollowersCount)
+
+		require.True(t, org.IsVerified)
+
+		require.NotNil(t, org.CreatedAt)
+		require.NotNil(t, org.UpdatedAt)
+		require.Nil(t, org.ArchivedAt)
+	})
+}
+
+func TestGithubServiceImpl_GetUserActivity(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	})))
+
+	service, err := NewGithubServiceImpl(GithubServiceOpts{
+		Timeout:     time.Second * 30,
+		AccessToken: os.Getenv("GITHUB_API_KEY"),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	t.Run("get user latest activity info", func(t *testing.T) {
+		_, err := service.GetUserActivity(context.Background(), "qvineox")
+		require.NoError(t, err)
+
+	})
+}
+
+func TestGithubServiceImpl_GetCompanyUsers(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	})))
+
+	service, err := NewGithubServiceImpl(GithubServiceOpts{
+		Timeout:     time.Second * 30,
+		AccessToken: os.Getenv("GITHUB_API_KEY"),
+	})
+
+	require.NoError(t, err)
+	require.NotNil(t, service)
+
+	t.Run("get users with company rgs in bio", func(t *testing.T) {
+		_, err := service.GetCompanyUsers(context.Background(), "PJSC IC RGS")
+		require.NoError(t, err)
+	})
 }

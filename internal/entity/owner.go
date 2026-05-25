@@ -2,7 +2,7 @@ package entity
 
 import "time"
 
-type Owner struct {
+type Developer struct {
 	Name     string
 	Username string
 	Emails   []string

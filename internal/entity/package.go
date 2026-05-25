@@ -54,7 +54,7 @@ type PackageDownloads struct {
 }
 
 type PackageContributors struct {
-	Authors      []Owner
-	Contributors []Owner
-	Maintainers  []Owner
+	Authors      []Developer
+	Contributors []Developer
+	Maintainers  []Developer
 }

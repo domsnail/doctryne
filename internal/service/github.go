@@ -15,6 +15,7 @@ import (
 )
 
 const itemsPerPage = 100
+const maxPages = 3
 
 type GithubServiceImpl struct {
 	c *github.Client
@@ -100,6 +101,8 @@ func (service GithubServiceImpl) Ping(ctx context.Context) error {
 	return nil
 }
 
+// === GitHub Repository ===
+
 func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner, name string) (*entity.Repository, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
@@ -140,7 +143,124 @@ func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *u
 	return service.GetRepositoryByName(ctx, owner, name)
 }
 
-func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Owner, error) {
+func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.Repository, error) {
+	if username == "" {
+		return nil, fmt.Errorf("github username is required")
+	}
+
+	var page = 1
+	var repos []*github.Repository
+
+	for page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		slog.DebugContext(ctx, "fetching github user repositories...",
+			slog.String("username", username),
+			slog.Int("items_per_page", itemsPerPage),
+			slog.Int("page", page),
+		)
+
+		r, _, err := service.c.Repositories.ListByUser(ctx, username, &github.RepositoryListByUserOptions{
+			Type:      "owner",
+			Sort:      "updated",
+			Direction: "desc",
+			ListOptions: github.ListOptions{
+				Page:    page,
+				PerPage: itemsPerPage,
+			},
+		})
+
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github user repositories",
+				slog.String("error", err.Error()),
+			)
+		}
+
+		repos = append(repos, r...)
+
+		slog.DebugContext(ctx, "fetched github user repositories",
+			slog.String("username", username),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(repos), len(r))),
+			slog.Int("page", page),
+		)
+
+		if len(r) < itemsPerPage {
+			break
+		}
+
+		page++
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github user repositories",
+		slog.String("username", username),
+		slog.Int("items_total", len(repos)),
+	)
+
+	return nil, nil
+}
+
+func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner, name string) ([]*entity.Contributor, error) {
+	if owner == "" || name == "" {
+		return nil, fmt.Errorf("repository owner and name are required")
+	}
+
+	var page = 1
+	var contributors []*github.Contributor
+
+	slog.DebugContext(ctx, "fetching github repository contributors...",
+		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+	)
+
+	for page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		slog.DebugContext(ctx, "fetching github repository contributors...",
+			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+			slog.Int("items_per_page", itemsPerPage),
+			slog.Int("page", page),
+		)
+
+		contrib, _, err := service.c.Repositories.ListContributors(ctx, strings.ToLower(owner), strings.ToLower(name), &github.ListContributorsOptions{
+			Anon:        "true",
+			ListOptions: github.ListOptions{},
+		})
+
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github repository contributors",
+				slog.String("error", err.Error()),
+			)
+		}
+
+		contributors = append(contributors, contrib...)
+
+		slog.DebugContext(ctx, "fetched github repository contributors",
+			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(contributors), len(contrib))),
+			slog.Int("page", page),
+		)
+
+		if len(contrib) < itemsPerPage {
+			break
+		}
+
+		page++
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github repository contributors",
+		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+		slog.Int("items_total", len(contributors)),
+	)
+
+	return nil, nil
+}
+
+// === GitHub Users ===
+
+func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if username == "" {
@@ -165,24 +285,119 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 }
 
 // GetUserActivity returns up to 300 events (max past 90 days)
-func (service GithubServiceImpl) GetUserActivity(ctx context.Context, username string, depth time.Duration) (*entity.Activity, error) {
-	if ctx.Err() != nil {
-		return nil, ctx.Err()
-	} else if username == "" {
+func (service GithubServiceImpl) GetUserActivity(ctx context.Context, username string) (*entity.Activity, error) {
+	if username == "" {
 		return nil, fmt.Errorf("github username is required")
 	}
 
-	slog.DebugContext(ctx, "fetching github user activity...",
+	var page = 1
+	var events []*github.Event
+
+	for page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		slog.DebugContext(ctx, "fetching github user activity...",
+			slog.String("username", username),
+			slog.Int("items_per_page", itemsPerPage),
+			slog.Int("page", page),
+		)
+
+		evt, _, err := service.c.Activity.ListEventsPerformedByUser(ctx, username, true, &github.ListOptions{
+			PerPage: itemsPerPage,
+			Page:    page,
+		})
+
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github user activity",
+				slog.String("error", err.Error()),
+			)
+		}
+
+		events = append(events, evt...)
+
+		slog.DebugContext(ctx, "fetched github user activity",
+			slog.String("username", username),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(events), len(evt))),
+			slog.Int("page", page),
+		)
+
+		if len(evt) < itemsPerPage {
+			break
+		}
+
+		page++
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github user activity",
 		slog.String("username", username),
-		slog.Duration("depth", depth),
+		slog.Int("items_total", len(events)),
 	)
 
-	_, _, err := service.c.Activity.ListEventsPerformedByUser(ctx, username, true, &github.ListOptions{
-		PerPage: itemsPerPage,
-	})
-
-	return nil, err
+	return nil, nil
 }
+
+// === GitHub Companies ===
+
+func (service GithubServiceImpl) GetCompanyUsers(ctx context.Context, name string) (*entity.Activity, error) {
+	if name == "" {
+		return nil, fmt.Errorf("github organization company is required")
+	}
+
+	var users []*github.User
+	var query = fmt.Sprintf("company:%s", name)
+	var opts = &github.SearchOptions{
+		Sort:  "joined",
+		Order: "asc",
+		ListOptions: github.ListOptions{
+			Page:    1,
+			PerPage: itemsPerPage,
+		},
+	}
+
+	for opts.Page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		slog.DebugContext(ctx, "fetching github company users...",
+			slog.String("name", name),
+			slog.Int("items_per_page", itemsPerPage),
+			slog.Int("page", opts.Page),
+		)
+
+		res, _, err := service.c.Search.Users(ctx, query, opts)
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github company users",
+				slog.String("error", err.Error()),
+			)
+		}
+
+		users = append(users, res.Users...)
+
+		slog.DebugContext(ctx, "fetched github company users",
+			slog.String("name", name),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(users), len(res.Users))),
+			slog.Int("page", opts.Page),
+		)
+
+		if len(users) >= res.GetTotal() {
+			break
+		}
+
+		opts.Page++
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github company users",
+		slog.String("name", name),
+		slog.Int("items_total", len(users)),
+	)
+
+	return nil, nil
+}
+
+// === GitHub Organizations ===
 
 func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error) {
 	if ctx.Err() != nil {
@@ -207,6 +422,66 @@ func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name
 
 	return organizationToEntity(organization), nil
 }
+
+func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error) {
+	if name == "" {
+		return nil, fmt.Errorf("github organization name is required")
+	}
+
+	var page = 1
+	var events []*github.User
+
+	for page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		slog.DebugContext(ctx, "fetching github organization members...",
+			slog.String("name", name),
+			slog.Int("items_per_page", itemsPerPage),
+			slog.Int("page", page),
+		)
+
+		evt, _, err := service.c.Organizations.ListMembers(ctx, name, &github.ListMembersOptions{
+			PublicOnly: true,
+			Filter:     "all",
+			Role:       "all",
+			ListOptions: github.ListOptions{
+				PerPage: itemsPerPage,
+				Page:    page,
+			},
+		})
+
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github organization members",
+				slog.String("error", err.Error()),
+			)
+		}
+
+		events = append(events, evt...)
+
+		slog.DebugContext(ctx, "fetched github organization members",
+			slog.String("name", name),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(events), len(evt))),
+			slog.Int("page", page),
+		)
+
+		if len(evt) < itemsPerPage {
+			break
+		}
+
+		page++
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github organization members",
+		slog.String("name", name),
+		slog.Int("items_total", len(events)),
+	)
+
+	return nil, nil
+}
+
+// === helpers ===
 
 func repositoryFromURL(link *url.URL) (owner, name string, err error) {
 	slog.Debug("trying to determine github repository owner/name...",
@@ -276,12 +551,12 @@ func repositoryToEntity(g *github.Repository) *entity.Repository {
 	return &r
 }
 
-func userToEntity(g *github.User) *entity.Owner {
+func userToEntity(g *github.User) *entity.Developer {
 	if g == nil {
 		return nil
 	}
 
-	p := entity.Owner{
+	p := entity.Developer{
 		GithubID:          g.ID,
 		Name:              g.GetName(),
 		Username:          strings.ToLower(g.GetLogin()),
@@ -316,6 +591,25 @@ func userToEntity(g *github.User) *entity.Owner {
 
 	if g.SuspendedAt != nil {
 		p.SuspendedAt = &g.SuspendedAt.Time
+	}
+
+	return &p
+}
+
+func contributorToEntity(g *github.Contributor) *entity.Developer {
+	if g == nil {
+		return nil
+	}
+
+	p := entity.Developer{
+		GithubID:    g.ID,
+		Name:        g.GetName(),
+		Username:    strings.ToLower(g.GetLogin()),
+		IsSiteAdmin: g.GetSiteAdmin(),
+	}
+
+	if g.Email != nil {
+		p.Emails = []string{g.GetEmail()}
 	}
 
 	return &p

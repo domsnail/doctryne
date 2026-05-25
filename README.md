@@ -96,4 +96,10 @@ List of supported rules:
     - country/region
     - other projects
     - other companies
-- 
+    - anonymous contributions
+- organizations
+  - members count
+
+## Future feature
+
+- automated checks

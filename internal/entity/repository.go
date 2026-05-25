@@ -11,7 +11,7 @@ type Repository struct {
 
 	DefaultBranch string
 	Homepage      string
-	Owner         *Owner
+	Owner         *Developer
 	Organization  *Organization
 
 	Language string
