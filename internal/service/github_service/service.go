@@ -1,4 +1,4 @@
-package service
+package github_service
 
 import (
 	"context"
@@ -149,7 +149,7 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 	}
 
 	var page = 1
-	var repos []*github.Repository
+	var repos []*entity.Repository
 
 	for page <= maxPages {
 		if ctx.Err() != nil {
@@ -178,7 +178,7 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 			)
 		}
 
-		repos = append(repos, r...)
+		repos = append(repos, repositoriesToEntity(r)...)
 
 		slog.DebugContext(ctx, "fetched github user repositories",
 			slog.String("username", username),
@@ -201,13 +201,13 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 	return nil, nil
 }
 
-func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner, name string) ([]*entity.Contributor, error) {
+func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner, name string) ([]*entity.Developer, error) {
 	if owner == "" || name == "" {
 		return nil, fmt.Errorf("repository owner and name are required")
 	}
 
 	var page = 1
-	var contributors []*github.Contributor
+	var contributors []*entity.Developer
 
 	slog.DebugContext(ctx, "fetching github repository contributors...",
 		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -225,8 +225,11 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 		)
 
 		contrib, _, err := service.c.Repositories.ListContributors(ctx, strings.ToLower(owner), strings.ToLower(name), &github.ListContributorsOptions{
-			Anon:        "true",
-			ListOptions: github.ListOptions{},
+			Anon: "true",
+			ListOptions: github.ListOptions{
+				Page:    page,
+				PerPage: itemsPerPage,
+			},
 		})
 
 		if err != nil {
@@ -235,7 +238,7 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 			)
 		}
 
-		contributors = append(contributors, contrib...)
+		contributors = append(contributors, contributorsToEntity(contrib)...)
 
 		slog.DebugContext(ctx, "fetched github repository contributors",
 			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -255,7 +258,7 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 		slog.Int("items_total", len(contributors)),
 	)
 
-	return nil, nil
+	return contributors, nil
 }
 
 // === GitHub Users ===
@@ -372,6 +375,8 @@ func (service GithubServiceImpl) GetCompanyUsers(ctx context.Context, name strin
 			slog.WarnContext(ctx, "failed to fetch github company users",
 				slog.String("error", err.Error()),
 			)
+		} else if len(res.Users) == 0 {
+			break
 		}
 
 		users = append(users, res.Users...)
@@ -429,7 +434,7 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 	}
 
 	var page = 1
-	var events []*github.User
+	var users []*entity.Developer
 
 	for page <= maxPages {
 		if ctx.Err() != nil {
@@ -442,7 +447,7 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 			slog.Int("page", page),
 		)
 
-		evt, _, err := service.c.Organizations.ListMembers(ctx, name, &github.ListMembersOptions{
+		usr, _, err := service.c.Organizations.ListMembers(ctx, name, &github.ListMembersOptions{
 			PublicOnly: true,
 			Filter:     "all",
 			Role:       "all",
@@ -458,15 +463,15 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 			)
 		}
 
-		events = append(events, evt...)
+		users = append(users, usersToEntity(usr)...)
 
 		slog.DebugContext(ctx, "fetched github organization members",
 			slog.String("name", name),
-			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(events), len(evt))),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(users), len(usr))),
 			slog.Int("page", page),
 		)
 
-		if len(evt) < itemsPerPage {
+		if len(usr) < itemsPerPage {
 			break
 		}
 
@@ -475,187 +480,8 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 
 	slog.InfoContext(ctx, "successfully fetched github organization members",
 		slog.String("name", name),
-		slog.Int("items_total", len(events)),
+		slog.Int("items_total", len(users)),
 	)
 
-	return nil, nil
-}
-
-// === helpers ===
-
-func repositoryFromURL(link *url.URL) (owner, name string, err error) {
-	slog.Debug("trying to determine github repository owner/name...",
-		slog.String("repository_url", link.Redacted()),
-	)
-
-	path := strings.TrimSuffix(strings.Trim(link.EscapedPath(), "/"), ".git")
-
-	switch link.Hostname() {
-	case "github.com":
-		parts := strings.SplitN(path, "/", 2)
-		if len(parts) != 2 {
-			return "", "", fmt.Errorf("repository url not supported: '%s'", link.String())
-		}
-
-		return parts[0], parts[1], nil
-	default:
-		return "", "", fmt.Errorf("unsupported git hostname '%s'", link.Hostname())
-	}
-}
-
-func repositoryToEntity(g *github.Repository) *entity.Repository {
-	r := entity.Repository{
-		Name:             strings.TrimSpace(strings.ToLower(g.GetFullName())),
-		Description:      g.GetDescription(),
-		DefaultBranch:    g.GetDefaultBranch(),
-		Homepage:         g.GetHomepage(),
-		Owner:            userToEntity(g.GetOwner()),
-		Organization:     organizationToEntity(g.GetOrganization()),
-		Language:         g.GetLanguage(),
-		Size:             uint64(g.GetSize()),
-		IsArchived:       g.GetArchived(),
-		IsDisabled:       g.GetDisabled(),
-		IsFork:           g.GetFork(),
-		ForksCount:       uint64(g.GetForksCount()),
-		NetworkCount:     uint64(g.GetNetworkCount()),
-		OpenIssuesCount:  uint64(g.GetOpenIssuesCount()),
-		StargazersCount:  uint64(g.GetStargazersCount()),
-		SubscribersCount: uint64(g.GetSubscribersCount()),
-		GithubID:         g.GetID(),
-	}
-
-	if g.GitURL != nil {
-		var err error
-		r.GitURL, err = url.Parse(g.GetGitURL())
-		if err != nil {
-			slog.Warn(fmt.Sprintf("failed to parse github url: %s", err.Error()))
-		}
-	}
-
-	if g.License != nil {
-		r.License = g.GetLicense().GetName()
-	}
-
-	if g.CreatedAt != nil {
-		r.CreatedAt = g.CreatedAt.Time
-	}
-
-	if g.UpdatedAt != nil {
-		r.UpdatedAt = g.UpdatedAt.Time
-	}
-
-	if g.PushedAt != nil {
-		r.PushedAt = g.PushedAt.Time
-	}
-
-	return &r
-}
-
-func userToEntity(g *github.User) *entity.Developer {
-	if g == nil {
-		return nil
-	}
-
-	p := entity.Developer{
-		GithubID:          g.ID,
-		Name:              g.GetName(),
-		Username:          strings.ToLower(g.GetLogin()),
-		TwitterUsername:   g.GetTwitterUsername(),
-		Location:          g.GetLocation(),
-		Company:           g.GetCompany(),
-		Blog:              g.GetBlog(),
-		Bio:               g.GetBio(),
-		IsHireable:        g.GetHireable(),
-		IsSiteAdmin:       g.GetSiteAdmin(),
-		FollowersCount:    uint64(g.GetFollowers()),
-		FollowingCount:    uint64(g.GetFollowing()),
-		PublicReposCount:  uint64(g.GetPublicRepos()),
-		PrivateReposCount: uint64(g.GetOwnedPrivateRepos()),
-	}
-
-	if g.UserViewType != nil {
-		p.IsPrivate = *g.UserViewType != "public"
-	}
-
-	if g.Email != nil {
-		p.Emails = []string{g.GetEmail()}
-	}
-
-	if g.CreatedAt != nil {
-		p.CreatedAt = g.CreatedAt.Time
-	}
-
-	if g.UpdatedAt != nil {
-		p.UpdatedAt = g.UpdatedAt.Time
-	}
-
-	if g.SuspendedAt != nil {
-		p.SuspendedAt = &g.SuspendedAt.Time
-	}
-
-	return &p
-}
-
-func contributorToEntity(g *github.Contributor) *entity.Developer {
-	if g == nil {
-		return nil
-	}
-
-	p := entity.Developer{
-		GithubID:    g.ID,
-		Name:        g.GetName(),
-		Username:    strings.ToLower(g.GetLogin()),
-		IsSiteAdmin: g.GetSiteAdmin(),
-	}
-
-	if g.Email != nil {
-		p.Emails = []string{g.GetEmail()}
-	}
-
-	return &p
-}
-
-func organizationToEntity(g *github.Organization) *entity.Organization {
-	if g == nil {
-		return nil
-	}
-
-	p := entity.Organization{
-		GithubID:           g.ID,
-		Name:               g.GetName(),
-		Username:           strings.ToLower(g.GetLogin()),
-		Description:        g.GetDescription(),
-		TwitterUsername:    g.GetTwitterUsername(),
-		Location:           g.GetLocation(),
-		Company:            g.GetCompany(),
-		Blog:               g.GetBlog(),
-		IsVerified:         g.GetIsVerified(),
-		FollowersCount:     uint64(g.GetFollowers()),
-		FollowingCount:     uint64(g.GetFollowing()),
-		CollaboratorsCount: uint64(g.GetCollaborators()),
-		PublicReposCount:   uint64(g.GetPublicRepos()),
-		PrivateReposCount:  uint64(g.GetOwnedPrivateRepos()),
-	}
-
-	if g.Email != nil {
-		p.Emails = []string{g.GetEmail()}
-	}
-
-	if g.BillingEmail != nil {
-		p.Emails = []string{g.GetBillingEmail()}
-	}
-
-	if g.CreatedAt != nil {
-		p.CreatedAt = g.CreatedAt.Time
-	}
-
-	if g.UpdatedAt != nil {
-		p.UpdatedAt = g.UpdatedAt.Time
-	}
-
-	if g.ArchivedAt != nil {
-		p.ArchivedAt = &g.ArchivedAt.Time
-	}
-
-	return &p
+	return users, nil
 }

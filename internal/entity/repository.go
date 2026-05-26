@@ -6,13 +6,16 @@ import (
 )
 
 type Repository struct {
-	Name        string // github full repository name
-	Description string
-
+	Name          string // github full repository name
+	Description   string
 	DefaultBranch string
 	Homepage      string
-	Owner         *Developer
-	Organization  *Organization
+
+	Owner        *Developer
+	Organization *Organization
+
+	Contributors []*Developer
+	Maintainers  []*Developer
 
 	Language string
 	Size     uint64
@@ -29,7 +32,7 @@ type Repository struct {
 
 	License string
 
-	GithubID int64
+	GithubID *int64
 	GitURL   *url.URL
 
 	CreatedAt time.Time
