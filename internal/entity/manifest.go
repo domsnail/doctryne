@@ -1,6 +1,9 @@
 package entity
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
 	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
@@ -21,8 +24,7 @@ func NewManifest() *Manifest {
 	return &Manifest{
 		UUID: uuid.Must(uuid.NewV7()),
 		Metadata: ManifestMetadata{
-			UploadedAt: time.Now(),
-			UpdatedAt:  time.Now(),
+			UpdatedAt: time.Now(),
 		},
 	}
 }
@@ -34,11 +36,20 @@ func (m *Manifest) WithAuthor(by, from string) *Manifest {
 	return m
 }
 
-func (m *Manifest) WithFile(filename string, checksum uint64) *Manifest {
-	m.Metadata.Filename = filename
-	m.Metadata.Checksum = checksum
+func (m *Manifest) SetFileContent(content io.Reader) error {
+	if content != nil {
+		var err error
 
-	return m
+		m.Raw, err = io.ReadAll(content)
+		if err != nil {
+			return err
+		}
+
+		m.Metadata.UpdatedAt = time.Now()
+		m.Metadata.Checksum = "sha256:" + hex.EncodeToString(sha256.New().Sum(m.Raw))
+	}
+
+	return nil
 }
 
 func (m *Manifest) WithLanguageType(lang types.Language, tp types.ManifestType) *Manifest {
@@ -50,7 +61,7 @@ func (m *Manifest) WithLanguageType(lang types.Language, tp types.ManifestType) 
 
 type ManifestMetadata struct {
 	Filename string
-	Checksum uint64
+	Checksum string
 
 	UploadedBy   string
 	UploadedFrom string
