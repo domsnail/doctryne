@@ -9,3 +9,12 @@ const (
 	Language_JavaScript Language = "javascript"
 	Language_TypeScript Language = "typescript"
 )
+
+var Languages = []Language{
+	Language_Unspecified,
+	//
+	Language_Golang,
+	//
+	Language_JavaScript,
+	Language_TypeScript,
+}

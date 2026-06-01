@@ -10,6 +10,8 @@ const (
 
 	ManifestType_Package_Json = "package.json"
 	ManifestType_Package_Lock = "package-lock.json"
+
+	ManifestType_CycloneDX = "cyclonedx.json"
 )
 
 var ManifestTypes = []ManifestType{
@@ -20,4 +22,6 @@ var ManifestTypes = []ManifestType{
 	//
 	ManifestType_Package_Json,
 	ManifestType_Package_Lock,
+	//
+	ManifestType_CycloneDX,
 }

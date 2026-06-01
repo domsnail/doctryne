@@ -27,7 +27,7 @@ type IGithubService interface {
 }
 
 type IManifestAnalysisService interface {
-	GetManifestInfo(ctx context.Context, file []byte) error
+	GetManifestInfo(ctx context.Context, file []byte) (entity.Manifest, error)
 }
 
 type IRepositoryAnalysisService interface {
