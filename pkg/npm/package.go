@@ -13,13 +13,15 @@ import (
 // ref: https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md#package,
 // for example: https://registry.npmjs.org/detect-libc
 type Package struct {
-	ID          string   `json:"_id"`
+	ID          string   `json:"_id"` // mapped to RegistryID
 	Rev         string   `json:"_rev"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`
 	Homepage    string   `json:"homepage"`
 	Keywords    []string `json:"keywords"`
 
+	// Version is can be present in package.json files
+	Version  string             `json:"version,omitempty"`
 	Versions map[string]Version `json:"versions"`
 
 	DistTags struct {
@@ -41,6 +43,12 @@ type Package struct {
 	Readme         string `json:"readme"`
 	ReadmeFilename string `json:"readmeFilename"`
 
+	Dependencies         map[string]string `json:"dependencies"`
+	OptionalDependencies map[string]string `json:"optionalDependencies"`
+	DevDependencies      map[string]string `json:"devDependencies"`
+
+	// todo: replace, because License can also be represented as object in legacy files
+	// https://docs.npmjs.com/cli/v11/configuring-npm/package-json#license
 	License string `json:"license"`
 
 	Time map[string]time.Time `json:"time"`

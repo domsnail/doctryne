@@ -10,6 +10,7 @@ import (
 
 type Package struct {
 	Name      string
+	Version   string
 	Ecosystem types.Ecosystem
 	Language  types.Language
 
@@ -33,6 +34,8 @@ type Package struct {
 
 	PublishedAt time.Time
 	ModifiedAt  time.Time
+
+	Dependencies []*Package
 
 	Raw json.RawMessage
 }

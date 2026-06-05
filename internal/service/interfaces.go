@@ -26,8 +26,8 @@ type IGithubService interface {
 	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error)
 }
 
-type IManifestAnalysisService interface {
-	GetManifestInfo(ctx context.Context, file []byte) (entity.Manifest, error)
+type IManifestService interface {
+	ProcessManifest(ctx context.Context, filename string, contents []byte) (*entity.Manifest, error)
 }
 
 type IRepositoryAnalysisService interface {
@@ -35,4 +35,8 @@ type IRepositoryAnalysisService interface {
 
 type IPackageManagerService interface {
 	GetPackage(ctx context.Context, name string) (*entity.Package, error)
+}
+
+type IManifestParser interface {
+	ParseManifest(ctx context.Context, manifest *entity.Manifest) error
 }

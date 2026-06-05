@@ -9,13 +9,17 @@ import (
 	"github.com/domsnail/doctryne/pkg/types"
 )
 
+var GlobalConfig *Config
+
 type Config struct {
 	HttpProxy   *url.URL      `json:"http_proxy" yaml:"http_proxy" env:"HTTP_PROXY"`
 	Insecure    bool          `json:"insecure" yaml:"insecure" env:"HTTP_INSECURE"`
 	Timeout     time.Duration `json:"timeout" yaml:"timeout"`
 	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age"`
 
-	Scan   *Scan  `json:"scan" yaml:"scan"`
+	Scan      Scan            `json:"scan" yaml:"scan"`
+	Languages LanguagesConfig `json:"languages" yaml:"languages"`
+
 	Output Output `json:"output" yaml:"output"`
 
 	Credentials Credentials `json:"credentials" yaml:"credentials"`
@@ -27,6 +31,10 @@ type Config struct {
 	FilePath string `json:"-" yaml:"-"`
 }
 
+func SetGlobalConfig(cfg *Config) {
+	GlobalConfig = cfg
+}
+
 func NewConfigWithDefaultValues() *Config {
 	return &Config{
 		Insecure:    false,
@@ -36,7 +44,13 @@ func NewConfigWithDefaultValues() *Config {
 		Logging: Logging{
 			Format: "text",
 		},
-		Scan: &Scan{
+		Languages: LanguagesConfig{
+			JavaScript: JavaScriptConfig{
+				CheckOptionalDependencies: false,
+				CheckDevDependencies:      false,
+			},
+		},
+		Scan: Scan{
 			ExtractFullContributorInfo: false,
 			DeepRepositoryInspection:   false,
 		},
@@ -44,7 +58,7 @@ func NewConfigWithDefaultValues() *Config {
 }
 
 func (c *Config) HasScan() bool {
-	return c.Scan != nil && len(c.Scan.Targets) > 0 && c.Scan.Type != types.ScanType_Unspecified
+	return len(c.Scan.Targets) > 0 && c.Scan.Type != types.ScanType_Unspecified
 }
 
 func (c *Config) HasDatabase() bool {

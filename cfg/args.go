@@ -10,11 +10,11 @@ import (
 	"github.com/domsnail/doctryne/pkg/types"
 )
 
-func NewScanFromArgs(ctx context.Context) (*Scan, error) {
+func NewScanFromArgs(ctx context.Context) (Scan, error) {
 	args := flag.Args()
 
 	if len(args) == 0 {
-		return nil, errors.New("no target provided")
+		return Scan{}, errors.New("no target provided")
 	}
 
 	if len(args) == 1 {
@@ -27,13 +27,14 @@ func NewScanFromArgs(ctx context.Context) (*Scan, error) {
 	)
 
 	switch args[0] {
-	case "cdx", "cyclonedx", "sbom":
-		scanType = types.ScanType_CycloneDX
-	case "fs", "file", "files", "filesystem":
-		scanType = types.ScanType_Files
-		return nil, fmt.Errorf("target type not implemented")
+	case "bin", "pipe":
+		scanType = types.ScanType_BinaryFile
+	case "url", "link", "git":
+		scanType = types.ScanType_URL
+	case "fs", "file", "path", "files", "filesystem", "filepath":
+		scanType = types.ScanType_FilePath
 	default:
-		return nil, fmt.Errorf("invalid target type: '%s'", args[0])
+		return Scan{}, fmt.Errorf("invalid target type: '%s'", args[0])
 	}
 
 	slog.DebugContext(ctx, "provided scan target arguments",
@@ -41,12 +42,12 @@ func NewScanFromArgs(ctx context.Context) (*Scan, error) {
 		slog.Any("targets", targets),
 	)
 
-	return &Scan{
+	return Scan{
 		Targets: targets,
 		Type:    scanType,
 	}, nil
 }
 
-func resolveTargetType(target string) (*Scan, error) {
-	return nil, errors.New("not implemented")
+func resolveTargetType(target string) (Scan, error) {
+	return Scan{}, errors.New("not implemented")
 }

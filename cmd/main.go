@@ -17,8 +17,7 @@ func main() {
 
 	config, err := cfg.NewConfigFromFlags(rootCtx)
 	if err != nil {
-		slog.ErrorContext(rootCtx, err.Error())
-		os.Exit(1)
+		panic(err.Error())
 	}
 
 	var handler slog.Handler
@@ -34,8 +33,7 @@ func main() {
 			Level:     slog.Level(config.Logging.Level),
 		})
 	default:
-		slog.ErrorContext(rootCtx, fmt.Sprintf("invalid logging format: '%s'", config.Logging.Format))
-		os.Exit(1)
+		panic(fmt.Sprintf("invalid logging format: '%s'", config.Logging.Format))
 	}
 
 	slog.SetDefault(slog.New(handler))
@@ -59,6 +57,9 @@ func main() {
 			slog.Bool("add_source", config.Logging.AddSource),
 		),
 	)
+
+	slog.DebugContext(rootCtx, "setting global config...")
+	cfg.SetGlobalConfig(config)
 
 	if config.Server.Enabled {
 		err := RunServer(rootCtx, config.Server)

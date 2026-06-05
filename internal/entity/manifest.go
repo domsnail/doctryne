@@ -7,12 +7,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// Manifest contains information about incoming application packages. Represents package.json, go.mod and other
+// language manifests and/or software bill of materials.
 type Manifest struct {
 	UUID     uuid.UUID
 	Metadata ManifestMetadata
 
 	Language types.Language
 	Type     types.ManifestType
+
+	DiscoveredPackages []*Package
 
 	Raw []byte
 }
@@ -34,7 +38,7 @@ func (m *Manifest) WithAuthor(by, from string) *Manifest {
 	return m
 }
 
-func (m *Manifest) WithFile(filename string, checksum uint64) *Manifest {
+func (m *Manifest) WithFile(filename, checksum string) *Manifest {
 	m.Metadata.Filename = filename
 	m.Metadata.Checksum = checksum
 
@@ -48,9 +52,23 @@ func (m *Manifest) WithLanguageType(lang types.Language, tp types.ManifestType) 
 	return m
 }
 
+func (m *Manifest) WithBinaryContents(raw []byte) *Manifest {
+	m.Raw = raw
+
+	return m
+}
+
+func (m *Manifest) AddPackage(pkg *Package) {
+	if m.DiscoveredPackages == nil {
+		m.DiscoveredPackages = []*Package{}
+	}
+
+	m.DiscoveredPackages = append(m.DiscoveredPackages, pkg)
+}
+
 type ManifestMetadata struct {
 	Filename string
-	Checksum uint64
+	Checksum string
 
 	UploadedBy   string
 	UploadedFrom string
