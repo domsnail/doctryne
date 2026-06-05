@@ -26,8 +26,8 @@ type Developer struct {
 
 	GithubID *int64
 
-	LatestActivityDepth []*Activity
-	Repositories        []*Repository
+	LatestActivity []*Activity
+	Repositories   []*Repository
 
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
