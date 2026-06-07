@@ -28,7 +28,7 @@ func NewScanFromArgs(ctx context.Context) (Scan, error) {
 
 	switch args[0] {
 	case "bin", "pipe":
-		scanType = types.ScanType_BinaryFile
+		scanType = types.ScanType_Binary
 	case "url", "link", "git":
 		scanType = types.ScanType_URL
 	case "fs", "file", "path", "files", "filesystem", "filepath":

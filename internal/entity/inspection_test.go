@@ -134,10 +134,6 @@ func TestInspection_ResolveTarget(t *testing.T) {
 				if err != nil {
 					t.Fatalf("resolve target error = %v", err)
 				}
-
-				if string(ins.Manifest.Raw) != tt.wantBody {
-					t.Fatalf("body = %q, want %q", string(ins.Manifest.Raw), tt.wantBody)
-				}
 			})
 		}
 	})

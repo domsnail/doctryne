@@ -1,10 +1,13 @@
 package javascript_parsers
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
+	"maps"
+	"net/url"
+	"strings"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
@@ -12,24 +15,34 @@ import (
 	"github.com/domsnail/doctryne/pkg/types"
 )
 
-func (p *Parser) ParseManifest(ctx context.Context, manifest *entity.Manifest) error {
-	if ctx.Err() != nil {
-		return ctx.Err()
+func (p *Parser) ParseManifest() (*entity.Package, error) {
+	if p.ctx.Err() != nil {
+		return nil, p.ctx.Err()
 	}
 
-	var f npm.Package // todo: this needs testing
+	var (
+		f npm.Package // todo: this needs testing
+		l npm.PackageLock
+	)
 
-	if err := json.NewDecoder(bytes.NewBuffer(manifest.Raw)).Decode(&f); err != nil {
-		return fmt.Errorf("failed to unmarshal manifest file: %w", err)
+	if err := json.NewDecoder(p.file).Decode(&f); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal manifest file: %w", err)
 	}
 
-	manifest.AddPackage(convert(f))
-	return nil
+	if p.lockfile != nil {
+		if err := json.NewDecoder(p.lockfile).Decode(&l); err != nil {
+			return nil, fmt.Errorf("failed to unmarshal lockfile: %w", err)
+		}
+
+		return convertWithLockfile(p.ctx, f, l)
+	}
+
+	return convert(p.ctx, f)
 }
 
 // NOTE: convert function currently builds flat tree with only 1 layer of dependencies.
 // Dependency tree is not built, all descendants will be places at the top layer
-func convert(p npm.Package) *entity.Package {
+func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 	var (
 		eco  = types.Ecosystem_NPM
 		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
@@ -40,20 +53,38 @@ func convert(p npm.Package) *entity.Package {
 		Version:    p.Version,
 		Ecosystem:  eco,
 		Language:   lang,
-		Git:        p.GetGitURL(),
 		RegistryID: p.ID,
 		//Resolved:   nil, // todo: get from package-lock.json
 		//Registry:   "",
 		//Integrity:  "",
 		License: p.License,
+		Labels:  []types.Label{types.Label_Root},
 		Metadata: &entity.PackageMetadata{
 			Description: p.Description,
 			Homepage:    p.Homepage,
 			Keywords:    p.Keywords,
+			Git:         p.GetGitURL(),
+			PublishedAt: p.GetCreatedAt(),
+			ModifiedAt:  p.GetModifiedAt(),
 		},
-		PublishedAt:  p.GetCreatedAt(),
-		ModifiedAt:   p.GetModifiedAt(),
 		Dependencies: make([]*entity.Package, len(p.Dependencies)),
+	}
+
+	var counter = 0
+	for dep, ver := range p.Dependencies {
+		topPackage.Dependencies[counter] = &entity.Package{
+			Name:      dep,
+			Version:   ver,
+			Ecosystem: eco,
+			Language:  lang,
+			//Resolved:     nil, // todo: get from package-lock.json
+			//Registry:     "",
+			//Integrity:    "",
+			//License:      "",
+			Dependencies: nil, // todo: read method note
+		}
+
+		counter++
 	}
 
 	if cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies && len(p.OptionalDependencies) > 0 {
@@ -67,6 +98,7 @@ func convert(p npm.Package) *entity.Package {
 				//Registry:     "",
 				//Integrity:    "",
 				//License:      "",
+				IsOptional:   true,
 				Dependencies: nil, // todo: read method note
 			})
 		}
@@ -83,12 +115,90 @@ func convert(p npm.Package) *entity.Package {
 				//Registry:     "",
 				//Integrity:    "",
 				//License:      "",
+				IsDev:        true,
 				Dependencies: nil, // todo: read method note
 			})
 		}
 	}
 
-	return &topPackage
+	return &topPackage, nil
+}
+
+func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) (pkg *entity.Package, err error) {
+	if p.Version != l.Version {
+		slog.WarnContext(ctx, "manifest and lockfile versions do not match")
+	}
+
+	var (
+		eco  = types.Ecosystem_NPM
+		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
+	)
+
+	// removing root package from dependency list
+	delete(l.Packages, "")
+
+	// remove dev and optional dependencies if needed
+	slog.Debug("dropping dependencies from lockfile...",
+		slog.Bool("remove_dev", cfg.GlobalConfig.Languages.JavaScript.CheckDevDependencies),
+		slog.Bool("remove_optional", cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies),
+	)
+
+	maps.DeleteFunc(l.Packages, func(s string, d *npm.Dependency) bool {
+		if d.Dev {
+			return !cfg.GlobalConfig.Languages.JavaScript.CheckDevDependencies
+		}
+
+		if d.Optional {
+			return !cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies
+		}
+
+		return false
+	})
+
+	pkg = &entity.Package{
+		Name:       p.Name,
+		Version:    p.Version,
+		Ecosystem:  eco,
+		Language:   lang,
+		RegistryID: p.ID,
+		License:    p.License,
+		Labels:     []types.Label{types.Label_Root},
+		Metadata: &entity.PackageMetadata{
+			Description: p.Description,
+			Homepage:    p.Homepage,
+			Keywords:    p.Keywords,
+			Git:         p.GetGitURL(),
+			PublishedAt: p.GetCreatedAt(),
+			ModifiedAt:  p.GetModifiedAt(),
+		},
+		Dependencies: make([]*entity.Package, len(l.Packages)),
+	}
+
+	var counter = 0
+	for key, depPkg := range l.Packages {
+		v := entity.Package{
+			Name:       strings.TrimLeft(key, "node_modules/"),
+			Version:    depPkg.Version,
+			Ecosystem:  eco,
+			Language:   lang,
+			Integrity:  depPkg.Integrity,
+			License:    depPkg.License,
+			IsDev:      depPkg.Dev,
+			IsOptional: depPkg.Optional,
+		}
+
+		v.Resolved, err = url.Parse(depPkg.Resolved)
+		if err != nil {
+			slog.WarnContext(ctx, "could not parse resolved url", slog.String("error", err.Error()))
+		} else {
+			v.Registry = v.Resolved.Hostname()
+		}
+
+		pkg.Dependencies[counter] = &v
+		counter++
+	}
+
+	return pkg, nil
 }
 
 // === Claimed from Trivy

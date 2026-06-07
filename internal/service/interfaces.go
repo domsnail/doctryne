@@ -38,5 +38,5 @@ type IPackageManagerService interface {
 }
 
 type IManifestParser interface {
-	ParseManifest(ctx context.Context, manifest *entity.Manifest) error
+	ProcessManifest(ctx context.Context, manifest *entity.Manifest) error
 }

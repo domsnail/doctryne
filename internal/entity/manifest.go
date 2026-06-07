@@ -1,6 +1,8 @@
 package entity
 
 import (
+	"errors"
+	"io"
 	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
@@ -18,7 +20,8 @@ type Manifest struct {
 
 	DiscoveredPackages []*Package
 
-	Raw []byte
+	Lockfile io.Reader
+	Contents io.Reader
 }
 
 func NewManifest() *Manifest {
@@ -38,8 +41,13 @@ func (m *Manifest) WithAuthor(by, from string) *Manifest {
 	return m
 }
 
-func (m *Manifest) WithFile(filename, checksum string) *Manifest {
+func (m *Manifest) WithFilename(filename string) *Manifest {
 	m.Metadata.Filename = filename
+
+	return m
+}
+
+func (m *Manifest) WithChecksum(checksum string) *Manifest {
 	m.Metadata.Checksum = checksum
 
 	return m
@@ -52,10 +60,22 @@ func (m *Manifest) WithLanguageType(lang types.Language, tp types.ManifestType) 
 	return m
 }
 
-func (m *Manifest) WithBinaryContents(raw []byte) *Manifest {
-	m.Raw = raw
+func (m *Manifest) SetFileContent(reader io.Reader) error {
+	if reader == nil {
+		return errors.New("reader is nil")
+	}
 
-	return m
+	m.Contents = reader
+	return nil
+}
+
+func (m *Manifest) SetLockfileContent(reader io.Reader) error {
+	if reader == nil {
+		return errors.New("reader is nil")
+	}
+
+	m.Lockfile = reader
+	return nil
 }
 
 func (m *Manifest) AddPackage(pkg *Package) {
@@ -75,4 +95,24 @@ type ManifestMetadata struct {
 
 	UploadedAt time.Time
 	UpdatedAt  time.Time
+}
+
+func (m *Manifest) CountDevDependencies() int {
+	var counter int
+
+	for _, pkg := range m.DiscoveredPackages {
+		counter += pkg.CountDevDependencies()
+	}
+
+	return counter
+}
+
+func (m *Manifest) CountOptionalDependencies() int {
+	var counter int
+
+	for _, pkg := range m.DiscoveredPackages {
+		counter += pkg.CountOptionalDependencies()
+	}
+
+	return counter
 }

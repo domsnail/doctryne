@@ -20,8 +20,11 @@ type Package struct {
 	Homepage    string   `json:"homepage"`
 	Keywords    []string `json:"keywords"`
 
-	// Version is can be present in package.json files
-	Version  string             `json:"version,omitempty"`
+	// Version, Type and Private attributes can be present in package.json files
+	Version string `json:"version,omitempty"`
+	Type    string `json:"type,omitempty"`
+	Private bool   `json:"private,omitempty"`
+
 	Versions map[string]Version `json:"versions"`
 
 	DistTags struct {
