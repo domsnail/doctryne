@@ -8,7 +8,19 @@ import (
 )
 
 type IInspectionService interface {
-	CollectRepositoryInfo(ctx context.Context, opts entity.InspectionOptions) (*entity.Repository, error)
+	// InitInspection creates a new inspection and populates it with manifests found from target
+	InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error)
+
+	// InspectManifests goes through all the collected manifests, collects all the packages and repositories
+	InspectManifests(ctx context.Context, inspection *entity.Inspection) error
+
+	// InspectPackages queries all the collected packages from respectable registries/vcs, finds contributors, owners,
+	// repository stats, commit history etc.
+	InspectPackages(ctx context.Context, inspection *entity.Inspection) error
+
+	InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error
+
+	CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error)
 }
 
 type IGithubService interface {

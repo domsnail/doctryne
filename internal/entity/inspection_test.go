@@ -39,9 +39,9 @@ func TestInspection_ResolveTarget(t *testing.T) {
 					}))
 
 					ins := &Inspection{
-						ScanType: types.ScanType_URL,
-						Target:   bytes.NewBufferString(srv.URL),
-						Manifest: &Manifest{},
+						ScanType:  types.ScanType_URL,
+						Target:    bytes.NewBufferString(srv.URL),
+						Manifests: &Manifest{},
 					}
 					return ins, srv.Close
 				},
@@ -61,9 +61,9 @@ func TestInspection_ResolveTarget(t *testing.T) {
 					}
 
 					ins := &Inspection{
-						ScanType: types.ScanType_FilePath,
-						Target:   bytes.NewBufferString(path),
-						Manifest: &Manifest{},
+						ScanType:  types.ScanType_FilePath,
+						Target:    bytes.NewBufferString(path),
+						Manifests: &Manifest{},
 					}
 					return ins, func() {}
 				},
@@ -77,10 +77,10 @@ func TestInspection_ResolveTarget(t *testing.T) {
 					t.Helper()
 
 					ins := &Inspection{
-						ScanType: types.ScanType_Binary,
-						Target:   bytes.NewBufferString("unused"),
-						Options:  &InspectionOptions{Target: bytes.NewBufferString("manifest-from-binary")},
-						Manifest: &Manifest{},
+						ScanType:  types.ScanType_Binary,
+						Target:    bytes.NewBufferString("unused"),
+						Options:   &InspectionOptions{Target: bytes.NewBufferString("manifest-from-binary")},
+						Manifests: &Manifest{},
 					}
 					return ins, func() {}
 				},
@@ -93,9 +93,9 @@ func TestInspection_ResolveTarget(t *testing.T) {
 				setup: func(t *testing.T) (*Inspection, func()) {
 					t.Helper()
 					ins := &Inspection{
-						ScanType: types.ScanType_URL,
-						Target:   bytes.NewBuffer(nil),
-						Manifest: &Manifest{},
+						ScanType:  types.ScanType_URL,
+						Target:    bytes.NewBuffer(nil),
+						Manifests: &Manifest{},
 					}
 					return ins, func() {}
 				},
@@ -108,9 +108,9 @@ func TestInspection_ResolveTarget(t *testing.T) {
 				setup: func(t *testing.T) (*Inspection, func()) {
 					t.Helper()
 					ins := &Inspection{
-						ScanType: types.ScanType("unknown"),
-						Target:   bytes.NewBufferString("anything"),
-						Manifest: &Manifest{},
+						ScanType:  types.ScanType("unknown"),
+						Target:    bytes.NewBufferString("anything"),
+						Manifests: &Manifest{},
 					}
 					return ins, func() {}
 				},

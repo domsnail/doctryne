@@ -53,6 +53,7 @@ func NewConfigWithDefaultValues() *Config {
 		Scan: Scan{
 			ExtractFullContributorInfo: false,
 			DeepRepositoryInspection:   false,
+			FileSearchDepth:            10,
 		},
 	}
 }
@@ -102,6 +103,9 @@ type Scan struct {
 	// DeepRepositoryInspection requests full repository source code to analyze source code to find comments and other
 	// text structures that might be interesting
 	DeepRepositoryInspection bool `json:"deep_repository_inspection" yaml:"deep_repository_inspection"`
+
+	// FileSearchDepth sets maximum file directory depth when analyzing directory
+	FileSearchDepth int `json:"file_search_depth" yaml:"file_search_depth"`
 
 	// todo: ActivityPeriod (month, year)
 }

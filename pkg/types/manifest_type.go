@@ -15,13 +15,20 @@ const (
 )
 
 var ManifestTypes = []ManifestType{
-	ManifestType_Unspecified,
-	//
 	ManifestType_Go_Mod,
-	ManifestType_Go_Sum,
 	//
 	ManifestType_Package_Json,
-	ManifestType_Package_Lock,
+}
+
+var LockfileTypes = []ManifestType{
+	ManifestType_Go_Sum,
 	//
-	ManifestType_CycloneDX,
+	ManifestType_Package_Lock,
+}
+
+var ManifestType_Language = map[ManifestType]Language{
+	ManifestType_Go_Mod:       Language_Golang,
+	ManifestType_Go_Sum:       Language_Golang,
+	ManifestType_Package_Json: Language_JavaScript,
+	ManifestType_Package_Lock: Language_JavaScript,
 }
