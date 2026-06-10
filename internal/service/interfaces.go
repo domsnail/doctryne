@@ -39,7 +39,7 @@ type IGithubService interface {
 }
 
 type IManifestService interface {
-	ProcessManifest(ctx context.Context, filename string, contents []byte) (*entity.Manifest, error)
+	ProcessManifest(ctx context.Context, manifest *entity.Manifest) error
 }
 
 type IRepositoryAnalysisService interface {
@@ -50,5 +50,8 @@ type IPackageManagerService interface {
 }
 
 type IManifestParser interface {
-	ProcessManifest(ctx context.Context, manifest *entity.Manifest) error
+	ParseManifest(ctx context.Context, manifest *entity.Manifest) error
+}
+
+type IRegistryService interface {
 }

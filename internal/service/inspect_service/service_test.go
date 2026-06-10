@@ -83,7 +83,7 @@ func TestFindManifestFiles(t *testing.T) {
 	service := InspectionService{}
 
 	synctest.Test(t, func(t *testing.T) {
-		manifests, err := service.SearchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
+		manifests, err := service.searchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
 		require.NoError(t, err)
 		require.Len(t, manifests, 5)
 	})
@@ -91,7 +91,7 @@ func TestFindManifestFiles(t *testing.T) {
 	config.Scan.FileSearchDepth = 2
 
 	synctest.Test(t, func(t *testing.T) {
-		manifests, err := service.SearchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
+		manifests, err := service.searchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
 		require.NoError(t, err)
 		require.Len(t, manifests, 3)
 	})
@@ -99,7 +99,7 @@ func TestFindManifestFiles(t *testing.T) {
 	config.Scan.FileSearchDepth = 1
 
 	synctest.Test(t, func(t *testing.T) {
-		manifests, err := service.SearchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
+		manifests, err := service.searchManifestsInDir(context.Background(), bytes.NewReader([]byte(tmpDir)))
 		require.NoError(t, err)
 		require.Len(t, manifests, 2)
 	})

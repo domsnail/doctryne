@@ -18,6 +18,10 @@ import (
 type ManifestServiceImpl struct {
 }
 
+func NewManifestServiceImpl() *ManifestServiceImpl {
+	return &ManifestServiceImpl{}
+}
+
 func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest *entity.Manifest) error {
 	if ctx.Err() != nil {
 		return ctx.Err()

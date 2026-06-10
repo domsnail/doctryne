@@ -1,6 +1,9 @@
 package entity
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 type Developer struct {
 	Name     string
@@ -32,4 +35,12 @@ type Developer struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	SuspendedAt *time.Time
+}
+
+func (d Developer) String() string {
+	return fmt.Sprintf("%s (@%s)", d.Name, d.Username)
+}
+
+func (d Developer) IsEqual(other Developer) bool {
+	return d.Name == other.Name && d.Username == other.Username
 }

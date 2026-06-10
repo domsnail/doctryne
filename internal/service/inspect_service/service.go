@@ -17,7 +17,6 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
-	"github.com/domsnail/doctryne/pkg/npm"
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
 )
@@ -25,8 +24,12 @@ import (
 type InspectionService struct {
 	manifests service.IManifestService
 
-	github service.IGithubService
-	npm    npm.Client
+	github   service.IGithubService
+	registry service.IRegistryService
+}
+
+func NewInspectionService(manifests service.IManifestService, github service.IGithubService, registry service.IRegistryService) *InspectionService {
+	return &InspectionService{manifests: manifests, github: github, registry: registry}
 }
 
 func (service *InspectionService) InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error) {
@@ -173,7 +176,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 	return ins, nil
 }
 
-func (service *InspectionService) SearchManifestsInDir(ctx context.Context, target io.Reader) ([]*entity.Manifest, error) {
+func (service *InspectionService) searchManifestsInDir(ctx context.Context, target io.Reader) ([]*entity.Manifest, error) {
 	maxDepth := cfg.GlobalConfig.Scan.FileSearchDepth
 
 	var searchFilenames = make(map[string]int)
@@ -281,4 +284,19 @@ func (service *InspectionService) SearchManifestsInDir(ctx context.Context, targ
 	)
 
 	return manifests, nil
+}
+
+func (service *InspectionService) InspectPackages(ctx context.Context, inspection *entity.Inspection) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (service *InspectionService) CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error) {
+	//TODO implement me
+	panic("implement me")
 }
