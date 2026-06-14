@@ -1,0 +1,46 @@
+edition = "2024";
+
+package doctryne.inspection.v1;
+
+option go_package = "github.com/domsnail/doctryne/api/gen/go/inspection/v1;inspection_v1";
+option features.(pb.go).api_level = API_OPAQUE;
+option features.field_presence = IMPLICIT;
+
+import "google/protobuf/go_features.proto";
+import "google/protobuf/timestamp.proto";
+
+message Inspection {
+  string uuid = 1;
+
+  string uploaded_by = 10;
+  string uploaded_from = 11;
+
+  google.protobuf.Timestamp uploaded_at = 20;
+}
+
+message InspectionOptions {
+  ScanType scan_type = 1;
+  InspectionMode mode = 2;
+
+  bytes target = 3;
+  bytes lockfile = 4;
+
+  bool load_user_profile = 5;
+}
+
+enum InspectionMode {
+  INSPECTION_MODE_UNSPECIFIED = 0;
+
+  INSPECTION_MODE_DIRECT = 1;
+  INSPECTION_MODE_SHALLOW = 2;
+  INSPECTION_MODE_DEEP = 3;
+}
+
+enum ScanType {
+  SCAN_TYPE_UNSPECIFIED = 0;
+
+  SCAN_TYPE_FILEPATH = 1;
+  SCAN_TYPE_DIRPATH = 2;
+  SCAN_TYPE_BINARY = 3;
+  SCAN_TYPE_URL = 4;
+}

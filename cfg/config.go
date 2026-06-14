@@ -2,6 +2,7 @@ package cfg
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"slices"
 	"time"
@@ -17,8 +18,12 @@ type Config struct {
 	Timeout     time.Duration `json:"timeout" yaml:"timeout"`
 	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age"`
 
-	Scan      Scan            `json:"scan" yaml:"scan"`
-	Languages LanguagesConfig `json:"languages" yaml:"languages"`
+	// If ServerURL present, cli will use remote server rpc to create new inspection
+	ServerURL string `json:"server_url" yaml:"server_url"`
+
+	Scan       Scan                       `json:"scan" yaml:"scan"`
+	Languages  LanguagesConfig            `json:"languages" yaml:"languages"`
+	GitHistory GitHistoryInspectionConfig `json:"git_history" yaml:"git_history"`
 
 	Output Output `json:"output" yaml:"output"`
 
@@ -40,7 +45,7 @@ func NewConfigWithDefaultValues() *Config {
 		Insecure:    false,
 		Timeout:     time.Second * 30,
 		CacheMaxAge: 14 * 24 * time.Hour, // 2 weeks
-		Output:      Output{Format: "text"},
+		Output:      Output{Format: types.ReportFormat_TextTable},
 		Logging: Logging{
 			Format: "text",
 		},
@@ -79,6 +84,9 @@ func (c *Config) IsValid() error {
 		if !c.HasDatabase() {
 			return errors.New("no database connection provided")
 		}
+	} else if c.ServerURL != "" {
+		_, err := url.Parse(c.ServerURL)
+		return fmt.Errorf("invalid server url: %w", err)
 	}
 
 	if c.Logging.Format != "text" && c.Logging.Format != "json" {

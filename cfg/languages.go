@@ -1,6 +1,8 @@
 package cfg
 
 type LanguagesConfig struct {
+	Disabled bool `json:"disabled" yaml:"disabled"`
+
 	JavaScript JavaScriptConfig `json:"javascript" yaml:"javascript"`
 }
 

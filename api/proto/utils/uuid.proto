@@ -1,0 +1,15 @@
+edition = "2024";
+
+package doctryne.utils.v1;
+
+option go_package = "github.com/domsnail/doctryne/api/gen/go/utils_v1;utils_v1";
+option features.(pb.go).api_level = API_OPAQUE;
+option features.field_presence = IMPLICIT;
+
+//
+
+import "google/protobuf/go_features.proto";
+
+message UUID {
+  string uuid = 1;
+}
