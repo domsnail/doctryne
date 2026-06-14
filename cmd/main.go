@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	rootCtx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
 	config, err := cfg.NewConfigFromFlags(rootCtx)
@@ -62,12 +62,31 @@ func main() {
 	cfg.SetGlobalConfig(config)
 
 	if config.Server.Enabled {
-		err := RunServer(rootCtx, config.Server)
+		srv, err := CreateServer(rootCtx, &config.Server)
 		if err != nil {
-			return
+			slog.ErrorContext(rootCtx, err.Error())
+			os.Exit(1)
 		}
 
-		<-rootCtx.Done()
+		err = srv.Start(rootCtx)
+		if err != nil {
+			slog.ErrorContext(rootCtx, err.Error())
+			os.Exit(1)
+		}
+
+		slog.InfoContext(rootCtx, fmt.Sprintf("grpc server successfully started on %s:%d", config.Server.Host, config.Server.Port))
+
+		select {
+		case <-rootCtx.Done():
+			err = srv.GracefulStop(rootCtx)
+			if err != nil {
+				slog.ErrorContext(rootCtx, "failed to gracefully stop grpc server: "+err.Error())
+				os.Exit(1)
+			}
+
+			slog.WarnContext(rootCtx, "gracefully stopped grpc server, see you next time!")
+			os.Exit(0)
+		}
 	}
 
 	if !config.HasScan() {

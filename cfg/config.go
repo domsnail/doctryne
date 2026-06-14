@@ -81,9 +81,9 @@ func (c *Config) IsValid() error {
 			return errors.New("no server port provided")
 		}
 
-		if !c.HasDatabase() {
-			return errors.New("no database connection provided")
-		}
+		//if !c.HasDatabase() { todo
+		//	return errors.New("no database connection provided")
+		//}
 	} else if c.ServerURL != "" {
 		_, err := url.Parse(c.ServerURL)
 		return fmt.Errorf("invalid server url: %w", err)
@@ -132,6 +132,10 @@ type Server struct {
 
 	Host string `json:"host" yaml:"host" env:"HOST"`
 	Port uint32 `json:"port" yaml:"port" env:"PORT"`
+
+	DisableHealth  bool `json:"disable_health" yaml:"disable_health"`
+	DisableMetrics bool `json:"disable_metrics" yaml:"disable_metrics"`
+	DisableReflect bool `json:"disable_reflect" yaml:"disable_reflect"`
 
 	AccessKey string `json:"api_key" yaml:"api_key" env:"ACCESS_KEY"`
 }
