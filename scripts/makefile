@@ -13,8 +13,8 @@ protoc_gen_go:
 	cd ../api/proto && protoc -I . -I $(PROTOC_INC) -I $(PROTO_GRPC_GW_INC) \
 		--go_out=$(GO_OUT) \
 		--go_opt=paths=source_relative \
-#		--go-grpc_out=$(GO_OUT) \
-#		--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
+		--go-grpc_out=$(GO_OUT) \
+		--go-grpc_opt=paths=source_relative,require_unimplemented_servers=false \
 		inspection/v1/*.proto \
 		utils/*.proto
 

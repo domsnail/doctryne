@@ -49,7 +49,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 	switch ins.ScanType {
 	case types.ScanType_URL:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(ins.Target)
+		_, err := buf.ReadFrom(ins.Manifest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read target: %w", err)
 		}
@@ -75,7 +75,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		}
 
 		var manifest = entity.NewManifest()
-		err = manifest.WithFilename(buf.String()).SetFileContent(resp.Body)
+		err = manifest.WithFilename(buf.String()).WithType(ins.Options.ManifestType).SetFileContent(resp.Body)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read manifest body contents: %w", err)
 		}
@@ -84,7 +84,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		break
 	case types.ScanType_FilePath:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(ins.Target)
+		_, err := buf.ReadFrom(ins.Manifest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read target: %w", err)
 		}
@@ -94,7 +94,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 			return nil, fmt.Errorf("failed to read from file: %w", err)
 		}
 
-		var manifest = entity.NewManifest()
+		var manifest = entity.NewManifest().WithType(ins.Options.ManifestType)
 		err = manifest.WithFilename(filepath.Base(buf.String())).SetFileContent(bytes.NewReader(file))
 		if err != nil {
 			return nil, fmt.Errorf("failed to read manifest body contents: %w", err)
@@ -106,8 +106,8 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		// todo: search for files
 		return nil, errors.New("not implemented")
 	case types.ScanType_Binary:
-		var manifest = entity.NewManifest()
-		err := manifest.SetFileContent(ins.Options.Target)
+		var manifest = entity.NewManifest().WithType(ins.Options.ManifestType)
+		err := manifest.SetFileContent(ins.Options.Manifest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read manifest body contents: %w", err)
 		}
@@ -239,7 +239,8 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 			manifest := entity.
 				NewManifest().
 				WithFilename(filepath.Base(path)).
-				WithLanguageType(types.ManifestType_Language[manifestType], manifestType)
+				WithType(manifestType).
+				WithLanguage(types.ManifestType_Language[manifestType])
 
 			err = manifest.SetFileContent(bytes.NewReader(file))
 			if err != nil {

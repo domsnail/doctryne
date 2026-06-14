@@ -53,8 +53,13 @@ func (m *Manifest) WithChecksum(checksum string) *Manifest {
 	return m
 }
 
-func (m *Manifest) WithLanguageType(lang types.Language, tp types.ManifestType) *Manifest {
+func (m *Manifest) WithLanguage(lang types.Language) *Manifest {
 	m.Language = lang
+
+	return m
+}
+
+func (m *Manifest) WithType(tp types.ManifestType) *Manifest {
 	m.Type = tp
 
 	return m

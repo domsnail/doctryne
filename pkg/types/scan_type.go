@@ -18,3 +18,11 @@ var ScanTypes = []ScanType{
 	ScanType_Binary,
 	ScanType_URL,
 }
+
+var ScanTypes_Enums = map[int32]ScanType{
+	0: ScanType_Unspecified,
+	1: ScanType_FilePath,
+	2: ScanType_DirPath,
+	3: ScanType_Binary,
+	4: ScanType_URL,
+}

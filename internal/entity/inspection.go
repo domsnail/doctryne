@@ -12,9 +12,10 @@ import (
 type Inspection struct {
 	UUID uuid.UUID
 
-	// target can be a binary file, url, package or module name
-	Target   io.Reader
+	// target can be a binary file, url or directory path
+	Manifest io.Reader
 	Lockfile io.Reader
+
 	ScanType types.ScanType
 
 	Manifests []*Manifest
@@ -31,8 +32,12 @@ type Inspection struct {
 
 type InspectionOptions struct {
 	ScanType types.ScanType
-	Target   io.Reader
-	Lockfile io.Reader
+
+	Manifest     io.Reader
+	ManifestType types.ManifestType
+
+	Lockfile     io.Reader
+	LockfileType types.ManifestType
 
 	Mode types.InspectionMode
 
@@ -44,7 +49,7 @@ type InspectionOptions struct {
 func NewInspection(opts *InspectionOptions) *Inspection {
 	ins := Inspection{
 		UUID:      uuid.Must(uuid.NewV7()),
-		Target:    opts.Target,
+		Manifest:  opts.Manifest,
 		Lockfile:  opts.Lockfile,
 		ScanType:  opts.ScanType,
 		Options:   opts,

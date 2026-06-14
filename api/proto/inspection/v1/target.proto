@@ -1,0 +1,15 @@
+edition = "2024";
+
+package doctryne.inspection.v1;
+
+option go_package = "github.com/domsnail/doctryne/api/gen/go/inspection/v1;inspection_v1";
+option features.(pb.go).api_level = API_OPAQUE;
+option features.field_presence = EXPLICIT;
+
+import "google/protobuf/go_features.proto";
+
+message InspectionTarget {
+  string name = 1;
+
+  bytes contents = 2;
+}

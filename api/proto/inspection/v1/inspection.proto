@@ -4,10 +4,12 @@ package doctryne.inspection.v1;
 
 option go_package = "github.com/domsnail/doctryne/api/gen/go/inspection/v1;inspection_v1";
 option features.(pb.go).api_level = API_OPAQUE;
-option features.field_presence = IMPLICIT;
+option features.field_presence = EXPLICIT;
 
 import "google/protobuf/go_features.proto";
 import "google/protobuf/timestamp.proto";
+
+//
 
 message Inspection {
   string uuid = 1;
@@ -22,18 +24,19 @@ message InspectionOptions {
   ScanType scan_type = 1;
   InspectionMode mode = 2;
 
-  bytes target = 3;
-  bytes lockfile = 4;
+  string manifest_type = 3;
+  bytes manifest = 4;
 
-  bool load_user_profile = 5;
+  string lockfile_type = 5;
+  bytes lockfile = 6;
+
+  bool load_user_profile = 7;
 }
 
 enum InspectionMode {
-  INSPECTION_MODE_UNSPECIFIED = 0;
-
-  INSPECTION_MODE_DIRECT = 1;
-  INSPECTION_MODE_SHALLOW = 2;
-  INSPECTION_MODE_DEEP = 3;
+  INSPECTION_MODE_DIRECT = 0;
+  INSPECTION_MODE_SHALLOW = 1;
+  INSPECTION_MODE_DEEP = 2;
 }
 
 enum ScanType {

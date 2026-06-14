@@ -9,6 +9,7 @@ import (
 	"io"
 	"log/slog"
 	"path/filepath"
+	"strings"
 
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/pkg/parsers/javascript_parsers"
@@ -44,9 +45,14 @@ func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest
 		slog.String("checksum", manifest.Metadata.Checksum),
 	)
 
-	switch filepath.Base(manifest.Metadata.Filename) {
-	case "package.json":
-		manifest.WithLanguageType(types.Language_JavaScript, types.ManifestType_Package_Json)
+	var t types.ManifestType
+	if manifest.Type == types.ManifestType_Unspecified || manifest.Type == "" {
+		t = types.ManifestType(strings.ToLower(filepath.Base(manifest.Metadata.Filename)))
+	}
+
+	switch t {
+	case types.ManifestType_Package_Json:
+		manifest.WithLanguage(types.Language_JavaScript)
 
 		parser := javascript_parsers.Parser{}
 		pkg, err := parser.

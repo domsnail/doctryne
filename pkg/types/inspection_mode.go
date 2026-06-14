@@ -12,3 +12,9 @@ const (
 	// InspectionMode_Deep inspecting the target + all related entities recursively
 	InspectionMode_Deep InspectionMode = "deep"
 )
+
+var InspectionModes_Enums = map[int32]InspectionMode{
+	0: InspectionMode_Direct,
+	1: InspectionMode_Shallow,
+	2: InspectionMode_Deep,
+}

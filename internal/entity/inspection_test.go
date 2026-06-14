@@ -40,7 +40,7 @@ func TestInspection_ResolveTarget(t *testing.T) {
 
 					ins := &Inspection{
 						ScanType:  types.ScanType_URL,
-						Target:    bytes.NewBufferString(srv.URL),
+						Manifest:  bytes.NewBufferString(srv.URL),
 						Manifests: &Manifest{},
 					}
 					return ins, srv.Close
@@ -62,7 +62,7 @@ func TestInspection_ResolveTarget(t *testing.T) {
 
 					ins := &Inspection{
 						ScanType:  types.ScanType_FilePath,
-						Target:    bytes.NewBufferString(path),
+						Manifest:  bytes.NewBufferString(path),
 						Manifests: &Manifest{},
 					}
 					return ins, func() {}
@@ -78,8 +78,8 @@ func TestInspection_ResolveTarget(t *testing.T) {
 
 					ins := &Inspection{
 						ScanType:  types.ScanType_Binary,
-						Target:    bytes.NewBufferString("unused"),
-						Options:   &InspectionOptions{Target: bytes.NewBufferString("manifest-from-binary")},
+						Manifest:  bytes.NewBufferString("unused"),
+						Options:   &InspectionOptions{Manifest: bytes.NewBufferString("manifest-from-binary")},
 						Manifests: &Manifest{},
 					}
 					return ins, func() {}
@@ -94,7 +94,7 @@ func TestInspection_ResolveTarget(t *testing.T) {
 					t.Helper()
 					ins := &Inspection{
 						ScanType:  types.ScanType_URL,
-						Target:    bytes.NewBuffer(nil),
+						Manifest:  bytes.NewBuffer(nil),
 						Manifests: &Manifest{},
 					}
 					return ins, func() {}
@@ -109,7 +109,7 @@ func TestInspection_ResolveTarget(t *testing.T) {
 					t.Helper()
 					ins := &Inspection{
 						ScanType:  types.ScanType("unknown"),
-						Target:    bytes.NewBufferString("anything"),
+						Manifest:  bytes.NewBufferString("anything"),
 						Manifests: &Manifest{},
 					}
 					return ins, func() {}
