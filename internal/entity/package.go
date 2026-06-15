@@ -28,6 +28,8 @@ type Package struct {
 	Integrity string
 	License   string
 
+	Authors []Developer
+
 	Metadata *PackageMetadata
 
 	Dependencies []*Package

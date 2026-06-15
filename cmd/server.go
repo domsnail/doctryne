@@ -14,9 +14,6 @@ import (
 	"google.golang.org/grpc/health"
 	"google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
-
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 )
 
 const messageMaxSize int = 1024 * 1024 * 1024 * 128
@@ -38,12 +35,6 @@ func CreateServer(ctx context.Context, config *cfg.Server) (*Server, error) {
 	var opts = []grpc.ServerOption{
 		grpc.MaxRecvMsgSize(messageMaxSize),
 		grpc.Creds(insecure.NewCredentials()),
-		grpc.StreamInterceptor(grpc_middleware.ChainStreamServer(
-			recovery.StreamServerInterceptor(),
-		)),
-		grpc.UnaryInterceptor(grpc_middleware.ChainUnaryServer(
-			recovery.UnaryServerInterceptor(),
-		)),
 	}
 
 	server.srv = grpc.NewServer(opts...)
@@ -51,6 +42,10 @@ func CreateServer(ctx context.Context, config *cfg.Server) (*Server, error) {
 	if !config.DisableReflect {
 		slog.WarnContext(ctx, "grpc server reflection enabled")
 		reflection.Register(server.srv)
+	}
+
+	if !config.DisableReflect {
+		slog.WarnContext(ctx, "grpc server reflection enabled")
 	}
 
 	if !config.DisableHealth {

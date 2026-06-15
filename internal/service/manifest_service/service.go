@@ -45,7 +45,7 @@ func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest
 		slog.String("checksum", manifest.Metadata.Checksum),
 	)
 
-	var t types.ManifestType
+	var t = manifest.Type
 	if manifest.Type == types.ManifestType_Unspecified || manifest.Type == "" {
 		t = types.ManifestType(strings.ToLower(filepath.Base(manifest.Metadata.Filename)))
 	}

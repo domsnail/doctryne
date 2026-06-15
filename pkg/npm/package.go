@@ -36,6 +36,7 @@ type Package struct {
 		Url string `json:"url"`
 	} `json:"bugs"`
 
+	// represented as a string in legacy files
 	Author Person `json:"author"`
 
 	Repository Repository `json:"repository"`

@@ -39,7 +39,7 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 
 	slog.DebugContext(ctx, "converting npm package...", slog.String("package_name", npmPkg.Name))
 	var pkg = getPackage(npmPkg)
-	pkg.Stats = getPackageStats(npmStats)
+	//pkg.Stats = getPackageStats(npmStats)
 	pkg.Raw = raw
 
 	return pkg, nil
@@ -51,16 +51,16 @@ func getPackage(n *npm.Package) *entity.Package {
 		Ecosystem:  types.Ecosystem_NPM,
 		Language:   types.Language_JavaScript,
 		RegistryID: n.ID,
-		Git:        n.GetGitURL(),
-		License:    n.License,
+		//Git:        n.GetGitURL(),
+		License: n.License,
 		Metadata: &entity.PackageMetadata{
 			Description: n.Description,
 			Homepage:    n.Homepage,
 			Keywords:    n.Keywords,
 		},
-		Contributors: getPackageContributors(n),
-		PublishedAt:  n.GetCreatedAt(),
-		ModifiedAt:   n.GetModifiedAt(),
+		//Contributors: getPackageContributors(n),
+		//PublishedAt:  n.GetCreatedAt(),
+		//ModifiedAt:   n.GetModifiedAt(),
 	}
 
 	return &pkg

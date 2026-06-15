@@ -1,0 +1,30 @@
+{
+  "name": "brobot",
+  "version": "1.0.0",
+  "description": "Friendly Disocrd Bot",
+  "main": "core.js",
+  "dependencies": {
+    "@frangiskos/mssql": "^0.2.1",
+    "discord.js": "^12.2.0",
+    "nodemon": "^2.0.4",
+    "tedious": "^8.3.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "ping"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qvineox/broBot.git"
+  },
+  "keywords": [
+    "bot",
+    "discord"
+  ],
+  "author": "Qvineox",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Qvineox/broBot/issues"
+  },
+  "homepage": "https://github.com/Qvineox/broBot#readme"
+}

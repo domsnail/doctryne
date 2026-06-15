@@ -49,7 +49,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 	switch ins.ScanType {
 	case types.ScanType_URL:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(ins.Manifest)
+		_, err := buf.ReadFrom(ins.Target)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read target: %w", err)
 		}
@@ -84,7 +84,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		break
 	case types.ScanType_FilePath:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(ins.Manifest)
+		_, err := buf.ReadFrom(ins.Target)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read target: %w", err)
 		}
@@ -122,54 +122,54 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		return nil, errors.New("no manifests found")
 	}
 
-	if ins.Lockfile != nil {
+	if ins.TargetLockfile != nil {
 		var lbuf bytes.Buffer
-		n, err := lbuf.ReadFrom(ins.Lockfile)
+		n, err := lbuf.ReadFrom(ins.TargetLockfile)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read lockfile: %w", err)
-		} else if n == 0 {
-			return nil, errors.New("lockfile is empty")
-		}
+		} else if n != 0 {
 
-		switch ins.ScanType {
-		case types.ScanType_URL:
-			u, err := url.Parse(lbuf.String())
-			if err != nil {
-				return nil, fmt.Errorf("failed to parse lockfile url: %w", err)
+			switch ins.ScanType {
+			case types.ScanType_URL:
+				u, err := url.Parse(lbuf.String())
+				if err != nil {
+					return nil, fmt.Errorf("failed to parse lockfile url: %w", err)
+				}
+
+				request, err := http.NewRequest(http.MethodGet, u.String(), nil)
+				if err != nil {
+					return nil, err
+				}
+
+				slog.DebugContext(ctx, "querying lockfile url...",
+					slog.String("scan_type", string(ins.ScanType)),
+					slog.String("url", u.Redacted()),
+				)
+
+				resp, err := http.DefaultClient.Do(request.WithContext(ctx))
+				if err != nil {
+					return nil, fmt.Errorf("failed to perform http request: %w", err)
+				}
+
+				err = ins.Manifests[0].SetLockfileContent(resp.Body)
+				if err != nil {
+					return nil, fmt.Errorf("failed to read lockfile body contents: %w", err)
+				}
+			case types.ScanType_DirPath:
+				// todo: search for files
+				return nil, errors.New("not implemented")
+			case types.ScanType_FilePath:
+				file, err := os.ReadFile(lbuf.String())
+				if err != nil {
+					return nil, fmt.Errorf("failed to read from lockfile: %w", err)
+				}
+
+				err = ins.Manifests[0].SetLockfileContent(bytes.NewReader(file))
+				if err != nil {
+					return nil, fmt.Errorf("failed to read lockfile body contents: %w", err)
+				}
 			}
 
-			request, err := http.NewRequest(http.MethodGet, u.String(), nil)
-			if err != nil {
-				return nil, err
-			}
-
-			slog.DebugContext(ctx, "querying lockfile url...",
-				slog.String("scan_type", string(ins.ScanType)),
-				slog.String("url", u.Redacted()),
-			)
-
-			resp, err := http.DefaultClient.Do(request.WithContext(ctx))
-			if err != nil {
-				return nil, fmt.Errorf("failed to perform http request: %w", err)
-			}
-
-			err = ins.Manifests[0].SetLockfileContent(resp.Body)
-			if err != nil {
-				return nil, fmt.Errorf("failed to read lockfile body contents: %w", err)
-			}
-		case types.ScanType_DirPath:
-			// todo: search for files
-			return nil, errors.New("not implemented")
-		case types.ScanType_FilePath:
-			file, err := os.ReadFile(lbuf.String())
-			if err != nil {
-				return nil, fmt.Errorf("failed to read from lockfile: %w", err)
-			}
-
-			err = ins.Manifests[0].SetLockfileContent(bytes.NewReader(file))
-			if err != nil {
-				return nil, fmt.Errorf("failed to read lockfile body contents: %w", err)
-			}
 		}
 	}
 

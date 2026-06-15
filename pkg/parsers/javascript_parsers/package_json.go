@@ -70,6 +70,17 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 		Dependencies: make([]*entity.Package, len(p.Dependencies)),
 	}
 
+	if p.Author.Name != "" {
+		var developer entity.Developer
+		developer.Username = p.Author.Name
+
+		if p.Author.Email != "" {
+			developer.Emails = append(developer.Emails, p.Author.Email)
+		}
+
+		topPackage.Authors = append(topPackage.Authors, developer)
+	}
+
 	var counter = 0
 	for dep, ver := range p.Dependencies {
 		topPackage.Dependencies[counter] = &entity.Package{
