@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"runtime"
 	"slices"
 	"time"
 
@@ -17,6 +18,7 @@ type Config struct {
 	Insecure    bool          `json:"insecure" yaml:"insecure" env:"HTTP_INSECURE"`
 	Timeout     time.Duration `json:"timeout" yaml:"timeout"`
 	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age"`
+	Concurrency int32         `json:"concurrency" yaml:"concurrency"`
 
 	// If ServerURL present, cli will use remote server rpc to create new inspection
 	ServerURL string `json:"server_url" yaml:"server_url"`
@@ -46,6 +48,7 @@ func NewConfigWithDefaultValues() *Config {
 		Timeout:     time.Second * 30,
 		CacheMaxAge: 14 * 24 * time.Hour, // 2 weeks
 		Output:      Output{Format: types.ReportFormat_TextTable},
+		Concurrency: int32(runtime.NumCPU()),
 		Logging: Logging{
 			Format: "text",
 		},
@@ -91,6 +94,10 @@ func (c *Config) IsValid() error {
 
 	if c.Logging.Format != "text" && c.Logging.Format != "json" {
 		return errors.New("invalid logging format, only 'text' and 'json' are supported")
+	}
+
+	if c.Concurrency <= 0 {
+		return errors.New("invalid concurrency modifier: cannot be less than zero")
 	}
 
 	if !slices.Contains(types.ReportFormats, c.Output.Format) {

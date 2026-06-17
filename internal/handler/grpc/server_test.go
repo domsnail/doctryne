@@ -17,7 +17,7 @@ import (
 const testDataDir = "../../../test"
 
 func Test_InspectionHandler_JavaScript(t *testing.T) {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
 		Level:     slog.LevelDebug,
 	})))

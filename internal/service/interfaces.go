@@ -54,4 +54,5 @@ type IManifestParser interface {
 }
 
 type IRegistryService interface {
+	GetPackageInfo(ctx context.Context, pkg *entity.Package) error
 }

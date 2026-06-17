@@ -13,6 +13,7 @@ type Inspection struct {
 	UUID uuid.UUID
 
 	// target can be a binary file, url or directory path
+	// todo: idea: maybe replace with slice of targets with target_type field?
 	Target         io.Reader
 	TargetLockfile io.Reader
 

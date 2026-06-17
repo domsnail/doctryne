@@ -28,13 +28,21 @@ type Package struct {
 	Integrity string
 	License   string
 
-	Authors []Developer
+	AffiliatedDevelopers AffiliatedDevelopers
 
 	Metadata *PackageMetadata
 
 	Dependencies []*Package
 
 	Raw json.RawMessage
+}
+
+type AffiliatedDevelopers struct {
+	CodeOwners   []Developer
+	Authors      []Developer
+	Contributors []Developer
+	Sponsors     []Developer
+	Maintainers  []Developer
 }
 
 type PackageMetadata struct {

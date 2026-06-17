@@ -13,12 +13,14 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
+	"golang.org/x/sync/errgroup"
 )
 
 type InspectionService struct {
@@ -288,8 +290,118 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 }
 
 func (service *InspectionService) InspectPackages(ctx context.Context, inspection *entity.Inspection) error {
-	//TODO implement me
-	panic("implement me")
+	slog.DebugContext(ctx, "starting inspection packages processing...",
+		slog.Int("total_manifests", len(inspection.Manifests)),
+	)
+
+	packages, err := service.extractPackages(ctx, inspection)
+	if err != nil {
+		return fmt.Errorf("failed to extract packages: %w", err)
+	}
+
+	var pool = NewPackageInspectionPool(ctx)
+	for _, pkg := range packages {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		pool.Inspect(pkg)
+	}
+
+	err = pool.Wait()
+	if err != nil {
+		slog.WarnContext(ctx, "packages inspection finished with errors",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	return nil
+}
+
+func (service *InspectionService) inspectPackage(ctx context.Context, pkg *entity.Package) error {
+	return nil
+}
+
+func (service *InspectionService) extractPackages(ctx context.Context, inspection *entity.Inspection) ([]*entity.Package, error) {
+	slog.DebugContext(ctx, "extracting packages...",
+		slog.Int("total_manifests", len(inspection.Manifests)),
+	)
+
+	depsMap := sync.Map{}
+	group, groupCtx := errgroup.WithContext(ctx)
+	for _, m := range inspection.Manifests {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		if len(m.DiscoveredPackages) == 0 {
+			slog.DebugContext(groupCtx, "no packages discovered in manifest, skipping...",
+				slog.String("manifest", m.Metadata.Filename),
+			)
+
+			continue
+		}
+
+		for _, pkg := range m.DiscoveredPackages {
+			slog.DebugContext(groupCtx, "inspecting top level package",
+				slog.String("package_name", pkg.Name),
+				slog.String("package_version", pkg.Version),
+			)
+
+			group.Go(func() error {
+				dependencies, err := service.extractPackage(groupCtx, pkg)
+				if err != nil {
+					return fmt.Errorf("failed to inspect package '%s': %w", pkg.Name, err)
+				}
+
+				for _, d := range dependencies {
+					depsMap.Store(fmt.Sprintf("%s@%s", d.Name, d.Version), d)
+				}
+
+				return nil
+			})
+		}
+	}
+
+	err := group.Wait()
+	if err != nil {
+		slog.WarnContext(ctx, "packages processing completed with errors",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	var depsSlice []*entity.Package
+	depsMap.Range(func(k, v interface{}) bool {
+		depsSlice = append(depsSlice, v.(*entity.Package))
+		return true
+	})
+
+	slog.DebugContext(groupCtx, "packages extracted successfully",
+		slog.Int("total_unique_packages", len(depsSlice)),
+		slog.Int("total_manifests", len(inspection.Manifests)),
+	)
+
+	return depsSlice, nil
+}
+
+func (service *InspectionService) extractPackage(ctx context.Context, pkg *entity.Package) ([]*entity.Package, error) {
+	var pkgs []*entity.Package
+
+	var children = pkg.Dependencies[:]
+	pkg.Dependencies = nil
+
+	pkgs = append(pkgs, pkg)
+
+	for _, child := range children {
+		childPkgs, err := service.extractPackage(ctx, child)
+		if err != nil {
+			return nil, err
+		}
+
+		pkgs = append(pkgs, childPkgs...)
+	}
+
+	return pkgs, nil
 }
 
 func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
