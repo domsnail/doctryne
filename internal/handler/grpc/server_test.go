@@ -25,7 +25,9 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 		Level:     slog.LevelDebug,
 	})))
 
-	config := cfg.NewConfigWithDefaultValues()
+	config, err := cfg.NewConfigFromEnv()
+	require.NoError(t, err)
+
 	config.Languages.JavaScript.CheckDevDependencies = true
 	config.Languages.JavaScript.CheckOptionalDependencies = true
 	cfg.SetGlobalConfig(config)

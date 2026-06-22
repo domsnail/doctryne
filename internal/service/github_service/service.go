@@ -21,8 +21,7 @@ type GithubServiceImpl struct {
 }
 
 type GithubServiceOpts struct {
-	Timeout  time.Duration
-	ProxyURL *url.URL
+	Timeout time.Duration
 
 	AccessToken string
 
@@ -53,21 +52,13 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	}
 
 	var (
-		transport = http.DefaultTransport
-		client    *github.Client
-		err       error
+		client *github.Client
+		err    error
 	)
-
-	if opts.ProxyURL != nil {
-		slog.Debug("setting http proxy for github client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(opts.ProxyURL),
-		}
-	}
 
 	var githubClientOpts = []github.ClientOptionsFunc{
 		github.WithTimeout(opts.Timeout),
-		github.WithTransport(transport),
+		github.WithTransport(http.DefaultTransport),
 	}
 
 	if opts.AccessToken != "" {

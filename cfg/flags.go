@@ -4,9 +4,7 @@ import (
 	"context"
 	"errors"
 	"flag"
-	"fmt"
 	"log/slog"
-	"net/url"
 	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
@@ -61,10 +59,7 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 	}
 
 	if proxy != nil && *proxy != "" {
-		config.HttpProxy, err = url.Parse(*proxy)
-		if err != nil {
-			return nil, fmt.Errorf("invalid proxy url: %w", err)
-		}
+		config.HttpProxy = *proxy
 	}
 
 	if logFormat != nil && *logFormat != "" {

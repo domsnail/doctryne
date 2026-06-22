@@ -25,8 +25,7 @@ type Client struct {
 }
 
 type Options struct {
-	Timeout  time.Duration
-	ProxyURL *url.URL
+	Timeout time.Duration
 
 	BearerToken string
 
@@ -46,13 +45,6 @@ func NewClient(opts Options) (*Client, error) {
 	}
 
 	var transport = http.DefaultTransport
-	if opts.ProxyURL != nil {
-		slog.Debug("using proxy for npm client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
-		transport = &http.Transport{
-			Proxy: http.ProxyURL(opts.ProxyURL),
-		}
-	}
-
 	if opts.BearerToken != "" {
 		transport = &bearerTransport{
 			token: opts.BearerToken,

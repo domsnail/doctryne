@@ -3,23 +3,26 @@ package cfg
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"net/url"
 	"runtime"
 	"slices"
 	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/ilyakaznacheev/cleanenv"
 )
 
 var GlobalConfig *Config
 
 type Config struct {
-	HttpProxy   *url.URL      `json:"http_proxy" yaml:"http_proxy" env:"HTTP_PROXY"`
-	Insecure    bool          `json:"insecure" yaml:"insecure" env:"HTTP_INSECURE"`
-	Timeout     time.Duration `json:"timeout" yaml:"timeout"`
-	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age"`
-	Concurrency int32         `json:"concurrency" yaml:"concurrency"`
-	TimeScope   TimeScope     `json:"time_scope" yaml:"time_scope" env-default:"month"`
+	HttpProxy    string        `json:"http_proxy" yaml:"http_proxy" env:"HTTP_PROXY"`
+	Insecure     bool          `json:"insecure" yaml:"insecure" env:"HTTP_INSECURE"`
+	Timeout      time.Duration `json:"timeout" yaml:"timeout" env:"HTTP_TIMEOUT" env-default:"30s"`
+	AllowedHosts []string      `json:"allowed_hosts" yaml:"allowed_hosts" env:"HTTP_ALLOWED_HOSTS" env-separator:","`
+
+	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age" env:"CACHE_MAX_AGE" env-default:"5m"`
+	Concurrency int32         `json:"concurrency" yaml:"concurrency" env:"CONCURRENCY" env-default:"4"`
 
 	// If ServerURL present, cli will use remote server rpc to create new inspection
 	ServerURL string `json:"server_url" yaml:"server_url"`
@@ -41,6 +44,24 @@ type Config struct {
 
 func SetGlobalConfig(cfg *Config) {
 	GlobalConfig = cfg
+
+	setGlobalHttpClient(cfg)
+}
+
+func setGlobalHttpClient(cfg *Config) {
+	if cfg.HttpProxy != "" {
+		proxyURL, err := url.Parse(cfg.HttpProxy)
+		if err != nil {
+			panic(err)
+		}
+
+		http.DefaultClient = &http.Client{
+			Timeout: cfg.Timeout,
+			Transport: &http.Transport{
+				Proxy: http.ProxyURL(proxyURL),
+			},
+		}
+	}
 }
 
 func NewConfigWithDefaultValues() *Config {
@@ -50,7 +71,6 @@ func NewConfigWithDefaultValues() *Config {
 		CacheMaxAge: 14 * 24 * time.Hour, // 2 weeks
 		Output:      Output{Format: types.ReportFormat_TextTable},
 		Concurrency: int32(runtime.NumCPU()),
-		TimeScope:   TimeScope_Week,
 		Logging: Logging{
 			Format: "text",
 		},
@@ -66,6 +86,28 @@ func NewConfigWithDefaultValues() *Config {
 			FileSearchDepth:            10,
 		},
 	}
+}
+
+func NewConfigFromFile(filepath string) (*Config, error) {
+	var cfg Config
+
+	err := cleanenv.ReadConfig(filepath, &cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
+}
+
+func NewConfigFromEnv() (*Config, error) {
+	var cfg Config
+
+	err := cleanenv.ReadEnv(&cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cfg, nil
 }
 
 func (c *Config) HasScan() bool {
