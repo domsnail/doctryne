@@ -49,20 +49,20 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 	)
 
 	var topPackage = entity.Package{
-		Name:       p.Name,
-		Version:    p.Version,
-		Ecosystem:  eco,
-		Language:   lang,
-		RegistryID: p.ID,
+		Name:      p.Name,
+		Version:   p.Version,
+		Ecosystem: eco,
+		Language:  lang,
 		//Resolved:   nil, // todo: get from package-lock.json
 		//Registry:   "",
 		//Integrity:  "",
-		License: p.License,
-		Labels:  []types.Label{types.Label_Root},
-		Metadata: &entity.PackageMetadata{
+		Labels: []types.Label{types.Label_Root},
+		RegistryMetadata: &entity.RegistryMetadata{
+			RegistryID:  p.ID,
 			Description: p.Description,
 			Homepage:    p.Homepage,
 			Keywords:    p.Keywords,
+			License:     p.License,
 			Git:         p.GetGitURL(),
 			PublishedAt: p.GetCreatedAt(),
 			ModifiedAt:  p.GetModifiedAt(),
@@ -167,17 +167,17 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 	})
 
 	pkg = &entity.Package{
-		Name:       p.Name,
-		Version:    p.Version,
-		Ecosystem:  eco,
-		Language:   lang,
-		RegistryID: p.ID,
-		License:    p.License,
-		Labels:     []types.Label{types.Label_Root},
-		Metadata: &entity.PackageMetadata{
+		Name:      p.Name,
+		Version:   p.Version,
+		Ecosystem: eco,
+		Language:  lang,
+		Labels:    []types.Label{types.Label_Root},
+		RegistryMetadata: &entity.RegistryMetadata{
+			RegistryID:  p.ID,
 			Description: p.Description,
 			Homepage:    p.Homepage,
 			Keywords:    p.Keywords,
+			License:     p.License,
 			Git:         p.GetGitURL(),
 			PublishedAt: p.GetCreatedAt(),
 			ModifiedAt:  p.GetModifiedAt(),
@@ -193,7 +193,6 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 			Ecosystem:  eco,
 			Language:   lang,
 			Integrity:  depPkg.Integrity,
-			License:    depPkg.License,
 			IsDev:      depPkg.Dev,
 			IsOptional: depPkg.Optional,
 		}

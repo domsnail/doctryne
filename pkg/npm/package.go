@@ -13,7 +13,7 @@ import (
 // ref: https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md#package,
 // for example: https://registry.npmjs.org/detect-libc
 type Package struct {
-	ID          string   `json:"_id"` // mapped to RegistryID
+	ID          string   `json:"_id"` // mapped to Package.Metadata.RegistryID
 	Rev         string   `json:"_rev"`
 	Name        string   `json:"name"`
 	Description string   `json:"description"`

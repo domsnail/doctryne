@@ -2,18 +2,20 @@ package inspect_service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
-	"math/rand"
 	"sync"
 	"sync/atomic"
-	"time"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/internal/service"
 	"golang.org/x/sync/errgroup"
 )
 
 type PackageInspectionPool struct {
+	registry service.IRegistryService
+
 	errGroup *errgroup.Group
 	ctx      context.Context
 
@@ -23,12 +25,13 @@ type PackageInspectionPool struct {
 	c *sync.Cond
 }
 
-func NewPackageInspectionPool(ctx context.Context) *PackageInspectionPool {
+func NewPackageInspectionPool(ctx context.Context, registry service.IRegistryService) *PackageInspectionPool {
 	var mu sync.Mutex
 
 	group, groupCtx := errgroup.WithContext(ctx)
 
 	return &PackageInspectionPool{
+		registry: registry,
 		capacity: cfg.GlobalConfig.Concurrency,
 		errGroup: group,
 		ctx:      groupCtx,
@@ -37,18 +40,20 @@ func NewPackageInspectionPool(ctx context.Context) *PackageInspectionPool {
 }
 
 func (pool *PackageInspectionPool) Inspect(pkg *entity.Package) {
-	defer pool.c.L.Unlock()
 	pool.c.L.Lock()
-
 	for pool.active.Load() >= pool.capacity {
 		pool.c.Wait()
 	}
 
 	pool.active.Add(1)
+	pool.c.L.Unlock()
 
 	pool.errGroup.Go(func() error {
 		defer func() {
+			pool.c.L.Lock()
 			pool.active.Add(-1)
+			pool.c.L.Unlock()
+
 			pool.c.Signal()
 		}()
 
@@ -57,7 +62,10 @@ func (pool *PackageInspectionPool) Inspect(pkg *entity.Package) {
 			slog.String("package_version", pkg.Version),
 		)
 
-		time.Sleep(time.Duration(rand.Intn(10)) * time.Second)
+		err := pool.registry.GetPackageInfo(pool.ctx, pkg)
+		if err != nil {
+			return fmt.Errorf("failed to get package info: %w", err)
+		}
 
 		return nil
 	})

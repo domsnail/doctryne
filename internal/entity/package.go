@@ -15,9 +15,8 @@ type Package struct {
 	Language  types.Language
 
 	// Resolved url from which dependency was downloaded
-	Resolved   *url.URL
-	Registry   string
-	RegistryID string
+	Resolved *url.URL
+	Registry string
 
 	// Labels custom aggregation labels to ease indexing, filtering and description
 	Labels     []types.Label
@@ -26,11 +25,11 @@ type Package struct {
 
 	// Integrity hash or check sum (SHA1, MD5 or other)
 	Integrity string
-	License   string
 
 	AffiliatedDevelopers AffiliatedDevelopers
 
-	Metadata *PackageMetadata
+	RegistryMetadata *RegistryMetadata
+	GitMetadata      *GitMetadata
 
 	Dependencies []*Package
 
@@ -45,18 +44,26 @@ type AffiliatedDevelopers struct {
 	Maintainers  []Developer
 }
 
-type PackageMetadata struct {
+type RegistryMetadata struct {
+	RegistryID string
+	IsPrivate  bool
+
 	Description string
 	Homepage    string
+	Readme      string
+	License     string
 	Keywords    []string
 
 	Git *url.URL
 
-	Contributors *PackageContributors
+	Contributors *AffiliatedDevelopers
 	Stats        *PackageStats
 
 	PublishedAt time.Time
 	ModifiedAt  time.Time
+}
+
+type GitMetadata struct {
 }
 
 type PackageStats struct {
@@ -67,12 +74,6 @@ type PackageDownloads struct {
 	StartAt   time.Time
 	EndAt     time.Time
 	Downloads uint64
-}
-
-type PackageContributors struct {
-	Authors      []Developer
-	Contributors []Developer
-	Maintainers  []Developer
 }
 
 func (pkg *Package) CountDevDependencies() int {

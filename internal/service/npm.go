@@ -30,7 +30,7 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 		return nil, nil
 	}
 
-	npmStats, err := service.c.GetPackageStats(ctx, name, npm.PackageStatsPeriod_LastMonth)
+	npmStats, err := service.c.GetPackageStats(ctx, name, time.Hour)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch package stats '%s': %w", name, err)
 	} else if npmStats == nil {
@@ -47,13 +47,13 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 
 func getPackage(n *npm.Package) *entity.Package {
 	pkg := entity.Package{
-		Name:       n.Name,
-		Ecosystem:  types.Ecosystem_NPM,
-		Language:   types.Language_JavaScript,
-		RegistryID: n.ID,
-		//Git:        n.GetGitURL(),
-		License: n.License,
-		Metadata: &entity.PackageMetadata{
+		Name:      n.Name,
+		Ecosystem: types.Ecosystem_NPM,
+		Language:  types.Language_JavaScript,
+		RegistryMetadata: &entity.RegistryMetadata{
+			RegistryID: n.ID,
+			//Git:        n.GetGitURL(),
+			License:     n.License,
 			Description: n.Description,
 			Homepage:    n.Homepage,
 			Keywords:    n.Keywords,
@@ -66,8 +66,8 @@ func getPackage(n *npm.Package) *entity.Package {
 	return &pkg
 }
 
-func getPackageContributors(n *npm.Package) *entity.PackageContributors {
-	var contrib = entity.PackageContributors{
+func getPackageContributors(n *npm.Package) *entity.AffiliatedDevelopers {
+	var contrib = entity.AffiliatedDevelopers{
 		Authors:      make([]entity.Developer, 0),
 		Contributors: make([]entity.Developer, 0),
 		Maintainers:  make([]entity.Developer, 0),

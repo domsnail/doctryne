@@ -7,15 +7,27 @@ type Person struct {
 	Email string `json:"email"`
 }
 
+type otherPerson struct {
+	Name  string `json:"name"`
+	Email string `json:"email"`
+}
+
 func (p *Person) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		p.Name = s
+	var p_ otherPerson
+	err := json.Unmarshal(data, &p_)
+	if err == nil {
+		p.Name = p_.Name
+		p.Email = p_.Email
+
 		return nil
 	}
 
-	if err := json.Unmarshal(data, &p); err != nil {
-		return err
+	var s string
+	err = json.Unmarshal(data, &s)
+	if err == nil {
+		p.Name = s
+
+		return nil
 	}
 
 	return nil

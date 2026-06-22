@@ -194,7 +194,7 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.Ra
 			slog.Int("status_code", resp.StatusCode),
 		)
 
-		return nil, nil, nil
+		return nil, nil, errors.New("package not found")
 	}
 
 	if resp.StatusCode != http.StatusOK {
@@ -239,12 +239,15 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.Ra
 	return &info, body, nil
 }
 
-func (c *Client) GetPackageStats(ctx context.Context, name string, period PackageStatsPeriod) (*Stats, error) {
-	if len(name) == 0 || len(period) == 0 {
+func (c *Client) GetPackageStats(ctx context.Context, name string, period time.Duration) (*Stats, error) {
+	if len(name) == 0 || period == 0 {
 		return nil, fmt.Errorf("package name and period are required")
 	}
 
-	queryURL := fmt.Sprintf("%s/downloads/point/%s/%s", c.api, period, name)
+	end := time.Now()
+	start := end.Add(-period)
+
+	queryURL := fmt.Sprintf("%s/downloads/point/%s:%s/%s", c.api, start.Format("2006-01-02"), end.Format("2006-01-02"), name)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
@@ -274,7 +277,7 @@ func (c *Client) GetPackageStats(ctx context.Context, name string, period Packag
 			slog.Int("status_code", resp.StatusCode),
 		)
 
-		return nil, nil
+		return nil, errors.New("package not found")
 	}
 
 	if resp.StatusCode != http.StatusOK {

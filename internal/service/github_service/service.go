@@ -2,7 +2,6 @@ package github_service
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -27,16 +26,30 @@ type GithubServiceOpts struct {
 
 	AccessToken string
 
-	LatestActivityDepth int
+	LatestActivityPeriod time.Duration
 }
 
-func NewGithubServiceImpl(opts GithubServiceOpts) (*GithubServiceImpl, error) {
+const defaultLatestActivityPeriod = 30 * 24 * time.Hour
+
+func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	slog.Debug("initializing github client...",
 		slog.Bool("using_access_token", opts.AccessToken != ""),
 	)
 
-	if opts.Timeout == 0 {
-		return nil, errors.New("timeout is required")
+	if opts.Timeout <= 0 {
+		slog.Debug("timeout is not set or invalid, setting default timeout for github client...",
+			slog.Duration("timeout", http.DefaultClient.Timeout),
+		)
+
+		opts.Timeout = http.DefaultClient.Timeout
+	}
+
+	if opts.LatestActivityPeriod <= 0 {
+		slog.Debug("latest activity is not set or invalid, setting default period...",
+			slog.Duration("period", defaultLatestActivityPeriod),
+		)
+
+		opts.LatestActivityPeriod = defaultLatestActivityPeriod
 	}
 
 	var (
@@ -46,7 +59,7 @@ func NewGithubServiceImpl(opts GithubServiceOpts) (*GithubServiceImpl, error) {
 	)
 
 	if opts.ProxyURL != nil {
-		slog.Debug("using proxy for github client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
+		slog.Debug("setting http proxy for github client", slog.String("proxy_url", opts.ProxyURL.Redacted()))
 		transport = &http.Transport{
 			Proxy: http.ProxyURL(opts.ProxyURL),
 		}
@@ -63,10 +76,10 @@ func NewGithubServiceImpl(opts GithubServiceOpts) (*GithubServiceImpl, error) {
 
 	client, err = github.NewClient(githubClientOpts...)
 	if err != nil {
-		return nil, fmt.Errorf("failed to initialize github client: %w", err)
+		slog.Error("failed to initialize github client", slog.String("error", err.Error()))
 	}
 
-	return &GithubServiceImpl{c: client}, nil
+	return &GithubServiceImpl{c: client}
 }
 
 func (service GithubServiceImpl) Ping(ctx context.Context) error {

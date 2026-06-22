@@ -299,7 +299,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		return fmt.Errorf("failed to extract packages: %w", err)
 	}
 
-	var pool = NewPackageInspectionPool(ctx)
+	var pool = NewPackageInspectionPool(ctx, service.registry)
 	for _, pkg := range packages {
 		if ctx.Err() != nil {
 			return ctx.Err()
@@ -315,6 +315,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		)
 	}
 
+	inspection.Packages = packages
 	return nil
 }
 

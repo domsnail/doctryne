@@ -32,7 +32,7 @@ type Repository struct {
 
 	License string
 
-	GithubID *int64
+	GithubID int64
 	GitURL   *url.URL
 
 	CreatedAt time.Time

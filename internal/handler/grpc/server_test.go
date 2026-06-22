@@ -6,11 +6,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	inspection_v1 "github.com/domsnail/doctryne/api/gen/go/inspection/v1"
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/service/github_service"
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
+	"github.com/domsnail/doctryne/internal/service/registry_service"
 	"github.com/stretchr/testify/require"
 )
 
@@ -27,7 +30,17 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 	config.Languages.JavaScript.CheckOptionalDependencies = true
 	cfg.SetGlobalConfig(config)
 
-	handler := NewInspectionGRPCHandler(inspect_service.NewInspectionService(manifest_service.NewManifestServiceImpl(), nil, nil))
+	handler := NewInspectionGRPCHandler(inspect_service.NewInspectionService(
+		manifest_service.NewManifestServiceImpl(),
+		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{
+			Timeout:              time.Second * 30,
+			LatestActivityPeriod: 30 * 24 * time.Hour,
+		}),
+		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{
+			Timeout:              time.Second * 30,
+			LatestActivityPeriod: 30 * 24 * time.Hour,
+		}),
+	))
 
 	t.Run("test package.json inspection with errors", func(t *testing.T) {
 		contents, err := os.ReadFile(filepath.Join(testDataDir, "package.brobot.json"))

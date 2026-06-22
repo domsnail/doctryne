@@ -19,6 +19,7 @@ type Config struct {
 	Timeout     time.Duration `json:"timeout" yaml:"timeout"`
 	CacheMaxAge time.Duration `json:"cache_max_age" yaml:"cache_max_age"`
 	Concurrency int32         `json:"concurrency" yaml:"concurrency"`
+	TimeScope   TimeScope     `json:"time_scope" yaml:"time_scope" env-default:"month"`
 
 	// If ServerURL present, cli will use remote server rpc to create new inspection
 	ServerURL string `json:"server_url" yaml:"server_url"`
@@ -49,6 +50,7 @@ func NewConfigWithDefaultValues() *Config {
 		CacheMaxAge: 14 * 24 * time.Hour, // 2 weeks
 		Output:      Output{Format: types.ReportFormat_TextTable},
 		Concurrency: int32(runtime.NumCPU()),
+		TimeScope:   TimeScope_Week,
 		Logging: Logging{
 			Format: "text",
 		},

@@ -23,9 +23,7 @@ type Version struct {
 	NpmUser      Person     `json:"_npmUser"`
 	Repository   Repository `json:"repository"`
 
-	Bugs struct {
-		Url string `json:"url"`
-	} `json:"bugs"`
+	Bugs Bugs `json:"bugs"`
 
 	GitHead     string `json:"gitHead"`
 	NodeVersion string `json:"_nodeVersion"`
