@@ -2,7 +2,7 @@ package inspect_service
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -10,14 +10,13 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
-	"golang.org/x/sync/errgroup"
 )
 
 type PackageInspectionPool struct {
 	registry service.IRegistryService
 
-	errGroup *errgroup.Group
-	ctx      context.Context
+	wg  *sync.WaitGroup
+	ctx context.Context
 
 	capacity int32
 	active   atomic.Int32
@@ -28,13 +27,13 @@ type PackageInspectionPool struct {
 func NewPackageInspectionPool(ctx context.Context, registry service.IRegistryService) *PackageInspectionPool {
 	var mu sync.Mutex
 
-	group, groupCtx := errgroup.WithContext(ctx)
+	wg := &sync.WaitGroup{}
 
 	return &PackageInspectionPool{
 		registry: registry,
 		capacity: cfg.GlobalConfig.Concurrency,
-		errGroup: group,
-		ctx:      groupCtx,
+		wg:       wg,
+		ctx:      ctx,
 		c:        sync.NewCond(&mu),
 	}
 }
@@ -48,7 +47,7 @@ func (pool *PackageInspectionPool) Inspect(pkg *entity.Package) {
 	pool.active.Add(1)
 	pool.c.L.Unlock()
 
-	pool.errGroup.Go(func() error {
+	pool.wg.Go(func() {
 		defer func() {
 			pool.c.L.Lock()
 			pool.active.Add(-1)
@@ -64,13 +63,28 @@ func (pool *PackageInspectionPool) Inspect(pkg *entity.Package) {
 
 		err := pool.registry.GetPackageInfo(pool.ctx, pkg)
 		if err != nil {
-			return fmt.Errorf("failed to get package info: %w", err)
+			slog.WarnContext(pool.ctx, "failed to inspect package",
+				slog.String("package_name", pkg.Name),
+				slog.String("package_version", pkg.Version),
+				slog.String("error", err.Error()),
+			)
 		}
-
-		return nil
 	})
 }
 
 func (pool *PackageInspectionPool) Wait() error {
-	return pool.errGroup.Wait()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		pool.wg.Wait()
+	}()
+
+	select {
+	case <-pool.ctx.Done():
+		return pool.ctx.Err()
+	case <-done:
+		return nil
+	default:
+		return errors.New("unexpected exit from inspection pool")
+	}
 }

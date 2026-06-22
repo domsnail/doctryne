@@ -40,7 +40,6 @@ func main() {
 
 	slog.DebugContext(rootCtx, "loaded configuration variables",
 		slog.String("config_file_path", config.FilePath),
-		slog.String("http_proxy", config.HttpProxy.Redacted()),
 		slog.Duration("timeout", config.Timeout),
 		slog.Group("output",
 			slog.String("format", string(config.Output.Format)),

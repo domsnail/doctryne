@@ -100,6 +100,13 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 		inspection, err := handler.Inspect(context.Background(), opts)
 		require.NoError(t, err)
 		require.NotNil(t, inspection)
+
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+
+		inspection, err = handler.Inspect(ctx, opts)
+		require.Error(t, err)
+		require.Nil(t, inspection)
 	})
 
 	t.Run("test package.cyclonedx_ui.json handling", func(t *testing.T) {

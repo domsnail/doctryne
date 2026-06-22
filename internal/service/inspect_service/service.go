@@ -310,7 +310,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 
 	err = pool.Wait()
 	if err != nil {
-		slog.WarnContext(ctx, "packages inspection finished with errors",
+		slog.WarnContext(ctx, "manifest packages inspection failed",
 			slog.String("error", err.Error()),
 		)
 	}

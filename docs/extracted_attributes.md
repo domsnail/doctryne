@@ -1,4 +1,28 @@
+# List of extracted attributes
 
+```mermaid
+
+mindmap
+    root(manifest)
+        application(application)
+            metadata
+        packages(packages)
+            registry ((registry))
+                timestamps
+                license
+            stats
+            contributors
+                name
+                email
+                company
+            source repository (source repository)
+                github ((github))
+                    metadata
+                    issues
+                    activity
+                    readme
+                    topics
+```
 
 ## Rules
 
