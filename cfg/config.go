@@ -27,7 +27,7 @@ type Config struct {
 	// If ServerURL present, cli will use remote server rpc to create new inspection
 	ServerURL string `json:"server_url" yaml:"server_url"`
 
-	Scan       Scan                       `json:"scan" yaml:"scan"`
+	Scan       ScanConfig                 `json:"scan" yaml:"scan"`
 	Languages  LanguagesConfig            `json:"languages" yaml:"languages"`
 	GitHistory GitHistoryInspectionConfig `json:"git_history" yaml:"git_history"`
 
@@ -80,7 +80,7 @@ func NewConfigWithDefaultValues() *Config {
 				CheckDevDependencies:      false,
 			},
 		},
-		Scan: Scan{
+		Scan: ScanConfig{
 			ExtractFullContributorInfo: false,
 			DeepRepositoryInspection:   false,
 			FileSearchDepth:            10,
@@ -151,7 +151,9 @@ func (c *Config) IsValid() error {
 	return nil
 }
 
-type Scan struct {
+// ScanConfig defines default scanning properties for all setups,
+// will be overridden by user provided values
+type ScanConfig struct {
 	Targets []string       `json:"targets" yaml:"targets"`
 	Type    types.ScanType `json:"type" yaml:"type"`
 
@@ -163,7 +165,8 @@ type Scan struct {
 	// text structures that might be interesting
 	DeepRepositoryInspection bool `json:"deep_repository_inspection" yaml:"deep_repository_inspection"`
 
-	// FileSearchDepth sets maximum file directory depth when analyzing directory
+	// FileSearchDepth sets maximum file directory depth when analyzing directory,
+	// cannot be overridden
 	FileSearchDepth int `json:"file_search_depth" yaml:"file_search_depth"`
 
 	// todo: ActivityPeriod (month, year)

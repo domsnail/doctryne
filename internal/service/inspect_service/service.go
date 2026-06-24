@@ -316,6 +316,45 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 	}
 
 	inspection.Packages = packages
+
+	// === analyse github ===
+
+	slog.DebugContext(ctx, "starting packages github pages processing...",
+		slog.Int("total_packages", len(inspection.Packages)),
+	)
+
+	var githubPool = NewGitHubInspectionPool(ctx, service.github, GitHubInspectionOptions{
+		Mode:                       inspection.Options.Mode,
+		DeepRepositoryInspection:   inspection.Options.Mode == types.InspectionMode_Deep,
+		ExtractFullContributorInfo: inspection.Options.LoadUserProfiles,
+	})
+
+	for _, pkg := range inspection.Packages {
+		if pkg.GetGitURL() == nil {
+			slog.DebugContext(ctx, "missing git url, skipping package...",
+				slog.String("package_name", pkg.Name),
+			)
+
+			continue
+		}
+
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		// todo: dedupe same links to github
+		githubPool.Inspect(pkg)
+	}
+
+	err = githubPool.Wait()
+	if err != nil {
+		slog.WarnContext(ctx, "packages github pages inspection failed",
+			slog.String("error", err.Error()),
+		)
+	}
+
+	// todo: copy all developers from packages (and registry metadata) to top level
+
 	return nil
 }
 

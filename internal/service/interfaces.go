@@ -54,5 +54,6 @@ type IManifestParser interface {
 }
 
 type IRegistryService interface {
+	// GetPackageInfo queries all available data from relevant registry (npm, maven etc.), latest stats and other available data
 	GetPackageInfo(ctx context.Context, pkg *entity.Package) error
 }

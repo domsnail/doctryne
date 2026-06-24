@@ -10,11 +10,11 @@ import (
 	"github.com/domsnail/doctryne/pkg/types"
 )
 
-func NewScanFromArgs(ctx context.Context) (Scan, error) {
+func NewScanFromArgs(ctx context.Context) (ScanConfig, error) {
 	args := flag.Args()
 
 	if len(args) == 0 {
-		return Scan{}, errors.New("no target provided")
+		return ScanConfig{}, errors.New("no target provided")
 	}
 
 	if len(args) == 1 {
@@ -34,7 +34,7 @@ func NewScanFromArgs(ctx context.Context) (Scan, error) {
 	case "fs", "file", "path", "files", "filesystem", "filepath":
 		scanType = types.ScanType_FilePath
 	default:
-		return Scan{}, fmt.Errorf("invalid target type: '%s'", args[0])
+		return ScanConfig{}, fmt.Errorf("invalid target type: '%s'", args[0])
 	}
 
 	slog.DebugContext(ctx, "provided scan target arguments",
@@ -42,12 +42,12 @@ func NewScanFromArgs(ctx context.Context) (Scan, error) {
 		slog.Any("targets", targets),
 	)
 
-	return Scan{
+	return ScanConfig{
 		Targets: targets,
 		Type:    scanType,
 	}, nil
 }
 
-func resolveTargetType(target string) (Scan, error) {
-	return Scan{}, errors.New("not implemented")
+func resolveTargetType(target string) (ScanConfig, error) {
+	return ScanConfig{}, errors.New("not implemented")
 }

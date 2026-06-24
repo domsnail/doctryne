@@ -18,24 +18,37 @@ func (service RegistryServiceImpl) queryNPM(ctx context.Context, pkg *entity.Pac
 	pkg.Raw = raw
 
 	contrib := entity.AffiliatedDevelopers{
-		Authors: []entity.Developer{
-			{Name: fetched.Author.Name, Emails: []string{fetched.Author.Email}},
-		},
 		Contributors: make([]entity.Developer, len(fetched.Contributors)),
 		Maintainers:  make([]entity.Developer, len(fetched.Maintainers)),
 	}
 
+	if fetched.Author.Email != "" || fetched.Author.Name != "" {
+		contrib.Authors = []entity.Developer{
+			{Name: fetched.Author.Name},
+		}
+
+		if fetched.Author.Email != "" {
+			contrib.Authors[0].Emails = []string{fetched.Author.Email}
+		}
+	}
+
 	for i := range fetched.Contributors {
 		contrib.Contributors[i] = entity.Developer{
-			Name:   fetched.Contributors[i].Name,
-			Emails: []string{fetched.Contributors[i].Email},
+			Name: fetched.Contributors[i].Name,
+		}
+
+		if fetched.Contributors[i].Email != "" {
+			contrib.Contributors[i].Emails = []string{fetched.Contributors[i].Email}
 		}
 	}
 
 	for i := range fetched.Maintainers {
 		contrib.Maintainers[i] = entity.Developer{
-			Name:   fetched.Maintainers[i].Name,
-			Emails: []string{fetched.Maintainers[i].Email},
+			Name: fetched.Maintainers[i].Name,
+		}
+
+		if fetched.Maintainers[i].Email != "" {
+			contrib.Maintainers[i].Emails = []string{fetched.Maintainers[i].Email}
 		}
 	}
 

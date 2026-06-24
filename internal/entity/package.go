@@ -64,6 +64,9 @@ type RegistryMetadata struct {
 }
 
 type GitMetadata struct {
+	Url *url.URL
+
+	Repository *Repository
 }
 
 type PackageStats struct {
@@ -98,4 +101,12 @@ func (pkg *Package) CountOptionalDependencies() int {
 	}
 
 	return counter
+}
+
+func (pkg *Package) GetGitURL() *url.URL {
+	if pkg.RegistryMetadata != nil && pkg.RegistryMetadata.Git != nil {
+		return pkg.RegistryMetadata.Git
+	}
+
+	return nil
 }

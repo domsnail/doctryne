@@ -2,7 +2,6 @@ package inspect_service
 
 import (
 	"context"
-	"errors"
 	"log/slog"
 	"sync"
 	"sync/atomic"
@@ -69,6 +68,8 @@ func (pool *PackageInspectionPool) Inspect(pkg *entity.Package) {
 				slog.String("error", err.Error()),
 			)
 		}
+
+		// do not query GitHub or other vcs because some packages can be from the same git repository
 	})
 }
 
@@ -84,7 +85,5 @@ func (pool *PackageInspectionPool) Wait() error {
 		return pool.ctx.Err()
 	case <-done:
 		return nil
-	default:
-		return errors.New("unexpected exit from inspection pool")
 	}
 }
