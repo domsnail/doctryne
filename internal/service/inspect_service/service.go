@@ -342,7 +342,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 			return ctx.Err()
 		}
 
-		// todo: dedupe same links to github
+		// todo: dedupe same github links
 		githubPool.Inspect(pkg)
 	}
 
