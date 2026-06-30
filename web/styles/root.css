@@ -1,0 +1,42 @@
+text, h1, h2, p, label {
+    font-family: Roboto, sans-serif;
+}
+
+label {
+    font-size: 0.75rem;
+}
+
+body {
+    background-color: cadetblue;
+
+    padding: 2vh 4vw;
+
+    width: 100%;
+    display: grid;
+
+    grid-template-columns: auto 20vw;
+    grid-template-rows: repeat(3, 20vh);
+}
+
+.page-content {
+    display: flex;
+    flex-direction: row;
+
+    #search-filter {
+        width: 20vw;
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            label {
+                margin-top: 0.5rem;
+            }
+
+            button {
+                margin-top: 1rem;
+            }
+        }
+    }
+}

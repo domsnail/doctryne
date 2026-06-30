@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta5"
+        integrity="sha384-5dnhUXCt1hXGvYrjAnKwgNX3I8xtIJiW6eIHIbeo7oWyXv2XpWYC/rl+ZiWfuYO5"
+        crossorigin="anonymous">
+</script>
+<link rel="stylesheet" href="styles/root.css">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div class="page-content">
+    <div id="search-filter">
+        <p>Фильтр</p>
+        <form hx-get="/list" hx-target="ul#search-results" hx-indicator="#loading-indicator">
+            <label for="search-filter_username">Имя</label>
+            <input id="search-filter_username" name="username" type="text"/>
+
+            <label for="search-filter_email">Почтовый адрес</label>
+            <input id="search-filter_email" name="email" type="email"/>
+
+            <button>
+                Найти
+            </button>
+
+        </form>
+    </div>
+
+    <img class="htmx-indicator" id="loading-indicator" src="assets/rings.svg" alt="Loading..."/>
+    <ul id="search-results">
+        <li></li>
+        <li></li>
+        <li></li>
+    </ul>
+</div>
+<div id="search-navigation">
+    <p>Навигация</p>
+</div>
+</body>
+</html>
