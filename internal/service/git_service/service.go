@@ -144,7 +144,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		return nil, fmt.Errorf("failed to get git repository head: %w", err)
 	}
 
-	slog.DebugContext(ctx, "successfully cloned git repository",
+	slog.DebugContext(ctx, "successfully opened cloned git repository",
 		slog.String("git_url", link.Redacted()),
 		slog.Group("data",
 			slog.String("head", head.String()),
@@ -174,11 +174,11 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 		latestCommitAt time.Time
 		oldestCommitAt time.Time
 
-		totalCommits uint64
-		authors      map[string]uint64
+		totalStats entity.CommitStats
+		commits    []*entity.Commit
 	)
 
-	authors = make(map[string]uint64)
+	authors := newAuthorsStore()
 
 	latestCommit, err := commitIter.Next()
 	if err != nil {
@@ -188,22 +188,51 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 	latestCommitAt = latestCommit.Author.When
 
 	err = commitIter.ForEach(func(c *object.Commit) error {
-		v, ok := authors[c.Author.String()]
-		if ok {
-			authors[c.Author.String()] = v + 1
-		} else {
-			authors[c.Author.String()] = 1
+		slog.DebugContext(ctx, "inspecting commit",
+			slog.String("hash", c.Hash.String()),
+			slog.String("message", c.Message),
+			slog.String("author", c.Author.String()),
+			slog.Time("commited_at", c.Author.When),
+		)
+
+		developer := authors.Update(c.Author.Email, c.Author.Name)
+		commit := entity.Commit{
+			Hash:      c.Hash.String(),
+			Message:   c.Message,
+			Author:    developer,
+			CreatedAt: c.Author.When,
 		}
 
-		oldestCommitAt = c.Author.When
-		totalCommits++
+		defer func() {
+			commits = append(commits, &commit)
+
+			oldestCommitAt = c.Author.When
+		}()
+
+		stats, err := c.Stats()
+		if err != nil {
+			slog.WarnContext(ctx, "failed to stat commit",
+				slog.String("commit_hash", c.Hash.String()),
+				slog.String("error", err.Error()),
+			)
+
+			return nil
+		}
+
+		commit.Stats.LinesAdded, commit.Stats.LinesDeleted, commit.Stats.ChangedFiles = processStats(stats)
+		totalStats.Add(commit.Stats)
 		return nil
 	})
 
 	slog.DebugContext(ctx, "successfully inspected commit history",
-		slog.Uint64("total_commits", totalCommits),
+		slog.Int("total_commits", len(commits)),
 		slog.Time("latest_commit_at", latestCommitAt),
 		slog.Time("oldest_commit_at", oldestCommitAt),
+		slog.Group("total_stats",
+			slog.Int("files_changed", len(totalStats.ChangedFiles)),
+			slog.Int("lines_added", totalStats.LinesAdded),
+			slog.Int("lines_deleted", totalStats.LinesDeleted),
+		),
 	)
 
 	return err
@@ -220,4 +249,15 @@ func checkIfDirectoryExists(path string) bool {
 	}
 
 	return false
+}
+
+func processStats(stats object.FileStats) (linesAdded, linesDeleted int, filesChanged []string) {
+	for _, s := range stats {
+		filesChanged = append(filesChanged, s.Name)
+
+		linesAdded += s.Addition
+		linesDeleted += s.Deletion
+	}
+
+	return
 }
