@@ -17,6 +17,11 @@ type Repository struct {
 	Contributors []*Developer
 	Maintainers  []*Developer
 
+	// Only set from .git directory inspection, see at internal/service/git_service/service.go
+	DeveloperCommitStats DeveloperCommitStats
+	CommitStats          *CommitStats
+	Commits              []*Commit
+
 	Language string
 	Size     uint64
 

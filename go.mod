@@ -3,6 +3,7 @@ module github.com/domsnail/doctryne
 go 1.26.2
 
 require (
+	github.com/go-git/go-git/v6 v6.0.0-alpha.4
 	github.com/google/go-github/v87 v87.0.0
 	github.com/google/uuid v1.6.0
 	github.com/ilyakaznacheev/cleanenv v1.5.0
@@ -21,7 +22,6 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/go-git/gcfg/v2 v2.0.2 // indirect
 	github.com/go-git/go-billy/v6 v6.0.0-alpha.1 // indirect
-	github.com/go-git/go-git/v6 v6.0.0-alpha.4 // indirect
 	github.com/google/go-querystring v1.2.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/kevinburke/ssh_config v1.6.0 // indirect

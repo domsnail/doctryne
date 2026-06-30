@@ -19,6 +19,10 @@ import (
 	"github.com/go-git/go-git/v6/storage/memory"
 )
 
+const (
+	defaultRemoteName = "origin"
+)
+
 type GitHistoryServiceImpl struct {
 	config   cfg.GitHistoryInspectionConfig
 	basePath string
@@ -42,7 +46,7 @@ func NewGitHistoryServiceImpl(config cfg.GitHistoryInspectionConfig) *GitHistory
 		}
 
 		impl.basePath = abs
-		slog.Info("git projects will be downloaded on disk", slog.String("absolute_path", abs))
+		slog.Warn("git projects will be downloaded on disk", slog.String("absolute_path", abs))
 	} else {
 		slog.Warn("git projects storing on disk is disabled, git history will only be stored in memory and re-downloaded on every scan")
 	}
@@ -55,7 +59,9 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		return nil, errors.New("git project url is required")
 	}
 
+	var repo = new(entity.Repository{})
 	var opts = git.CloneOptions{
+		RemoteName:        defaultRemoteName,
 		URL:               link.String(),
 		Depth:             service.config.MaxDepth,
 		RecurseSubmodules: git.DefaultSubmoduleRecursionDepth, // 10
@@ -76,16 +82,16 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 	}
 
 	var (
-		repo *git.Repository
-		err  error
+		gitRepo *git.Repository
+		err     error
 	)
 
 	defer func() {
-		if repo == nil {
+		if gitRepo == nil {
 			return
 		}
 
-		err = repo.Close()
+		err = gitRepo.Close()
 		if err != nil {
 			slog.WarnContext(ctx, "failed to close git history file",
 				slog.String("error", err.Error()),
@@ -105,7 +111,32 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 				slog.String("git_ref", branch),
 			)
 
-			repo, err = git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: true})
+			// DetectDotGit option must be disabled, or it will find .git in parent dirs
+			gitRepo, err = git.PlainOpenWithOptions(path, &git.PlainOpenOptions{DetectDotGit: false})
+			if err != nil {
+				slog.ErrorContext(ctx, "failed to open git repository",
+					slog.String("git_url", link.Redacted()),
+					slog.String("file_path", path),
+					slog.String("error", err.Error()),
+				)
+
+				return nil, err
+			}
+
+			if service.config.AlwaysFetch { // todo: add fetch age check
+				slog.DebugContext(ctx, "fetching git repository...",
+					slog.String("git_url", link.Redacted()),
+					slog.String("file_path", path),
+				)
+
+				err = gitRepo.FetchContext(ctx, &git.FetchOptions{
+					RemoteName: defaultRemoteName,
+					RemoteURL:  link.String(),
+					Depth:      service.config.MaxDepth,
+					Force:      true,
+					Prune:      true,
+				})
+			}
 		} else {
 			slog.DebugContext(ctx, "cloning git repository to disk...",
 				slog.String("git_url", link.Redacted()),
@@ -113,7 +144,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 				slog.Bool("full_clone", service.config.FullClone),
 			)
 
-			repo, err = git.PlainClone(path, &opts)
+			gitRepo, err = git.PlainClone(path, &opts)
 		}
 	} else {
 		slog.DebugContext(ctx, "cloning git repository to memory...",
@@ -122,10 +153,12 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 			slog.Bool("full_clone", service.config.FullClone),
 		)
 
-		repo, err = git.Clone(memory.NewStorage(), nil, &opts)
+		gitRepo, err = git.Clone(memory.NewStorage(), nil, &opts)
 	}
 
-	if err != nil {
+	if errors.Is(err, git.NoErrAlreadyUpToDate) {
+		slog.DebugContext(ctx, "git repository already up-to-date")
+	} else if err != nil {
 		slog.ErrorContext(ctx, "failed to clone git repository",
 			slog.String("git_url", link.Redacted()),
 			slog.String("error", err.Error()),
@@ -134,7 +167,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		return nil, fmt.Errorf("failed to clone git repository: %w", err)
 	}
 
-	head, err := repo.Head()
+	head, err := gitRepo.Head()
 	if err != nil {
 		slog.ErrorContext(ctx, "failed to get git repository head",
 			slog.String("git_url", link.Redacted()),
@@ -148,7 +181,6 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		slog.String("git_url", link.Redacted()),
 		slog.Group("data",
 			slog.String("head", head.String()),
-			slog.String("commit_hash", head.Hash().String()),
 		),
 	)
 
@@ -156,7 +188,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		slog.String("git_url", link.Redacted()),
 	)
 
-	err = service.inspectCommitHistory(ctx, repo)
+	err = service.inspectCommitHistory(ctx, repo, gitRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -164,8 +196,8 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 	return nil, nil
 }
 
-func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, repo *git.Repository) error {
-	commitIter, err := repo.Log(&git.LogOptions{})
+func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, r *entity.Repository, g *git.Repository) error {
+	commitIter, err := g.Log(&git.LogOptions{})
 	if err != nil {
 		return err
 	}
@@ -188,19 +220,13 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 	latestCommitAt = latestCommit.Author.When
 
 	err = commitIter.ForEach(func(c *object.Commit) error {
-		slog.DebugContext(ctx, "inspecting commit",
-			slog.String("hash", c.Hash.String()),
-			slog.String("message", c.Message),
-			slog.String("author", c.Author.String()),
-			slog.Time("commited_at", c.Author.When),
-		)
-
 		developer := authors.Update(c.Author.Email, c.Author.Name)
 		commit := entity.Commit{
 			Hash:      c.Hash.String(),
 			Message:   c.Message,
 			Author:    developer,
 			CreatedAt: c.Author.When,
+			Stats:     new(entity.CommitStats),
 		}
 
 		defer func() {
@@ -209,9 +235,11 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 			oldestCommitAt = c.Author.When
 		}()
 
+		t := c.Type()
 		stats, err := c.Stats()
 		if err != nil {
 			slog.WarnContext(ctx, "failed to stat commit",
+				slog.String("commit_type", t.String()),
 				slog.String("commit_hash", c.Hash.String()),
 				slog.String("error", err.Error()),
 			)
@@ -220,12 +248,14 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 		}
 
 		commit.Stats.LinesAdded, commit.Stats.LinesDeleted, commit.Stats.ChangedFiles = processStats(stats)
+		authors.AddStats(developer, commit.Stats)
 		totalStats.Add(commit.Stats)
 		return nil
 	})
 
 	slog.DebugContext(ctx, "successfully inspected commit history",
 		slog.Int("total_commits", len(commits)),
+		slog.Int("total_authors", len(authors.authors)),
 		slog.Time("latest_commit_at", latestCommitAt),
 		slog.Time("oldest_commit_at", oldestCommitAt),
 		slog.Group("total_stats",
@@ -234,6 +264,10 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 			slog.Int("lines_deleted", totalStats.LinesDeleted),
 		),
 	)
+
+	r.Commits = commits
+	r.CommitStats = &totalStats
+	r.DeveloperCommitStats = authors.Stats()
 
 	return err
 }

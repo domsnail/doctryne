@@ -10,7 +10,7 @@ type Commit struct {
 
 	CreatedAt time.Time
 
-	Stats CommitStats
+	Stats *CommitStats
 }
 
 type CommitStats struct {
@@ -20,9 +20,15 @@ type CommitStats struct {
 	LinesDeleted int
 }
 
-func (stats *CommitStats) Add(addition CommitStats) {
+func (stats *CommitStats) Add(addition *CommitStats) {
 	stats.ChangedFiles = append(stats.ChangedFiles, addition.ChangedFiles...)
 
 	stats.LinesAdded += addition.LinesAdded
 	stats.LinesDeleted += addition.LinesDeleted
 }
+
+func (stats *CommitStats) Total() (lines int) {
+	return stats.LinesAdded + stats.LinesDeleted
+}
+
+type DeveloperCommitStats map[*Developer]*CommitStats

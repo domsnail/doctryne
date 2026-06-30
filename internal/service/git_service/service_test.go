@@ -32,8 +32,9 @@ func TestFindManifestFiles(t *testing.T) {
 
 	t.Run("test git repository bare clone on disk", func(t *testing.T) {
 		config := cfg.GitHistoryInspectionConfig{
-			SaveToDisk: true,
-			Filepath:   "./test",
+			SaveToDisk:  true,
+			AlwaysFetch: true,
+			Filepath:    "./test",
 		}
 
 		service := NewGitHistoryServiceImpl(config)
