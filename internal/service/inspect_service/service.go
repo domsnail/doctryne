@@ -330,19 +330,28 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 	})
 
 	for _, pkg := range inspection.Packages {
-		if pkg.GetGitURL() == nil {
+		if ctx.Err() != nil {
+			return ctx.Err()
+		}
+
+		gitUrl := pkg.GetGitURL()
+		switch {
+		case gitUrl == nil:
 			slog.DebugContext(ctx, "missing git url, skipping package...",
+				slog.String("package_name", pkg.Name),
+			)
+
+			continue
+		case gitUrl.Host != "github.com":
+			slog.WarnContext(ctx, "unsupported vcs url, skipping package...",
+				slog.String("git_url", gitUrl.Redacted()),
 				slog.String("package_name", pkg.Name),
 			)
 
 			continue
 		}
 
-		if ctx.Err() != nil {
-			return ctx.Err()
-		}
-
-		// todo: dedupe same github links
+		// dedupe same links is handled via github client (http) cache
 		githubPool.Inspect(pkg)
 	}
 
@@ -353,7 +362,21 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		)
 	}
 
-	// todo: copy all developers from packages (and registry metadata) to top level
+	// todo: copy all developers and repositories (ptr) from packages (and registry metadata) to top level
+	for _, pkg := range inspection.Packages {
+		inspection.Developers = append(inspection.Developers, pkg.AffiliatedDevelopers.All()...)
+
+		if pkg.GitMetadata != nil && pkg.GitMetadata.Repository != nil {
+			inspection.Repositories = append(inspection.Repositories, pkg.GitMetadata.Repository)
+		}
+	}
+
+	slog.InfoContext(ctx, "successfully inspected manifest packages",
+		slog.Int("total_manifests", len(inspection.Manifests)),
+		slog.Int("total_packages", len(inspection.Packages)),
+		slog.Int("total_developers", len(inspection.Developers)),
+		slog.Int("total_repositories", len(inspection.Repositories)),
+	)
 
 	return nil
 }

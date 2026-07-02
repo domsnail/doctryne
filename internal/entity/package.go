@@ -44,6 +44,32 @@ type AffiliatedDevelopers struct {
 	Maintainers  []Developer
 }
 
+func (d *AffiliatedDevelopers) All() []*Developer {
+	var devs []*Developer
+
+	for _, dev := range d.CodeOwners {
+		devs = append(devs, &dev)
+	}
+
+	for _, dev := range d.Authors {
+		devs = append(devs, &dev)
+	}
+
+	for _, dev := range d.Contributors {
+		devs = append(devs, &dev)
+	}
+
+	for _, dev := range d.Sponsors {
+		devs = append(devs, &dev)
+	}
+
+	for _, dev := range d.Maintainers {
+		devs = append(devs, &dev)
+	}
+
+	return devs
+}
+
 type RegistryMetadata struct {
 	RegistryID string
 	IsPrivate  bool

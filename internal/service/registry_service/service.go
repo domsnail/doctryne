@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"time"
 
 	"github.com/domsnail/doctryne/internal/entity"
@@ -19,7 +20,7 @@ type RegistryServiceImpl struct {
 }
 
 type RegistryServiceOpts struct {
-	Timeout time.Duration
+	BaseClient *http.Client
 
 	BearerToken string
 	ApiURL      string
@@ -32,7 +33,6 @@ const defaultLatestActivityPeriod = 30 * 24 * time.Hour
 
 func NewRegistryServiceImpl(opts RegistryServiceOpts) *RegistryServiceImpl {
 	npmClient, err := npm.NewClient(npm.Options{
-		Timeout:     opts.Timeout,
 		BearerToken: opts.BearerToken,
 		ApiURL:      opts.ApiURL,
 		RegistryURL: opts.RegistryURL,

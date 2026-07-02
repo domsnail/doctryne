@@ -21,8 +21,6 @@ type GithubServiceImpl struct {
 }
 
 type GithubServiceOpts struct {
-	Timeout time.Duration
-
 	AccessToken string
 
 	LatestActivityPeriod time.Duration
@@ -34,14 +32,6 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	slog.Debug("initializing github client...",
 		slog.Bool("using_access_token", opts.AccessToken != ""),
 	)
-
-	if opts.Timeout <= 0 {
-		slog.Debug("timeout is not set or invalid, setting default timeout for github client...",
-			slog.Duration("timeout", http.DefaultClient.Timeout),
-		)
-
-		opts.Timeout = http.DefaultClient.Timeout
-	}
 
 	if opts.LatestActivityPeriod <= 0 {
 		slog.Debug("latest activity is not set or invalid, setting default period...",
@@ -57,8 +47,10 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	)
 
 	var githubClientOpts = []github.ClientOptionsFunc{
-		github.WithTimeout(opts.Timeout),
-		github.WithTransport(http.DefaultTransport),
+		github.WithHTTPClient(&http.Client{
+			Transport: http.DefaultTransport,
+			Timeout:   http.DefaultClient.Timeout,
+		}),
 	}
 
 	if opts.AccessToken != "" {

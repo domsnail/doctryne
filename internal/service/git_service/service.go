@@ -59,7 +59,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		return nil, errors.New("git project url is required")
 	}
 
-	var repo = new(entity.Repository{})
+	var repo = entity.Repository{}
 	var opts = git.CloneOptions{
 		RemoteName:        defaultRemoteName,
 		URL:               link.String(),
@@ -188,7 +188,7 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 		slog.String("git_url", link.Redacted()),
 	)
 
-	err = service.inspectCommitHistory(ctx, repo, gitRepo)
+	err = service.inspectCommitHistory(ctx, &repo, gitRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -196,6 +196,9 @@ func (service *GitHistoryServiceImpl) InspectRepository(ctx context.Context, lin
 	return nil, nil
 }
 
+// inspectCommitHistory iterates over every git history commit,
+// collects every commit author email and name,
+// collects statistics of lines additions/deletions for every author
 func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, r *entity.Repository, g *git.Repository) error {
 	commitIter, err := g.Log(&git.LogOptions{})
 	if err != nil {
@@ -221,6 +224,9 @@ func (service *GitHistoryServiceImpl) inspectCommitHistory(ctx context.Context, 
 
 	err = commitIter.ForEach(func(c *object.Commit) error {
 		developer := authors.Update(c.Author.Email, c.Author.Name)
+
+		// _ = authors.Update(c.Committer.Email, c.Committer.Name)
+
 		commit := entity.Commit{
 			Hash:      c.Hash.String(),
 			Message:   c.Message,

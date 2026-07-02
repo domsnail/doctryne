@@ -1,6 +1,7 @@
 package cfg
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"net/http"
@@ -55,12 +56,14 @@ func setGlobalHttpClient(cfg *Config) {
 			panic(err)
 		}
 
-		http.DefaultClient = &http.Client{
-			Timeout: cfg.Timeout,
-			Transport: &http.Transport{
-				Proxy: http.ProxyURL(proxyURL),
+		http.DefaultTransport = &http.Transport{
+			Proxy: http.ProxyURL(proxyURL),
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: cfg.Insecure,
 			},
 		}
+
+		http.DefaultClient.Transport = http.DefaultTransport
 	}
 }
 

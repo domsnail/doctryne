@@ -10,6 +10,22 @@ type Developer struct {
 	Username string
 	Emails   []string
 
+	GithubID       *int64
+	GithubMetadata *GithubDeveloperMetadata
+
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+func (d Developer) String() string {
+	return fmt.Sprintf("%s (@%s)", d.Name, d.Username)
+}
+
+func (d Developer) IsEqual(other Developer) bool {
+	return d.Name == other.Name && d.Username == other.Username
+}
+
+type GithubDeveloperMetadata struct {
 	TwitterUsername string
 
 	Location string
@@ -27,20 +43,9 @@ type Developer struct {
 	PublicReposCount  uint64
 	PrivateReposCount uint64
 
-	GithubID *int64
-
 	LatestActivity []*Activity
 	Repositories   []*Repository
 
-	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	SuspendedAt *time.Time
-}
-
-func (d Developer) String() string {
-	return fmt.Sprintf("%s (@%s)", d.Name, d.Username)
-}
-
-func (d Developer) IsEqual(other Developer) bool {
-	return d.Name == other.Name && d.Username == other.Username
 }

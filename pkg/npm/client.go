@@ -25,8 +25,6 @@ type Client struct {
 }
 
 type Options struct {
-	Timeout time.Duration
-
 	BearerToken string
 
 	ApiURL      string
@@ -39,10 +37,6 @@ func NewClient(opts Options) (*Client, error) {
 	)
 
 	var err error
-
-	if opts.Timeout == 0 {
-		return nil, errors.New("timeout is required")
-	}
 
 	var transport = http.DefaultTransport
 	if opts.BearerToken != "" {
@@ -94,7 +88,7 @@ func NewClient(opts Options) (*Client, error) {
 		api:      api,
 		h: &http.Client{
 			Transport: transport,
-			Timeout:   opts.Timeout,
+			Timeout:   http.DefaultClient.Timeout,
 		},
 	}, nil
 }
@@ -136,7 +130,7 @@ func (c *Client) Ping(ctx context.Context) error {
 
 	var me Me
 	if err = json.NewDecoder(resp.Body).Decode(&me); err != nil {
-		slog.DebugContext(ctx, "failed to unmarshal npm response",
+		slog.WarnContext(ctx, "failed to unmarshal npm response",
 			slog.String("method", http.MethodGet),
 			slog.String("query_url", queryURL),
 			slog.Int("status_code", resp.StatusCode),
@@ -213,7 +207,7 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.Ra
 
 	var info Package
 	if err = json.Unmarshal(body, &info); err != nil {
-		slog.DebugContext(ctx, "failed to unmarshal npm response",
+		slog.WarnContext(ctx, "failed to unmarshal npm response",
 			slog.String("method", http.MethodGet),
 			slog.String("query_url", queryURL),
 			slog.Int("status_code", resp.StatusCode),
@@ -284,7 +278,7 @@ func (c *Client) GetPackageStats(ctx context.Context, name string, period time.D
 
 	var stats Stats
 	if err = json.NewDecoder(resp.Body).Decode(&stats); err != nil {
-		slog.DebugContext(ctx, "failed to unmarshal npm response",
+		slog.WarnContext(ctx, "failed to unmarshal npm response",
 			slog.String("method", http.MethodGet),
 			slog.String("query_url", queryURL),
 			slog.Int("status_code", resp.StatusCode),

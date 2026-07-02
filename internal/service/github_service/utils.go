@@ -41,23 +41,25 @@ func repositoriesToEntity(g []*github.Repository) []*entity.Repository {
 
 func repositoryToEntity(g *github.Repository) *entity.Repository {
 	r := entity.Repository{
-		Name:             strings.TrimSpace(strings.ToLower(g.GetFullName())),
-		Description:      g.GetDescription(),
-		DefaultBranch:    g.GetDefaultBranch(),
-		Homepage:         g.GetHomepage(),
-		Owner:            userToEntity(g.GetOwner()),
-		Organization:     organizationToEntity(g.GetOrganization()),
-		Language:         g.GetLanguage(),
-		Size:             uint64(g.GetSize()),
-		IsArchived:       g.GetArchived(),
-		IsDisabled:       g.GetDisabled(),
-		IsFork:           g.GetFork(),
-		ForksCount:       uint64(g.GetForksCount()),
-		NetworkCount:     uint64(g.GetNetworkCount()),
-		OpenIssuesCount:  uint64(g.GetOpenIssuesCount()),
-		StargazersCount:  uint64(g.GetStargazersCount()),
-		SubscribersCount: uint64(g.GetSubscribersCount()),
-		GithubID:         g.GetID(),
+		Name:         strings.TrimSpace(strings.ToLower(g.GetFullName())),
+		Description:  g.GetDescription(),
+		Owner:        userToEntity(g.GetOwner()),
+		Organization: organizationToEntity(g.GetOrganization()),
+		Language:     g.GetLanguage(),
+		Size:         uint64(g.GetSize()),
+		GithubID:     uint64(g.GetID()),
+		GithubMetadata: &entity.GitHubRepositoryMetadata{
+			DefaultBranch:    g.GetDefaultBranch(),
+			Homepage:         g.GetHomepage(),
+			IsArchived:       g.GetArchived(),
+			IsDisabled:       g.GetDisabled(),
+			IsFork:           g.GetFork(),
+			ForksCount:       uint64(g.GetForksCount()),
+			NetworkCount:     uint64(g.GetNetworkCount()),
+			OpenIssuesCount:  uint64(g.GetOpenIssuesCount()),
+			StargazersCount:  uint64(g.GetStargazersCount()),
+			SubscribersCount: uint64(g.GetSubscribersCount()),
+		},
 	}
 
 	if g.GitURL != nil {
@@ -102,24 +104,26 @@ func userToEntity(g *github.User) *entity.Developer {
 	}
 
 	p := entity.Developer{
-		GithubID:          g.ID,
-		Name:              g.GetName(),
-		Username:          strings.ToLower(g.GetLogin()),
-		TwitterUsername:   g.GetTwitterUsername(),
-		Location:          g.GetLocation(),
-		Company:           g.GetCompany(),
-		Blog:              g.GetBlog(),
-		Bio:               g.GetBio(),
-		IsHireable:        g.GetHireable(),
-		IsSiteAdmin:       g.GetSiteAdmin(),
-		FollowersCount:    uint64(g.GetFollowers()),
-		FollowingCount:    uint64(g.GetFollowing()),
-		PublicReposCount:  uint64(g.GetPublicRepos()),
-		PrivateReposCount: uint64(g.GetOwnedPrivateRepos()),
+		GithubID: g.ID,
+		Name:     g.GetName(),
+		Username: strings.ToLower(g.GetLogin()),
+		GithubMetadata: &entity.GithubDeveloperMetadata{
+			TwitterUsername:   g.GetTwitterUsername(),
+			Location:          g.GetLocation(),
+			Company:           g.GetCompany(),
+			Blog:              g.GetBlog(),
+			Bio:               g.GetBio(),
+			IsHireable:        g.GetHireable(),
+			IsSiteAdmin:       g.GetSiteAdmin(),
+			FollowersCount:    uint64(g.GetFollowers()),
+			FollowingCount:    uint64(g.GetFollowing()),
+			PublicReposCount:  uint64(g.GetPublicRepos()),
+			PrivateReposCount: uint64(g.GetOwnedPrivateRepos()),
+		},
 	}
 
 	if g.UserViewType != nil {
-		p.IsPrivate = *g.UserViewType != "public"
+		p.GithubMetadata.IsPrivate = *g.UserViewType != "public"
 	}
 
 	if g.Email != nil {
@@ -135,7 +139,7 @@ func userToEntity(g *github.User) *entity.Developer {
 	}
 
 	if g.SuspendedAt != nil {
-		p.SuspendedAt = &g.SuspendedAt.Time
+		p.GithubMetadata.SuspendedAt = &g.SuspendedAt.Time
 	}
 
 	return &p
@@ -156,10 +160,12 @@ func contributorToEntity(g *github.Contributor) *entity.Developer {
 	}
 
 	p := entity.Developer{
-		GithubID:    g.ID,
-		Name:        g.GetName(),
-		Username:    strings.ToLower(g.GetLogin()),
-		IsSiteAdmin: g.GetSiteAdmin(),
+		GithubID: g.ID,
+		Name:     g.GetName(),
+		Username: strings.ToLower(g.GetLogin()),
+		GithubMetadata: &entity.GithubDeveloperMetadata{
+			IsSiteAdmin: g.GetSiteAdmin(),
+		},
 	}
 
 	if g.Email != nil {
