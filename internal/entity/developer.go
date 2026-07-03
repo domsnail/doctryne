@@ -26,12 +26,17 @@ func (d Developer) IsEqual(other Developer) bool {
 }
 
 type GithubDeveloperMetadata struct {
-	TwitterUsername string
+	ID int64
 
-	Location string
-	Company  string
-	Blog     string
-	Bio      string
+	Username string
+	Fullname string
+	Email    string
+
+	TwitterUsername string
+	Location        string
+	Company         string
+	Blog            string
+	Bio             string
 
 	IsPrivate   bool
 	IsHireable  bool
@@ -46,6 +51,7 @@ type GithubDeveloperMetadata struct {
 	LatestActivity []*Activity
 	Repositories   []*Repository
 
+	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	SuspendedAt *time.Time
 }

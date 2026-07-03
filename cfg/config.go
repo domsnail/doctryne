@@ -65,6 +65,8 @@ func setGlobalHttpClient(cfg *Config) {
 
 		http.DefaultClient.Transport = http.DefaultTransport
 	}
+
+	http.DefaultClient.Timeout = cfg.Timeout
 }
 
 func NewConfigWithDefaultValues() *Config {
@@ -172,7 +174,9 @@ type ScanConfig struct {
 	// cannot be overridden
 	FileSearchDepth int `json:"file_search_depth" yaml:"file_search_depth"`
 
-	// todo: ActivityPeriod (month, year)
+	// ActivityPeriod defines depth of analysis of latest activity on scanned objects (repositories, registry stats, etc.),
+	// default is 3 month (2160 hours)
+	ActivityPeriod time.Duration `json:"activity_period" yaml:"activity_period" env-default:"2160h"`
 }
 
 type Output struct {

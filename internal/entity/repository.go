@@ -6,9 +6,8 @@ import (
 )
 
 type Repository struct {
-	Name        string // github full repository name
-	Description string
-	License     string
+	Name    string
+	License string
 
 	Owner        *Developer
 	Organization *Organization
@@ -22,10 +21,8 @@ type Repository struct {
 	CommitStats          *CommitStats
 	Commits              []*Commit
 
-	Language string
-	Size     uint64
-
-	GithubID       uint64
+	// Only set from GitHub API
+	GithubID       int64
 	GithubMetadata *GitHubRepositoryMetadata
 
 	CreatedAt time.Time

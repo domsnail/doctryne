@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/google/go-github/v87/github"
 )
@@ -26,19 +27,19 @@ type GithubServiceOpts struct {
 	LatestActivityPeriod time.Duration
 }
 
-const defaultLatestActivityPeriod = 30 * 24 * time.Hour
-
 func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	slog.Debug("initializing github client...",
 		slog.Bool("using_access_token", opts.AccessToken != ""),
 	)
 
 	if opts.LatestActivityPeriod <= 0 {
-		slog.Debug("latest activity is not set or invalid, setting default period...",
-			slog.Duration("period", defaultLatestActivityPeriod),
-		)
+		slog.Debug("latest activity is not set or invalid, setting from global config")
+		opts.LatestActivityPeriod = cfg.GlobalConfig.Scan.ActivityPeriod
+	}
 
-		opts.LatestActivityPeriod = defaultLatestActivityPeriod
+	if opts.AccessToken == "" && cfg.GlobalConfig.Credentials.GithubApiKey != "" {
+		slog.Debug("access token is not set, setting from global config")
+		opts.AccessToken = cfg.GlobalConfig.Credentials.GithubApiKey
 	}
 
 	var (
@@ -61,6 +62,12 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 	if err != nil {
 		slog.Error("failed to initialize github client", slog.String("error", err.Error()))
 	}
+
+	slog.Info("initialized github client",
+		slog.Bool("using_access_token", opts.AccessToken != ""),
+		slog.Duration("request_timeout", http.DefaultClient.Timeout),
+		slog.Duration("latest_activity_period", opts.LatestActivityPeriod),
+	)
 
 	return &GithubServiceImpl{c: client}
 }
@@ -99,7 +106,7 @@ func (service GithubServiceImpl) Ping(ctx context.Context) error {
 
 // === GitHub Repository ===
 
-func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner, name string) (*entity.Repository, error) {
+func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner string, name string) (*entity.GitHubRepositoryMetadata, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if owner == "" || name == "" {
@@ -120,10 +127,10 @@ func (service GithubServiceImpl) GetRepositoryByName(ctx context.Context, owner,
 		return nil, fmt.Errorf("failed to fetch repository: %w", err)
 	}
 
-	return repositoryToEntity(githubRepo), nil
+	return repositoryToMetadata(githubRepo), nil
 }
 
-func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.Repository, error) {
+func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.GitHubRepositoryMetadata, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	}
@@ -139,13 +146,13 @@ func (service GithubServiceImpl) GetRepositoryByURL(ctx context.Context, link *u
 	return service.GetRepositoryByName(ctx, owner, name)
 }
 
-func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.Repository, error) {
+func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.GitHubRepositoryMetadata, error) {
 	if username == "" {
 		return nil, fmt.Errorf("github username is required")
 	}
 
 	var page = 1
-	var repos []*entity.Repository
+	var repos []*entity.GitHubRepositoryMetadata
 
 	for page <= maxPages {
 		if ctx.Err() != nil {
@@ -174,7 +181,7 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 			)
 		}
 
-		repos = append(repos, repositoriesToEntity(r)...)
+		repos = append(repos, repositoriesToMetadata(r)...)
 
 		slog.DebugContext(ctx, "fetched github user repositories",
 			slog.String("username", username),
@@ -197,13 +204,13 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 	return nil, nil
 }
 
-func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner, name string) ([]*entity.Developer, error) {
+func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.GithubDeveloperMetadata, error) {
 	if owner == "" || name == "" {
 		return nil, fmt.Errorf("repository owner and name are required")
 	}
 
 	var page = 1
-	var contributors []*entity.Developer
+	var contributors []*entity.GithubDeveloperMetadata
 
 	slog.DebugContext(ctx, "fetching github repository contributors...",
 		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -234,7 +241,7 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 			)
 		}
 
-		contributors = append(contributors, contributorsToEntity(contrib)...)
+		contributors = append(contributors, contributorsToMetadata(contrib)...)
 
 		slog.DebugContext(ctx, "fetched github repository contributors",
 			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -259,7 +266,7 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 
 // === GitHub Users ===
 
-func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error) {
+func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.GithubDeveloperMetadata, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if username == "" {
@@ -280,7 +287,7 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 		return nil, fmt.Errorf("failed to fetch github user: %w", err)
 	}
 
-	return userToEntity(user), nil
+	return userToMetadata(user), nil
 }
 
 // GetUserActivity returns up to 300 events (max past 90 days)
@@ -400,7 +407,7 @@ func (service GithubServiceImpl) GetCompanyUsers(ctx context.Context, name strin
 
 // === GitHub Organizations ===
 
-func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error) {
+func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.GithubOrganizationMetadata, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if name == "" {
@@ -421,16 +428,16 @@ func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name
 		return nil, fmt.Errorf("failed to fetch github organization: %w", err)
 	}
 
-	return organizationToEntity(organization), nil
+	return organizationToMetadata(organization), nil
 }
 
-func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error) {
+func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperMetadata, error) {
 	if name == "" {
 		return nil, fmt.Errorf("github organization name is required")
 	}
 
 	var page = 1
-	var users []*entity.Developer
+	var users []*entity.GithubDeveloperMetadata
 
 	for page <= maxPages {
 		if ctx.Err() != nil {
@@ -459,7 +466,7 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 			)
 		}
 
-		users = append(users, usersToEntity(usr)...)
+		users = append(users, usersToMetadata(usr)...)
 
 		slog.DebugContext(ctx, "fetched github organization members",
 			slog.String("name", name),
