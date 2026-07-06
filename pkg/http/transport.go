@@ -13,10 +13,10 @@ import (
 type SmartTransport struct {
 	base http.RoundTripper
 
-	Cache     *Cache
-	HostDelay *HostLimiter
+	cache    *Cache
+	throttle *ThrottleMap
 
-	Single singleflight.Group
+	single singleflight.Group
 
 	CacheTTL     time.Duration
 	CacheMethods map[string]bool
@@ -28,14 +28,14 @@ type TransportOptions struct {
 	CachedMethods []string
 	CacheTTL      time.Duration
 
-	HostDelay time.Duration
+	ThrottleOptions *ThrottleOptions
 }
 
 func NewSmartTransport(opts TransportOptions) *SmartTransport {
 	var t = SmartTransport{
 		base:         opts.BaseTransport,
-		Cache:        NewCache(opts.CacheTTL),
-		HostDelay:    NewHostLimiter(opts.HostDelay),
+		throttle:     NewThrottleMap(opts.ThrottleOptions),
+		cache:        NewCache(opts.CacheTTL),
 		CacheTTL:     opts.CacheTTL,
 		CacheMethods: make(map[string]bool),
 	}
@@ -57,10 +57,10 @@ func (t *SmartTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	}
 
 	if !t.CacheMethods[req.Method] {
-		return t.doNetwork(req)
+		return t.sendWithWait(req)
 	}
 
-	if entry, ok := t.Cache.Get(req.URL); ok {
+	if entry, ok := t.cache.Get(req.URL); ok {
 		slog.Log(req.Context(), -8, "returning cached request",
 			slog.String("method", req.Method),
 			slog.String("url", req.URL.Redacted()),
@@ -69,12 +69,12 @@ func (t *SmartTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		return entry.response(req, true), nil
 	}
 
-	v, err, _ := t.Single.Do(cacheKey(req.URL), func() (any, error) {
-		if entry, ok := t.Cache.Get(req.URL); ok {
+	v, err, _ := t.single.Do(cacheKey(req.URL), func() (any, error) {
+		if entry, ok := t.cache.Get(req.URL); ok {
 			return entry, nil
 		}
 
-		resp, err := t.doNetwork(req)
+		resp, err := t.sendWithWait(req)
 		if err != nil {
 			return nil, err
 		}
@@ -93,7 +93,7 @@ func (t *SmartTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		}
 
 		if resp.StatusCode >= 200 && resp.StatusCode < 300 {
-			t.Cache.Set(req.URL, &entry)
+			t.cache.Set(req.URL, &entry)
 		}
 
 		return entry, nil
@@ -107,9 +107,9 @@ func (t *SmartTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	return entry.response(req, false), nil
 }
 
-func (t *SmartTransport) doNetwork(req *http.Request) (*http.Response, error) {
+func (t *SmartTransport) sendWithWait(req *http.Request) (*http.Response, error) {
 	host := req.URL.Hostname()
-	if err := t.HostDelay.Wait(req.Context(), host); err != nil {
+	if err := t.throttle.Wait(req.Context(), host); err != nil {
 		return nil, err
 	}
 
@@ -128,6 +128,7 @@ func cloneHeader(h http.Header) http.Header {
 		copy(cp, vv)
 		out[k] = cp
 	}
+
 	return out
 }
 
