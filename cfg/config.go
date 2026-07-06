@@ -35,6 +35,7 @@ type Config struct {
 	Output Output `json:"output" yaml:"output"`
 
 	Credentials Credentials `json:"credentials" yaml:"credentials"`
+	RateLimits  RateLimits  `json:"rate_limits" yaml:"rate_limits"`
 
 	Server   Server    `json:"server" yaml:"server" env-prefix:"SRV_"`
 	Database *Database `json:"database" yaml:"database" env-prefix:"DB_"`
@@ -213,4 +214,14 @@ type Logging struct {
 	Level     int    `json:"level" yaml:"level" env:"LEVEL"`
 	Format    string `json:"format" yaml:"format" env:"FORMAT"`
 	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE"`
+}
+
+type RateLimits struct {
+	RefreshPeriod time.Duration `json:"refresh_period" yaml:"refresh_period" env-default:"1m"`
+
+	// Amount of requests that can be sent to GitHub API in 1m when authorized with PAT,
+	// refer to: https://docs.github.com/ru/rest/using-the-rest-api/rate-limits-for-the-rest-api
+	GitHub uint64 `json:"github" yaml:"github" env-default:"900"`
+
+	NPM uint64 `json:"npm" yaml:"npm" env-default:"1000"`
 }
