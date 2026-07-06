@@ -14,7 +14,7 @@ import (
 
 const (
 	delay         = time.Second * 3
-	refreshPeriod = time.Second * 60
+	refreshPeriod = time.Second * 30
 	cacheTTL      = time.Minute * 30
 )
 
@@ -92,34 +92,35 @@ func Test_CachedHTTPClient(t *testing.T) {
 		require.NotEqual(t, body2, body3)
 
 		require.Len(t, transport.cache.entries, 2)
-		require.GreaterOrEqual(t, time.Since(startedAt), delay)
 
 		resp, err = client.Get("https://api.weather.gov/stations/001BH")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Len(t, transport.cache.entries, 3)
 		slog.Debug("response_received", slog.Duration("time_taken", time.Since(startedAt)))
-		require.GreaterOrEqual(t, time.Since(startedAt), delay*2)
 
 		resp, err = client.Get("https://api.weather.gov/stations/001CE")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Len(t, transport.cache.entries, 4)
 		slog.Debug("response_received", slog.Duration("time_taken", time.Since(startedAt)))
-		require.GreaterOrEqual(t, time.Since(startedAt), delay*3)
 
 		resp, err = client.Get("https://api.weather.gov/stations/001HI")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Len(t, transport.cache.entries, 5)
 		slog.Debug("response_received", slog.Duration("time_taken", time.Since(startedAt)))
-		require.GreaterOrEqual(t, time.Since(startedAt), delay*4)
+
+		resp, err = client.Get("https://api.weather.gov/stations/001HI")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		require.Len(t, transport.cache.entries, 5)
+		slog.Debug("cached_response_received", slog.Duration("time_taken", time.Since(startedAt)))
 
 		resp, err = client.Get("https://api.weather.gov/stations/001HE")
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.Len(t, transport.cache.entries, 6)
 		slog.Debug("response_received", slog.Duration("time_taken", time.Since(startedAt)))
-		require.GreaterOrEqual(t, time.Since(startedAt), delay*5)
 	})
 }

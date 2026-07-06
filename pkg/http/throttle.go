@@ -80,37 +80,41 @@ func newThrottle(fqdn string, opts *ThrottleOptions) *fqdnThrottle {
 	}
 
 	t.c = sync.Cond{L: &t.mu}
-	t.refreshAt = time.Now().Truncate(time.Second * 60).Add(opts.RefreshPeriod)
+	t.refreshAt = time.Now().Add(opts.RefreshPeriod)
 	slog.Debug("created new throttling pool",
 		slog.String("fqdn", t.fqdn),
 		slog.Duration("refresh_duration", opts.RefreshPeriod),
 		slog.Duration("min_delay", opts.MinDelay),
 	)
 
+	go func() {
+		interval := time.NewTicker(opts.RefreshPeriod)
+		defer interval.Stop()
+
+		for {
+			select {
+			case <-interval.C:
+				slog.Debug("refreshing requests count",
+					slog.String("fqdn", t.fqdn),
+					slog.Uint64("refreshing_counter", t.count.Load()),
+				)
+
+				t.mu.Lock()
+
+				t.refreshAt = time.Now().Add(t.opts.RefreshPeriod)
+				t.count.Swap(uint64(0))
+
+				t.c.Broadcast()
+				t.mu.Unlock()
+			}
+		}
+	}()
+
 	return &t
 }
 
 func (t *fqdnThrottle) isRequestAllowed() bool {
-	var now = time.Now()
-	if now.After(t.refreshAt) {
-		slog.Debug("refreshing requests count",
-			slog.String("fqdn", t.fqdn),
-			slog.Uint64("refreshing_counter", t.count.Load()),
-		)
-
-		t.mu.Lock()
-
-		t.refreshAt = now.Truncate(time.Second * 60).Add(t.opts.RefreshPeriod)
-		t.count.Swap(uint64(0))
-
-		t.mu.Unlock()
-	}
-
-	if t.count.Load() < t.opts.MaxRequests {
-		return true
-	}
-
-	return false
+	return t.count.Load() < t.opts.MaxRequests
 }
 
 func (t *fqdnThrottle) wait(ctx context.Context) error {
@@ -127,31 +131,21 @@ func (t *fqdnThrottle) wait(ctx context.Context) error {
 	defer close(done)
 
 	for {
-		if t.isRequestAllowed() {
-			t.count.Add(1)
-			time.Sleep(t.opts.MinDelay)
-
-			return nil
+		if ctx.Err() != nil {
+			return ctx.Err()
 		}
 
-		// if request rejected wait for next window or context cancel
-		now := time.Now()
-		waitFor := t.refreshAt.Sub(now)
+		if !t.isRequestAllowed() {
+			slog.WarnContext(ctx, "throttling request, waiting for refresh...",
+				slog.String("fqdn", t.fqdn),
+				slog.Time("refresh_at", t.refreshAt),
+			)
 
-		slog.WarnContext(ctx, "throttling request...",
-			slog.String("fqdn", t.fqdn),
-			slog.Duration("wait_for", waitFor),
-		)
-
-		timer := time.NewTimer(waitFor)
-		select {
-		case <-ctx.Done():
-			timer.Stop()
-			return ctx.Err()
-		case <-timer.C:
-			t.mu.Lock()
-			t.c.Broadcast()
-			t.mu.Unlock()
+			t.c.L.Lock()
+			t.c.Wait()
+		} else {
+			t.count.Add(1)
+			return nil
 		}
 	}
 }
