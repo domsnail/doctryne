@@ -5,7 +5,7 @@ import "time"
 type Organization struct {
 	Name string
 
-	GithubID       *int64
+	GithubID       int64
 	GithubMetadata *GithubOrganizationMetadata
 }
 

@@ -7,8 +7,10 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"sync"
 	"time"
+	"unsafe"
 )
 
 type Cache struct {
@@ -28,6 +30,13 @@ func NewCache(ttl time.Duration) *Cache {
 		entries: make(map[string]*CacheEntry),
 		ttl:     ttl,
 	}
+}
+
+func (c *Cache) GetSize() float64 {
+	defer c.mu.RUnlock()
+	c.mu.RLock()
+
+	return float64(unsafe.Sizeof(c.entries))
 }
 
 func (c *Cache) Get(u *url.URL) (*CacheEntry, bool) {
@@ -86,4 +95,16 @@ func (c CacheEntry) response(req *http.Request, fromCache bool) *http.Response {
 
 func cacheKey(u *url.URL) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(u.Host+u.RequestURI())))
+}
+
+type CacheSize map[string]float64
+
+func (c CacheSize) String() string {
+	var builder strings.Builder
+
+	for k, v := range c {
+		builder.WriteString(fmt.Sprintf("%s: %.2f KB\n", k, v/1024))
+	}
+
+	return builder.String()
 }

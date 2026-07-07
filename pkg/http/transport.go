@@ -51,6 +51,10 @@ func NewSmartTransport(opts TransportOptions) *SmartTransport {
 	return &t
 }
 
+func (t *SmartTransport) GetCacheSize() float64 {
+	return t.cache.GetSize()
+}
+
 func (t *SmartTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	if req.Body != nil && req.GetBody == nil {
 		return t.base.RoundTrip(req)

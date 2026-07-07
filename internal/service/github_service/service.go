@@ -12,10 +12,24 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/google/go-github/v87/github"
+
+	http_smart_transport "github.com/domsnail/doctryne/pkg/http"
 )
 
-const itemsPerPage = 100
-const maxPages = 3
+const (
+	itemsPerPage = 100
+	maxPages     = 3
+
+	defaultCacheTTL = 24 * time.Hour
+
+	// github rate limits are different with or without PAT, but github client already have rate limit by default
+	// ref: https://docs.github.com/ru/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2026-03-10
+	defaultRateLimit_Period   = time.Minute * 60
+	defaultRateLimit_MinDelay = 500 * time.Millisecond
+
+	defaultRateLimit_MaxRequests = 60
+	patRateLimit_MaxRequests     = 5000
+)
 
 type GithubServiceImpl struct {
 	c *github.Client
@@ -25,6 +39,7 @@ type GithubServiceOpts struct {
 	AccessToken string
 
 	LatestActivityPeriod time.Duration
+	CacheTTL             time.Duration
 }
 
 func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
@@ -37,19 +52,48 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 		opts.LatestActivityPeriod = cfg.GlobalConfig.Scan.ActivityPeriod
 	}
 
+	if opts.CacheTTL == 0 {
+		slog.Warn("no cache ttl set for github, setting to default value",
+			slog.Duration("default_cache_ttl", defaultCacheTTL),
+		)
+
+		opts.CacheTTL = defaultCacheTTL
+	}
+
+	transportOpts := http_smart_transport.TransportOptions{
+		BaseTransport: http.DefaultTransport,
+		CachedMethods: []string{http.MethodGet},
+		CacheTTL:      opts.CacheTTL,
+		ThrottleOptions: &http_smart_transport.ThrottleOptions{
+			RefreshPeriod: defaultRateLimit_Period,
+			MaxRequests:   defaultRateLimit_MaxRequests,
+			MinDelay:      defaultRateLimit_MinDelay,
+		},
+	}
+
 	if opts.AccessToken == "" && cfg.GlobalConfig.Credentials.GithubApiKey != "" {
 		slog.Debug("access token is not set, setting from global config")
 		opts.AccessToken = cfg.GlobalConfig.Credentials.GithubApiKey
 	}
 
+	if opts.AccessToken != "" {
+		slog.Debug("github access token is set, requests rate limit increased")
+		transportOpts.ThrottleOptions.MaxRequests = patRateLimit_MaxRequests
+	} else {
+		slog.Warn("github access token is not set",
+			slog.String("details", "please consider using github personal access token"),
+		)
+	}
+
 	var (
-		client *github.Client
-		err    error
+		transport = http_smart_transport.NewSmartTransport(transportOpts)
+		client    *github.Client
+		err       error
 	)
 
 	var githubClientOpts = []github.ClientOptionsFunc{
 		github.WithHTTPClient(&http.Client{
-			Transport: http.DefaultTransport,
+			Transport: transport,
 			Timeout:   http.DefaultClient.Timeout,
 		}),
 	}
@@ -65,8 +109,14 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 
 	slog.Info("initialized github client",
 		slog.Bool("using_access_token", opts.AccessToken != ""),
-		slog.Duration("request_timeout", http.DefaultClient.Timeout),
 		slog.Duration("latest_activity_period", opts.LatestActivityPeriod),
+		slog.Duration("cache_ttl", opts.CacheTTL),
+		slog.Duration("request_timeout", http.DefaultClient.Timeout),
+		slog.Group("rate_limiting",
+			slog.Duration("period", defaultRateLimit_Period),
+			slog.Uint64("max_requests", transportOpts.ThrottleOptions.MaxRequests),
+			slog.Duration("min_delay", defaultRateLimit_MinDelay),
+		),
 	)
 
 	return &GithubServiceImpl{c: client}

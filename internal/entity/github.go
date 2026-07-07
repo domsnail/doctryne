@@ -30,6 +30,9 @@ type GitHubRepositoryMetadata struct {
 	Owner *GithubDeveloperMetadata
 	Org   *GithubOrganizationMetadata
 
+	// must be queried separately with another api call, see GetRepositoryContributors
+	Contributors []*GithubDeveloperMetadata
+
 	GitURL *url.URL
 
 	CreatedAt time.Time

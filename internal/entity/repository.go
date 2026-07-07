@@ -12,11 +12,14 @@ type Repository struct {
 	Owner        *Developer
 	Organization *Organization
 
+	// Top level (collective) slices
 	Contributors []*Developer
 	Maintainers  []*Developer
 
+	// Usually is set from registry data
+	GitURL *url.URL
+
 	// Only set from .git directory inspection, see at internal/service/git_service/service.go
-	GitURL               *url.URL
 	DeveloperCommitStats DeveloperCommitStats
 	CommitStats          *CommitStats
 	Commits              []*Commit

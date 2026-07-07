@@ -3,11 +3,9 @@ package grpc
 import (
 	"context"
 	"log/slog"
-	"net/http"
 	"os"
 	"path/filepath"
 	"testing"
-	"time"
 
 	inspection_v1 "github.com/domsnail/doctryne/api/gen/go/inspection/v1"
 	"github.com/domsnail/doctryne/cfg"
@@ -15,7 +13,6 @@ import (
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
-	http_smart_transport "github.com/domsnail/doctryne/pkg/http"
 	"github.com/stretchr/testify/require"
 )
 
@@ -30,26 +27,15 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 	config, err := cfg.NewConfigFromEnv()
 	require.NoError(t, err)
 
+	config.Insecure = true
 	config.Languages.JavaScript.CheckDevDependencies = true
 	config.Languages.JavaScript.CheckOptionalDependencies = true
 	cfg.SetGlobalConfig(config)
 
-	http.DefaultTransport = http_smart_transport.NewSmartTransport(
-		http_smart_transport.TransportOptions{
-			CachedMethods: []string{http.MethodGet},
-			CacheTTL:      30 * time.Second,
-			HostDelay:     5 * time.Second,
-		},
-	)
-
 	handler := NewInspectionGRPCHandler(inspect_service.NewInspectionService(
 		manifest_service.NewManifestServiceImpl(),
-		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{
-			LatestActivityPeriod: 30 * 24 * time.Hour,
-		}),
-		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{
-			LatestActivityPeriod: 30 * 24 * time.Hour,
-		}),
+		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
+		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
 	))
 
 	t.Run("test package.json inspection with errors", func(t *testing.T) {

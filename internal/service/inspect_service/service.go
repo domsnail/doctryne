@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
@@ -21,6 +22,10 @@ import (
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
 	"golang.org/x/sync/errgroup"
+)
+
+const (
+	defaultDelay = 500 * time.Millisecond
 )
 
 type InspectionService struct {
@@ -305,6 +310,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 			return ctx.Err()
 		}
 
+		time.Sleep(defaultDelay)
 		pool.Inspect(pkg)
 	}
 
@@ -352,6 +358,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		}
 
 		// dedupe same links is handled via github client (http) cache
+		time.Sleep(defaultDelay)
 		githubPool.Inspect(pkg)
 	}
 
@@ -468,8 +475,15 @@ func (service *InspectionService) extractPackage(ctx context.Context, pkg *entit
 }
 
 func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
-	//TODO implement me
-	panic("implement me")
+	slog.DebugContext(ctx, "starting inspection developers processing...",
+		slog.Int("total_developers", len(inspection.Developers)),
+	)
+
+	return nil
+}
+
+func extractDeveloperContacts(devs []*entity.Developer) {
+
 }
 
 func (service *InspectionService) CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error) {

@@ -12,22 +12,18 @@ import (
 )
 
 func TestClient_GetPackage(t *testing.T) {
-	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
 		AddSource: false,
-		Level:     slog.LevelDebug,
+		Level:     slog.LevelDebug - 4,
 	})))
 
 	t.Run("npm client prepare test", func(t *testing.T) {
-		client, err := NewClient(Options{
-			Timeout: 0,
-		})
+		client, err := NewClient(Options{})
 
 		require.Error(t, err)
 		require.Nil(t, client)
 
-		client, err = NewClient(Options{
-			Timeout: time.Second * 30,
-		})
+		client, err = NewClient(Options{})
 
 		require.NoError(t, err)
 		require.NotNil(t, client)
@@ -39,9 +35,7 @@ func TestClient_GetPackage(t *testing.T) {
 	)
 
 	t.Run("npm client get package test", func(t *testing.T) {
-		client, err := NewClient(Options{
-			Timeout: time.Second * 30,
-		})
+		client, err := NewClient(Options{})
 
 		require.NoError(t, err)
 		require.NotNil(t, client)
@@ -66,7 +60,7 @@ func TestClient_GetPackage(t *testing.T) {
 		require.NotNil(t, pkg)
 
 		pkg, raw, err = client.GetPackage(context.Background(), "package-that-not-exist")
-		require.NoError(t, err)
+		require.Error(t, err)
 		require.Nil(t, raw)
 		require.Nil(t, pkg)
 	})
@@ -75,7 +69,6 @@ func TestClient_GetPackage(t *testing.T) {
 		require.NotEmpty(t, os.Getenv("NPM_API_KEY"))
 
 		client, err := NewClient(Options{
-			Timeout:     time.Second * 30,
 			BearerToken: os.Getenv("NPM_API_KEY"),
 		})
 		require.NoError(t, err, "must be authorized")
@@ -115,18 +108,16 @@ func TestClient_GetPackage(t *testing.T) {
 	})
 
 	t.Run("npm client get package stats", func(t *testing.T) {
-		client, err := NewClient(Options{
-			Timeout: time.Second * 30,
-		})
+		client, err := NewClient(Options{})
 
 		require.NoError(t, err)
 		require.NotNil(t, client)
 
-		stats, err := client.GetPackageStats(context.Background(), "", "")
+		stats, err := client.GetPackageStats(context.Background(), "", time.Hour*72)
 		require.Error(t, err)
 		require.Nil(t, stats)
 
-		stats, err = client.GetPackageStats(context.Background(), "detect-libc", "last-month")
+		stats, err = client.GetPackageStats(context.Background(), "detect-libc", time.Hour*72)
 		require.NoError(t, err)
 		require.NotNil(t, stats)
 	})

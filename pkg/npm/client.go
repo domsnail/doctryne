@@ -10,10 +10,22 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	http_smart_transport "github.com/domsnail/doctryne/pkg/http"
 )
 
-const defaultRegistryURL = "https://registry.npmjs.org"
-const defaultApiURL = "https://api.npmjs.org"
+const (
+	defaultRegistryURL = "https://registry.npmjs.org"
+	defaultApiURL      = "https://api.npmjs.org"
+
+	defaultCacheTTL = 4 * time.Hour
+
+	// npm does not explicitly set rate limits on its api, but this should be enough
+	// ref: https://blog.npmjs.org/post/187698412060/acceptible-use.html
+	defaultRateLimit_Period      = time.Second * 60
+	defaultRateLimit_MaxRequests = 5000
+	defaultRateLimit_MinDelay    = 500 * time.Millisecond
+)
 
 // Client is JavaScript NPM Registry API client
 // ref: https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md
@@ -29,6 +41,8 @@ type Options struct {
 
 	ApiURL      string
 	RegistryURL string
+
+	CacheTTL time.Duration
 }
 
 func NewClient(opts Options) (*Client, error) {
@@ -37,12 +51,42 @@ func NewClient(opts Options) (*Client, error) {
 	)
 
 	var err error
+	if opts.CacheTTL == 0 {
+		slog.Warn("no cache ttl set for npm, setting to default value",
+			slog.Duration("default_cache_ttl", defaultCacheTTL),
+		)
 
-	var transport = http.DefaultTransport
+		opts.CacheTTL = defaultCacheTTL
+	}
+
+	var transport = http_smart_transport.NewSmartTransport(http_smart_transport.TransportOptions{
+		BaseTransport: http.DefaultTransport,
+		CachedMethods: []string{http.MethodGet},
+		CacheTTL:      opts.CacheTTL,
+		ThrottleOptions: &http_smart_transport.ThrottleOptions{
+			RefreshPeriod: defaultRateLimit_Period,
+			MaxRequests:   defaultRateLimit_MaxRequests,
+			MinDelay:      defaultRateLimit_MinDelay,
+		},
+	})
+
+	var client http.Client
 	if opts.BearerToken != "" {
-		transport = &bearerTransport{
-			token: opts.BearerToken,
-			base:  transport,
+		client = http.Client{
+			Transport: &bearerTransport{
+				token: opts.BearerToken,
+				base:  transport,
+			},
+			Timeout: http.DefaultClient.Timeout,
+		}
+	} else {
+		slog.Warn("bearer token not set for npm",
+			slog.String("details", "please consider using bearer token"),
+		)
+
+		client = http.Client{
+			Transport: transport,
+			Timeout:   http.DefaultClient.Timeout,
 		}
 	}
 
@@ -83,13 +127,22 @@ func NewClient(opts Options) (*Client, error) {
 		}
 	}
 
+	slog.Info("initialized npm client",
+		slog.String("registry_url", registry.Redacted()),
+		slog.String("api_url", api.Redacted()),
+		slog.Bool("using_bearer_token", opts.BearerToken != ""),
+		slog.Duration("cache_ttl", opts.CacheTTL),
+		slog.Group("rate_limiting",
+			slog.Duration("period", defaultRateLimit_Period),
+			slog.Int("max_requests", defaultRateLimit_MaxRequests),
+			slog.Duration("min_delay", defaultRateLimit_MinDelay),
+		),
+	)
+
 	return &Client{
 		registry: registry,
 		api:      api,
-		h: &http.Client{
-			Transport: transport,
-			Timeout:   http.DefaultClient.Timeout,
-		},
+		h:        &client,
 	}, nil
 }
 

@@ -27,15 +27,21 @@ type RegistryServiceOpts struct {
 	RegistryURL string
 
 	LatestActivityPeriod time.Duration
+	CacheTTL             time.Duration
 }
 
-const defaultLatestActivityPeriod = 30 * 24 * time.Hour
+const (
+	defaultLatestActivityPeriod = 30 * 24 * time.Hour
+
+	defaultRateLimit_MinDelay = 500 * time.Millisecond
+)
 
 func NewRegistryServiceImpl(opts RegistryServiceOpts) *RegistryServiceImpl {
 	npmClient, err := npm.NewClient(npm.Options{
 		BearerToken: opts.BearerToken,
 		ApiURL:      opts.ApiURL,
 		RegistryURL: opts.RegistryURL,
+		CacheTTL:    opts.CacheTTL,
 	})
 
 	if err != nil {

@@ -94,11 +94,57 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
-		pkg.GitMetadata = &entity.GitMetadata{
-			Url:        gitUrl,
-			Repository: repo,
+		var gitMetadata = entity.GitMetadata{
+			Url: gitUrl,
+			Repository: &entity.Repository{
+				Name:           repo.Name,
+				License:        repo.License,
+				GitURL:         gitUrl,
+				GithubID:       repo.ID,
+				GithubMetadata: repo,
+				CreatedAt:      repo.CreatedAt,
+				UpdatedAt:      repo.UpdatedAt,
+				PushedAt:       repo.PushedAt,
+			},
 		}
+
+		if repo.Org != nil {
+			// fetching full organization info
+			repo.Org, err = pool.github.GetOrganizationByName(pool.ctx, repo.Org.Login)
+			if err != nil {
+				slog.WarnContext(pool.ctx, "failed to inspect github organization page",
+					slog.String("organization_name", repo.Org.Name),
+					slog.String("error", err.Error()),
+				)
+
+				return
+			}
+
+			gitMetadata.Repository.Organization = &entity.Organization{
+				Name:           repo.Org.Name,
+				GithubID:       repo.Org.ID,
+				GithubMetadata: repo.Org,
+			}
+		}
+
+		repo.Contributors, err = pool.github.GetRepositoryContributors(pool.ctx, repo.Owner.Username, repo.Name)
+		if err != nil {
+			slog.WarnContext(pool.ctx, "failed to fetch github repository contributors",
+				slog.String("repository_name", repo.Owner.Username+"/"+repo.Name),
+				slog.String("error", err.Error()),
+			)
+
+			return
+		}
+
+		// all developer profiles (including github contributors are to be inspected in future steps)
+
+		pkg.GitMetadata = &gitMetadata
 	})
+}
+
+func (pool *GitHubInspectionPool) inspectRepositoryContributors(contributors []*entity.GithubDeveloperMetadata) error {
+	return nil
 }
 
 func (pool *GitHubInspectionPool) Wait() error {
