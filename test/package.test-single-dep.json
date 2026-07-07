@@ -1,0 +1,30 @@
+{
+  "name": "test_package_with_single_dependency",
+  "version": "1.0.0",
+  "description": "Test package.json file",
+  "main": "core.js",
+  "dependencies": {
+    "nodemon": "^2.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "ping"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Qvineox/broBot.git"
+  },
+  "keywords": [
+    "bot",
+    "discord"
+  ],
+  "author": {
+    "name": "qvineox",
+    "email": "yarlrusman@gmail.com"
+  },
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Qvineox/broBot/issues"
+  },
+  "homepage": "https://github.com/Qvineox/broBot#readme"
+}

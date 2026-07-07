@@ -136,4 +136,20 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, inspection)
 	})
+
+	t.Run("test package.cyclonedx_ui.json handling by url", func(t *testing.T) {
+		const rawURL = "https://raw.githubusercontent.com/domsnail/doctryne/refs/heads/main/test/package.test-single-dep.json"
+
+		opts := inspection_v1.InspectionOptions_builder{
+			ScanType:        new(inspection_v1.ScanType_SCAN_TYPE_URL),
+			Mode:            new(inspection_v1.InspectionMode_INSPECTION_MODE_DIRECT),
+			ManifestType:    new("package.json"),
+			Manifest:        []byte(rawURL),
+			LoadUserProfile: new(false),
+		}.Build()
+
+		inspection, err := handler.Inspect(context.Background(), opts)
+		require.NoError(t, err)
+		require.NotNil(t, inspection)
+	})
 }
