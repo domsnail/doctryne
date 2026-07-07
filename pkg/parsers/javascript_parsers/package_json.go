@@ -58,14 +58,15 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 		//Integrity:  "",
 		Labels: []types.Label{types.Label_Root},
 		RegistryMetadata: &entity.RegistryMetadata{
-			RegistryID:  p.ID,
-			Description: p.Description,
-			Homepage:    p.Homepage,
-			Keywords:    p.Keywords,
-			License:     p.License,
-			Git:         p.GetGitURL(),
-			PublishedAt: p.GetCreatedAt(),
-			ModifiedAt:  p.GetModifiedAt(),
+			RegistryID:   p.ID,
+			Description:  p.Description,
+			Homepage:     p.Homepage,
+			Keywords:     p.Keywords,
+			License:      p.License,
+			Contributors: new(entity.AffiliatedDevelopers),
+			Git:          p.GetGitURL(),
+			PublishedAt:  p.GetCreatedAt(),
+			ModifiedAt:   p.GetModifiedAt(),
 		},
 		Dependencies: make([]*entity.Package, len(p.Dependencies)),
 	}
@@ -78,7 +79,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 			developer.Emails = append(developer.Emails, p.Author.Email)
 		}
 
-		topPackage.AffiliatedDevelopers.Authors = append(topPackage.AffiliatedDevelopers.Authors, developer)
+		topPackage.RegistryMetadata.Contributors.Authors = append(topPackage.RegistryMetadata.Contributors.Authors, developer)
 	}
 
 	var counter = 0

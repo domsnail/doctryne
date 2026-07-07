@@ -137,8 +137,6 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
-		// all developer profiles (including github contributors are to be inspected in future steps)
-
 		pkg.GitMetadata = &gitMetadata
 	})
 }

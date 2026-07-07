@@ -10,7 +10,7 @@ type Developer struct {
 	Username string
 	Emails   []string
 
-	GithubID       *int64
+	GithubID       int64
 	GithubMetadata *GithubDeveloperMetadata
 
 	CreatedAt time.Time

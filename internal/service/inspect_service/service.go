@@ -369,26 +369,12 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		)
 	}
 
-	// todo: copy all developers and repositories (ptr) from packages (and registry metadata) to top level
-	for _, pkg := range inspection.Packages {
-		inspection.Developers = append(inspection.Developers, pkg.AffiliatedDevelopers.All()...)
-
-		if pkg.GitMetadata != nil && pkg.GitMetadata.Repository != nil {
-			inspection.Repositories = append(inspection.Repositories, pkg.GitMetadata.Repository)
-		}
-	}
-
 	slog.InfoContext(ctx, "successfully inspected manifest packages",
 		slog.Int("total_manifests", len(inspection.Manifests)),
 		slog.Int("total_packages", len(inspection.Packages)),
-		slog.Int("total_developers", len(inspection.Developers)),
 		slog.Int("total_repositories", len(inspection.Repositories)),
 	)
 
-	return nil
-}
-
-func (service *InspectionService) inspectPackage(ctx context.Context, pkg *entity.Package) error {
 	return nil
 }
 

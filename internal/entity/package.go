@@ -26,8 +26,6 @@ type Package struct {
 	// Integrity hash or check sum (SHA1, MD5 or other)
 	Integrity string
 
-	AffiliatedDevelopers AffiliatedDevelopers
-
 	RegistryMetadata *RegistryMetadata
 	GitMetadata      *GitMetadata
 
