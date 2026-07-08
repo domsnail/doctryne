@@ -4,12 +4,14 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"net/url"
 	"os"
 	"path/filepath"
 	"testing"
 	"testing/synctest"
 
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/stretchr/testify/require"
 )
 
@@ -103,4 +105,153 @@ func TestFindManifestFiles(t *testing.T) {
 		require.NoError(t, err)
 		require.Len(t, manifests, 2)
 	})
+}
+
+func TestRepositoryDedupe(t *testing.T) {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: false,
+		Level:     slog.LevelDebug,
+	})))
+
+	t.Run("test dedupe with different repositories", func(t *testing.T) {
+		var inspection = entity.Inspection{
+			Packages: []*entity.Package{
+				{
+					Name: "package-1",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-1",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     1,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-21",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-2",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     2,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-3",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-3",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     3,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		dedupeRepositories(context.Background(), &inspection)
+		require.Len(t, inspection.Repositories, 3)
+	})
+
+	t.Run("test dedupe repositories with same id (no url)", func(t *testing.T) {
+		var inspection = entity.Inspection{
+			Packages: []*entity.Package{
+				{
+					Name: "package-1",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-1",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     1,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-21",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-2",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     2,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-3",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-3(2)",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     2,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		dedupeRepositories(context.Background(), &inspection)
+		require.Len(t, inspection.Repositories, 3)
+	})
+
+	t.Run("test dedupe repositories with same id (same url)", func(t *testing.T) {
+		u, _ := url.Parse("https://github.com/test/repository-1-3")
+
+		var inspection = entity.Inspection{
+			Packages: []*entity.Package{
+				{
+					Name: "package-1",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-1",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     1,
+								GitURL: u,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-2",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-2",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     2,
+								GitURL: nil,
+							},
+						},
+					},
+				},
+				{
+					Name: "package-3",
+					Git: &entity.Git{
+						Repository: &entity.Repository{
+							Name: "test/repository-3(1)",
+							GithubMetadata: &entity.GitHubRepositoryMetadata{
+								ID:     2,
+								GitURL: u,
+							},
+						},
+					},
+				},
+			},
+		}
+
+		dedupeRepositories(context.Background(), &inspection)
+		require.Len(t, inspection.Repositories, 2)
+		require.Same(t, inspection.Packages[0].Git.Repository, inspection.Packages[2].Git.Repository, "must point to same repository")
+	})
+
 }

@@ -8,10 +8,12 @@ import (
 	"io"
 	"io/fs"
 	"log/slog"
+	"maps"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -295,7 +297,7 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 }
 
 func (service *InspectionService) InspectPackages(ctx context.Context, inspection *entity.Inspection) error {
-	slog.DebugContext(ctx, "starting inspection packages processing...",
+	slog.DebugContext(ctx, "starting packages inspection...",
 		slog.Int("total_manifests", len(inspection.Manifests)),
 	)
 
@@ -331,8 +333,8 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 
 	var githubPool = NewGitHubInspectionPool(ctx, service.github, GitHubInspectionOptions{
 		Mode:                       inspection.Options.Mode,
-		DeepRepositoryInspection:   inspection.Options.Mode == types.InspectionMode_Deep,
-		ExtractFullContributorInfo: inspection.Options.LoadUserProfiles,
+		DeepRepositoryInspection:   inspection.Options.DeepRepositoryInspection,
+		ExtractFullContributorInfo: inspection.Options.ExtractFullContributorInfo,
 	})
 
 	for _, pkg := range inspection.Packages {
@@ -374,6 +376,12 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		slog.Int("total_packages", len(inspection.Packages)),
 		slog.Int("total_repositories", len(inspection.Repositories)),
 	)
+
+	// continue with git catalog analysis
+	if inspection.Options.DeepRepositoryInspection {
+		slog.DebugContext(ctx, "starting deep git repository inspection...")
+		// todo: inspect git history
+	}
 
 	return nil
 }
@@ -460,16 +468,83 @@ func (service *InspectionService) extractPackage(ctx context.Context, pkg *entit
 	return pkgs, nil
 }
 
-func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
-	slog.DebugContext(ctx, "starting inspection developers processing...",
-		slog.Int("total_developers", len(inspection.Developers)),
-	)
+func (service *InspectionService) InspectRepositories(ctx context.Context, inspection *entity.Inspection) error {
+	slog.DebugContext(ctx, "starting repositories inspection...")
+	dedupeRepositories(ctx, inspection)
 
 	return nil
 }
 
-func extractDeveloperContacts(devs []*entity.Developer) {
+func dedupeRepositories(ctx context.Context, inspection *entity.Inspection) {
+	slog.DebugContext(ctx, "deduping repositories...")
 
+	var (
+		urlMap = make(map[string]*entity.Repository)
+		total  = 0
+	)
+
+	for _, pkg := range inspection.Packages {
+		if pkg.Git != nil && pkg.Git.Repository != nil {
+			var key string
+			total++
+
+			if pkg.Git.Repository.GithubMetadata != nil && pkg.Git.Repository.GithubMetadata.GitURL != nil {
+				key = pkg.Git.Repository.GithubMetadata.GitURL.Host + pkg.Git.Repository.GithubMetadata.GitURL.Path
+
+			} else if pkg.Git.Repository.GitURL != nil {
+				key = pkg.Git.Repository.GitURL.Host + pkg.Git.Repository.GitURL.Path
+
+			} else {
+				inspection.Repositories = append(inspection.Repositories, pkg.Git.Repository)
+				continue
+			}
+
+			prev, ok := urlMap[key]
+			if !ok {
+				urlMap[key] = pkg.Git.Repository
+				continue
+			}
+
+			// fill previous data
+			if prev.GithubMetadata == nil {
+				prev.GithubMetadata = pkg.Git.Repository.GithubMetadata
+			}
+
+			// reassign new ptr to previous value
+			pkg.Git.Repository = prev
+		}
+	}
+
+	inspection.Repositories = append(inspection.Repositories, slices.Collect(maps.Values(urlMap))...)
+	slog.DebugContext(ctx, fmt.Sprintf("removed %d repositories after dedupe", total-len(inspection.Repositories)))
+
+	return
+}
+
+func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
+	slog.DebugContext(ctx, "starting developers inspection...")
+
+	return nil
+}
+
+// extractAllDevelopers collects all developers from all embedded structs:
+// - Packages...
+// - Packages.RegistryMetadata.Contributors (from registry info)
+// - Repositories.GithubMetadata.Owner (from github project info)
+// - Repositories.GithubMetadata.Contributors (from github project contributors info)
+// - Repositories.Commiters (from git history)
+func extractAllDevelopers(ctx context.Context, inspection *entity.Inspection) []*entity.Developer {
+	slog.DebugContext(ctx, "extracting developers from previously collected data...")
+
+	var (
+		developers []*entity.Developer
+	)
+
+	for _, p := range inspection.Packages {
+		developers = append(developers, p.RegistryMetadata.Contributors.All()...)
+	}
+
+	return nil
 }
 
 func (service *InspectionService) CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error) {

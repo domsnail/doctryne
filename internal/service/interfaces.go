@@ -15,8 +15,12 @@ type IInspectionService interface {
 	InspectManifests(ctx context.Context, inspection *entity.Inspection) error
 
 	// InspectPackages queries all the collected packages from respectable registries/vcs, finds contributors, owners,
-	// repository stats, commit history etc.
+	// download stats
 	InspectPackages(ctx context.Context, inspection *entity.Inspection) error
+
+	// InspectRepositories collects and dedupes all found vcs (git) repositories,
+	// then downloads and analyzes commit history trees
+	InspectRepositories(ctx context.Context, inspection *entity.Inspection) error
 
 	InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error
 
@@ -42,7 +46,7 @@ type IManifestService interface {
 	ProcessManifest(ctx context.Context, manifest *entity.Manifest) error
 }
 
-type IRepositoryAnalysisService interface {
+type IRepositoryService interface {
 }
 
 type IPackageManagerService interface {

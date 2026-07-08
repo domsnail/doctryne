@@ -6,21 +6,14 @@ import (
 )
 
 type Repository struct {
-	Name    string
-	License string
-
-	Owner        *Developer
-	Organization *Organization
-
-	// Top level (collective) slices
-	Contributors []*Developer
-	Maintainers  []*Developer
+	Name string
 
 	// Usually is set from registry data
 	GitURL *url.URL
 
 	// Only set from .git directory inspection, see at internal/service/git_service/service.go
 	DeveloperCommitStats DeveloperCommitStats
+	Commiters            []*Developer
 	CommitStats          *CommitStats
 	Commits              []*Commit
 

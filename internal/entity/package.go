@@ -27,7 +27,7 @@ type Package struct {
 	Integrity string
 
 	RegistryMetadata *RegistryMetadata
-	GitMetadata      *GitMetadata
+	Git              *Git
 
 	Dependencies []*Package
 
@@ -87,7 +87,7 @@ type RegistryMetadata struct {
 	ModifiedAt  time.Time
 }
 
-type GitMetadata struct {
+type Git struct {
 	Url *url.URL
 
 	Repository *Repository
@@ -128,6 +128,10 @@ func (pkg *Package) CountOptionalDependencies() int {
 }
 
 func (pkg *Package) GetGitURL() *url.URL {
+	if pkg.Git != nil && pkg.Git.Url != nil {
+		return pkg.Git.Url
+	}
+
 	if pkg.RegistryMetadata != nil && pkg.RegistryMetadata.Git != nil {
 		return pkg.RegistryMetadata.Git
 	}

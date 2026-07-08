@@ -42,9 +42,8 @@ type InspectionOptions struct {
 
 	Mode types.InspectionMode
 
-	// LoadUserProfiles is set to true, all users profiles (contributors) will be additionally
-	// loaded (their profile, activity, repositories)
-	LoadUserProfiles bool
+	ExtractFullContributorInfo bool
+	DeepRepositoryInspection   bool
 }
 
 func NewInspection(opts *InspectionOptions) *Inspection {

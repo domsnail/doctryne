@@ -94,11 +94,10 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
-		var gitMetadata = entity.GitMetadata{
+		var gitMetadata = entity.Git{
 			Url: gitUrl,
 			Repository: &entity.Repository{
 				Name:           repo.Name,
-				License:        repo.License,
 				GitURL:         gitUrl,
 				GithubID:       repo.ID,
 				GithubMetadata: repo,
@@ -119,12 +118,6 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 
 				return
 			}
-
-			gitMetadata.Repository.Organization = &entity.Organization{
-				Name:           repo.Org.Name,
-				GithubID:       repo.Org.ID,
-				GithubMetadata: repo.Org,
-			}
 		}
 
 		repo.Contributors, err = pool.github.GetRepositoryContributors(pool.ctx, repo.Owner.Username, repo.Name)
@@ -137,7 +130,7 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
-		pkg.GitMetadata = &gitMetadata
+		pkg.Git = &gitMetadata
 	})
 }
 

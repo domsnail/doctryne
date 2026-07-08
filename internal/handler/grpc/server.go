@@ -46,7 +46,8 @@ func (handler *InspectionHandler) Inspect(ctx context.Context, opts *inspection_
 		Lockfile:     bytes.NewReader(opts.GetLockfile()),
 		LockfileType: types.ManifestType(opts.GetLockfileType()),
 		//
-		LoadUserProfiles: opts.GetLoadUserProfile(),
+		ExtractFullContributorInfo: opts.GetLoadUserProfile(),
+		// todo: add DeepRepositoryInspection
 	})
 
 	if err != nil {
@@ -66,6 +67,11 @@ func (handler *InspectionHandler) Inspect(ctx context.Context, opts *inspection_
 	err = handler.service.InspectPackages(ctx, inspection)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "failed to inspect manifest packages: "+err.Error())
+	}
+
+	err = handler.service.InspectRepositories(ctx, inspection)
+	if err != nil {
+		return nil, status.Error(codes.InvalidArgument, "failed to inspect package repositories: "+err.Error())
 	}
 
 	err = handler.service.InspectDevelopers(ctx, inspection)
