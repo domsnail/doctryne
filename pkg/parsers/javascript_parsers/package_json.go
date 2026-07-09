@@ -3,6 +3,7 @@ package javascript_parsers
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log/slog"
 	"maps"
@@ -18,6 +19,8 @@ import (
 func (p *Parser) ParseManifest() (*entity.Package, error) {
 	if p.ctx.Err() != nil {
 		return nil, p.ctx.Err()
+	} else if p.file == nil {
+		return nil, errors.New("manifest file is nil")
 	}
 
 	var (
@@ -48,7 +51,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
 	)
 
-	var topPackage = entity.Package{
+	var rootPkg = entity.Package{
 		Name:      p.Name,
 		Version:   p.Version,
 		Ecosystem: eco,
@@ -79,12 +82,12 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 			developer.Emails = append(developer.Emails, p.Author.Email)
 		}
 
-		topPackage.RegistryMetadata.Contributors.Authors = append(topPackage.RegistryMetadata.Contributors.Authors, developer)
+		rootPkg.RegistryMetadata.Contributors.Authors = append(rootPkg.RegistryMetadata.Contributors.Authors, developer)
 	}
 
 	var counter = 0
 	for dep, ver := range p.Dependencies {
-		topPackage.Dependencies[counter] = &entity.Package{
+		rootPkg.Dependencies[counter] = &entity.Package{
 			Name:      dep,
 			Version:   ver,
 			Ecosystem: eco,
@@ -101,7 +104,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 
 	if cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies && len(p.OptionalDependencies) > 0 {
 		for dep, ver := range p.OptionalDependencies {
-			topPackage.Dependencies = append(topPackage.Dependencies, &entity.Package{
+			rootPkg.Dependencies = append(rootPkg.Dependencies, &entity.Package{
 				Name:      dep,
 				Version:   ver,
 				Ecosystem: eco,
@@ -118,7 +121,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 
 	if cfg.GlobalConfig.Languages.JavaScript.CheckDevDependencies && len(p.DevDependencies) > 0 {
 		for dep, ver := range p.DevDependencies {
-			topPackage.Dependencies = append(topPackage.Dependencies, &entity.Package{
+			rootPkg.Dependencies = append(rootPkg.Dependencies, &entity.Package{
 				Name:      dep,
 				Version:   ver,
 				Ecosystem: eco,
@@ -133,7 +136,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 		}
 	}
 
-	return &topPackage, nil
+	return &rootPkg, nil
 }
 
 func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) (pkg *entity.Package, err error) {
@@ -157,11 +160,11 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 
 	maps.DeleteFunc(l.Packages, func(s string, d *npm.Dependency) bool {
 		if d.Dev {
-			return !cfg.GlobalConfig.Languages.JavaScript.CheckDevDependencies
+			return !cfg.GlobalConfig.Languages.JavaScript.CheckDevDependencies // todo: switch to scan options
 		}
 
 		if d.Optional {
-			return !cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies
+			return !cfg.GlobalConfig.Languages.JavaScript.CheckOptionalDependencies // todo: switch to scan options
 		}
 
 		return false
@@ -193,7 +196,7 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 			Version:    depPkg.Version,
 			Ecosystem:  eco,
 			Language:   lang,
-			Integrity:  depPkg.Integrity,
+			Integrity:  depPkg.Integrity, // todo: define algorithm
 			IsDev:      depPkg.Dev,
 			IsOptional: depPkg.Optional,
 		}
