@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/pkg/parsers/cyclonedx_parser"
 	"github.com/domsnail/doctryne/pkg/parsers/javascript_parsers"
 	"github.com/domsnail/doctryne/pkg/types"
 )
@@ -50,22 +51,26 @@ func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest
 		t = types.ManifestType(strings.ToLower(filepath.Base(manifest.Metadata.Filename)))
 	}
 
+	var pkg *entity.Package
+
 	switch t {
+	case types.ManifestType_CycloneDX:
+		parser := cyclonedx_parser.Parser{}
+		pkg, err = parser.
+			WithContext(ctx).
+			WithFile(bytes.NewReader(contents)).
+			ParseManifest()
+
 	case types.ManifestType_Package_Json:
 		manifest.WithLanguage(types.Language_JavaScript)
 
 		parser := javascript_parsers.Parser{}
-		pkg, err := parser.
+		pkg, err = parser.
 			WithContext(ctx).
 			WithFile(bytes.NewReader(contents)).
 			WithLockfile(manifest.Lockfile).
 			ParseManifest()
 
-		if err != nil {
-			return fmt.Errorf("failed to parse manifest: %w", err)
-		}
-
-		manifest.AddPackage(pkg)
 	case "":
 		slog.InfoContext(ctx, "empty manifest filename provided, trying to determine type from contents...")
 
@@ -74,5 +79,10 @@ func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest
 		return errors.New("manifest file type not supported")
 	}
 
+	if err != nil {
+		return fmt.Errorf("failed to parse manifest: %w", err)
+	}
+
+	manifest.AddPackage(pkg)
 	return nil
 }

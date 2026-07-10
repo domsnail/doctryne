@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/package-url/packageurl-go"
 )
 
 type Package struct {
@@ -13,6 +14,10 @@ type Package struct {
 	Version   string
 	Ecosystem types.Ecosystem
 	Language  types.Language
+
+	// SBOM specific (identity)
+	PackageURL packageurl.PackageURL
+	CPE        string
 
 	// Resolved url from which dependency was downloaded
 	Resolved *url.URL
@@ -85,6 +90,10 @@ type RegistryMetadata struct {
 
 	PublishedAt time.Time
 	ModifiedAt  time.Time
+}
+
+func (md *RegistryMetadata) IsPublished() bool {
+	return !md.PublishedAt.IsZero()
 }
 
 type Git struct {
