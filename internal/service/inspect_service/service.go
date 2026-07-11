@@ -469,8 +469,13 @@ func (service *InspectionService) extractPackage(ctx context.Context, pkg *entit
 }
 
 func (service *InspectionService) InspectRepositories(ctx context.Context, inspection *entity.Inspection) error {
-	slog.DebugContext(ctx, "starting repositories inspection...")
 	dedupeRepositories(ctx, inspection)
+
+	if inspection.Options.DeepRepositoryInspection {
+		slog.DebugContext(ctx, "starting deep git repository inspection...")
+	} else {
+		slog.DebugContext(ctx, "starting shallow git repository inspection...")
+	}
 
 	return nil
 }

@@ -130,6 +130,8 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
+		// todo: inspect issues and merge requests
+
 		pkg.Git = &gitMetadata
 	})
 }
