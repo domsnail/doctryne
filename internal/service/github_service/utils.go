@@ -222,3 +222,17 @@ func organizationToMetadata(g *github.Organization) *entity.GithubOrganizationMe
 
 	return &p
 }
+
+func issuesToEntity(issues []*github.Issue) []*entity.Issue {
+	var iss = make([]*entity.Issue, len(issues))
+
+	for i, c := range issues {
+		iss[i] = issueToMetadata(c)
+	}
+
+	return iss
+}
+
+func issueToMetadata(issue *github.Issue) *entity.Issue {
+	return &entity.Issue{}
+}

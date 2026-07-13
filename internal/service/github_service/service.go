@@ -289,6 +289,8 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 			slog.WarnContext(ctx, "failed to fetch github repository contributors",
 				slog.String("error", err.Error()),
 			)
+
+			return nil, err
 		}
 
 		contributors = append(contributors, contributorsToMetadata(contrib)...)
@@ -312,6 +314,66 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 	)
 
 	return contributors, nil
+}
+
+func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner, name string) ([]*entity.Issue, error) {
+	if owner == "" || name == "" {
+		return nil, fmt.Errorf("repository owner and name are required")
+	}
+
+	var page = 1
+	var issues []*entity.Issue
+
+	slog.DebugContext(ctx, "fetching github repository issues...",
+		slog.String("repository_id", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+	)
+
+	for page <= maxPages {
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+
+		iss, _, err := service.c.Issues.ListByRepo(ctx, owner, name, &github.IssueListByRepoOptions{
+			Sort:      "created", // recent first
+			Direction: "desc",
+			ListCursorOptions: github.ListCursorOptions{
+				Page:    "",
+				PerPage: 0,
+				First:   0,
+				Last:    0,
+				After:   "",
+				Before:  "",
+				Cursor:  "",
+			},
+			ListOptions: github.ListOptions{
+				Page:    page,
+				PerPage: itemsPerPage,
+			},
+		})
+
+		if err != nil {
+			slog.WarnContext(ctx, "failed to fetch github repository issues",
+				slog.String("error", err.Error()),
+			)
+
+			return nil, err
+		}
+
+		issues = append(issues, contributorsToMetadata(iss)...)
+
+		slog.DebugContext(ctx, "fetched github repository contributors",
+			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(contributors), len(contrib))),
+			slog.Int("page", page),
+		)
+
+		if len(issues) < itemsPerPage {
+			break
+		}
+
+		page++
+	}
+
 }
 
 // === GitHub Users ===
