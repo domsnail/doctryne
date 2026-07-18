@@ -223,16 +223,62 @@ func organizationToMetadata(g *github.Organization) *entity.GithubOrganizationMe
 	return &p
 }
 
-func issuesToEntity(issues []*github.Issue) []*entity.Issue {
-	var iss = make([]*entity.Issue, len(issues))
+func issuesToEntity(issues []*github.Issue) []*entity.GithubIssue {
+	var iss = make([]*entity.GithubIssue, len(issues))
 
 	for i, c := range issues {
-		iss[i] = issueToMetadata(c)
+		iss[i] = issueToEntity(c)
 	}
 
 	return iss
 }
 
-func issueToMetadata(issue *github.Issue) *entity.Issue {
-	return &entity.Issue{}
+func issueToEntity(issue *github.Issue) *entity.GithubIssue {
+	if issue == nil {
+		return nil
+	}
+
+	i := entity.GithubIssue{
+		ID:            issue.GetID(),
+		Number:        issue.GetNumber(),
+		State:         issue.GetState(),
+		Title:         issue.GetTitle(),
+		Body:          issue.GetBody(),
+		IsLocked:      issue.GetLocked(),
+		LockedCause:   issue.GetActiveLockReason(),
+		IsDraft:       issue.GetDraft(),
+		IsPullRequest: issue.IsPullRequest(),
+		Reactions: entity.GithubIssueReactions{
+			TotalCount: issue.Reactions.GetTotalCount(),
+			PlusOne:    issue.Reactions.GetPlusOne(),
+			MinusOne:   issue.Reactions.GetMinusOne(),
+			Laugh:      issue.Reactions.GetLaugh(),
+			Confused:   issue.Reactions.GetConfused(),
+			Heart:      issue.Reactions.GetHeart(),
+			Hooray:     issue.Reactions.GetHooray(),
+			Rocket:     issue.Reactions.GetRocket(),
+			Eyes:       issue.Reactions.GetEyes(),
+		},
+		CommentCounts: issue.GetComments(),
+		//Comments:      nil,
+		Author: nil,
+	}
+
+	if issue.User != nil {
+		i.Author = userToMetadata(issue.User)
+	}
+
+	if issue.CreatedAt != nil {
+		i.CreatedAt = issue.CreatedAt.Time
+	}
+
+	if issue.UpdatedAt != nil {
+		i.UpdatedAt = issue.UpdatedAt.Time
+	}
+
+	if issue.ClosedAt != nil {
+		i.ClosedAt = &issue.ClosedAt.Time
+	}
+
+	return &i
 }

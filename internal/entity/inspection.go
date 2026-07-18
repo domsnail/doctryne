@@ -44,6 +44,7 @@ type InspectionOptions struct {
 
 	ExtractFullContributorInfo bool
 	DeepRepositoryInspection   bool
+	InspectIssues              bool
 }
 
 func NewInspection(opts *InspectionOptions) *Inspection {

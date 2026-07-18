@@ -29,10 +29,14 @@ const (
 
 	defaultRateLimit_MaxRequests = 60
 	patRateLimit_MaxRequests     = 5000
+
+	defaultRequestsDelay = 500 * time.Millisecond
 )
 
 type GithubServiceImpl struct {
 	c *github.Client
+
+	opts GithubServiceOpts
 }
 
 type GithubServiceOpts struct {
@@ -119,7 +123,7 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 		),
 	)
 
-	return &GithubServiceImpl{c: client}
+	return &GithubServiceImpl{c: client, opts: opts}
 }
 
 func (service GithubServiceImpl) Ping(ctx context.Context) error {
@@ -316,13 +320,15 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 	return contributors, nil
 }
 
-func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner, name string) ([]*entity.Issue, error) {
+// === Github Repository Issues ===
+
+func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner, name string) ([]*entity.GithubIssue, error) {
 	if owner == "" || name == "" {
 		return nil, fmt.Errorf("repository owner and name are required")
 	}
 
 	var page = 1
-	var issues []*entity.Issue
+	var issues []*entity.GithubIssue
 
 	slog.DebugContext(ctx, "fetching github repository issues...",
 		slog.String("repository_id", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -336,15 +342,6 @@ func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner,
 		iss, _, err := service.c.Issues.ListByRepo(ctx, owner, name, &github.IssueListByRepoOptions{
 			Sort:      "created", // recent first
 			Direction: "desc",
-			ListCursorOptions: github.ListCursorOptions{
-				Page:    "",
-				PerPage: 0,
-				First:   0,
-				Last:    0,
-				After:   "",
-				Before:  "",
-				Cursor:  "",
-			},
 			ListOptions: github.ListOptions{
 				Page:    page,
 				PerPage: itemsPerPage,
@@ -359,11 +356,11 @@ func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner,
 			return nil, err
 		}
 
-		issues = append(issues, contributorsToMetadata(iss)...)
+		issues = append(issues, issuesToEntity(iss)...)
 
-		slog.DebugContext(ctx, "fetched github repository contributors",
+		slog.DebugContext(ctx, "fetched github repository issues",
 			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
-			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(contributors), len(contrib))),
+			slog.String("items_total", fmt.Sprintf("%d (+%d)", len(issues), len(iss))),
 			slog.Int("page", page),
 		)
 
@@ -374,6 +371,7 @@ func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner,
 		page++
 	}
 
+	return issues, nil
 }
 
 // === GitHub Users ===

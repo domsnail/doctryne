@@ -335,6 +335,7 @@ func (service *InspectionService) InspectPackages(ctx context.Context, inspectio
 		Mode:                       inspection.Options.Mode,
 		DeepRepositoryInspection:   inspection.Options.DeepRepositoryInspection,
 		ExtractFullContributorInfo: inspection.Options.ExtractFullContributorInfo,
+		InspectIssues:              inspection.Options.InspectIssues,
 	})
 
 	for _, pkg := range inspection.Packages {

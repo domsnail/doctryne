@@ -31,7 +31,7 @@ type IGithubService interface {
 	GetRepositoryByName(ctx context.Context, owner string, name string) (*entity.GitHubRepositoryMetadata, error)
 	GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.GitHubRepositoryMetadata, error)
 	GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.GithubDeveloperMetadata, error)
-	GetRepositoryIssues(ctx context.Context, id string) ([]*entity.Issue, error)
+	GetRepositoryIssues(ctx context.Context, owner string, name string) ([]*entity.GithubIssue, error)
 
 	GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.GitHubRepositoryMetadata, error)
 

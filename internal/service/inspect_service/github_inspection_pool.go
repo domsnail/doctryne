@@ -46,6 +46,7 @@ type GitHubInspectionOptions struct {
 
 	DeepRepositoryInspection   bool
 	ExtractFullContributorInfo bool
+	InspectIssues              bool
 }
 
 func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
@@ -130,7 +131,17 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			return
 		}
 
-		// todo: inspect issues and merge requests
+		if pool.opts.InspectIssues {
+			repo.Issues, err = pool.github.GetRepositoryIssues(pool.ctx, repo.Owner.Username, repo.Name)
+			if err != nil {
+				slog.WarnContext(pool.ctx, "failed to fetch github repository issues",
+					slog.String("repository_name", repo.Owner.Username+"/"+repo.Name),
+					slog.String("error", err.Error()),
+				)
+
+				return
+			}
+		}
 
 		pkg.Git = &gitMetadata
 	})

@@ -123,6 +123,21 @@ func TestGithubServiceImpl_GetRepositoryInfo(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("get repository issues", func(t *testing.T) {
+		issues, err := service.GetRepositoryIssues(context.Background(), "react", "react")
+		require.NoError(t, err)
+		require.NotNil(t, issues)
+
+		require.GreaterOrEqual(t, len(issues), 200)
+
+		var uniquenessCheck = make(map[int64]bool)
+		for _, iss := range issues {
+			if _, ok := uniquenessCheck[iss.ID]; ok {
+				require.Fail(t, "duplicate repository contributor")
+			}
+		}
+	})
 }
 
 func TestGithubServiceImpl_GetUserInfo(t *testing.T) {

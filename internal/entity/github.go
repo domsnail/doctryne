@@ -32,6 +32,7 @@ type GitHubRepositoryMetadata struct {
 
 	// must be queried separately with another api call, see GetRepositoryContributors
 	Contributors []*GithubDeveloperMetadata
+	Issues       []*GithubIssue
 
 	GitURL *url.URL
 
