@@ -40,34 +40,34 @@ type Package struct {
 }
 
 type AffiliatedDevelopers struct {
-	CodeOwners   []Developer
-	Authors      []Developer
-	Contributors []Developer
-	Sponsors     []Developer
-	Maintainers  []Developer
+	CodeOwners   []*Developer
+	Authors      []*Developer
+	Contributors []*Developer
+	Sponsors     []*Developer
+	Maintainers  []*Developer
 }
 
 func (d *AffiliatedDevelopers) All() []*Developer {
 	var devs []*Developer
 
 	for _, dev := range d.CodeOwners {
-		devs = append(devs, &dev)
+		devs = append(devs, dev)
 	}
 
 	for _, dev := range d.Authors {
-		devs = append(devs, &dev)
+		devs = append(devs, dev)
 	}
 
 	for _, dev := range d.Contributors {
-		devs = append(devs, &dev)
+		devs = append(devs, dev)
 	}
 
 	for _, dev := range d.Sponsors {
-		devs = append(devs, &dev)
+		devs = append(devs, dev)
 	}
 
 	for _, dev := range d.Maintainers {
-		devs = append(devs, &dev)
+		devs = append(devs, dev)
 	}
 
 	return devs

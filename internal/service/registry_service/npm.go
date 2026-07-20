@@ -18,12 +18,12 @@ func (service RegistryServiceImpl) queryNPM(ctx context.Context, pkg *entity.Pac
 	pkg.Raw = raw
 
 	contrib := entity.AffiliatedDevelopers{
-		Contributors: make([]entity.Developer, len(fetched.Contributors)),
-		Maintainers:  make([]entity.Developer, len(fetched.Maintainers)),
+		Contributors: make([]*entity.Developer, len(fetched.Contributors)),
+		Maintainers:  make([]*entity.Developer, len(fetched.Maintainers)),
 	}
 
 	if fetched.Author.Email != "" || fetched.Author.Name != "" {
-		contrib.Authors = []entity.Developer{
+		contrib.Authors = []*entity.Developer{
 			{Name: fetched.Author.Name},
 		}
 
@@ -33,7 +33,7 @@ func (service RegistryServiceImpl) queryNPM(ctx context.Context, pkg *entity.Pac
 	}
 
 	for i := range fetched.Contributors {
-		contrib.Contributors[i] = entity.Developer{
+		contrib.Contributors[i] = &entity.Developer{
 			Name: fetched.Contributors[i].Name,
 		}
 
@@ -43,7 +43,7 @@ func (service RegistryServiceImpl) queryNPM(ctx context.Context, pkg *entity.Pac
 	}
 
 	for i := range fetched.Maintainers {
-		contrib.Maintainers[i] = entity.Developer{
+		contrib.Maintainers[i] = &entity.Developer{
 			Name: fetched.Maintainers[i].Name,
 		}
 

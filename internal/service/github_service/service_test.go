@@ -138,6 +138,14 @@ func TestGithubServiceImpl_GetRepositoryInfo(t *testing.T) {
 			}
 		}
 	})
+
+	t.Run("get repository languages", func(t *testing.T) {
+		langs, err := service.GetRepositoryLanguages(context.Background(), "cdxgen", "cdxgen")
+		require.NoError(t, err)
+		require.NotNil(t, langs)
+
+		require.GreaterOrEqual(t, len(langs), 2)
+	})
 }
 
 func TestGithubServiceImpl_GetUserInfo(t *testing.T) {

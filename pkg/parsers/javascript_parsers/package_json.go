@@ -82,7 +82,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 			developer.Emails = append(developer.Emails, p.Author.Email)
 		}
 
-		rootPkg.RegistryMetadata.Contributors.Authors = append(rootPkg.RegistryMetadata.Contributors.Authors, developer)
+		rootPkg.RegistryMetadata.Contributors.Authors = append(rootPkg.RegistryMetadata.Contributors.Authors, &developer)
 	}
 
 	var counter = 0

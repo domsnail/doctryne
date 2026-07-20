@@ -30,17 +30,18 @@ type IInspectionService interface {
 type IGithubService interface {
 	GetRepositoryByName(ctx context.Context, owner string, name string) (*entity.GitHubRepositoryMetadata, error)
 	GetRepositoryByURL(ctx context.Context, link *url.URL) (*entity.GitHubRepositoryMetadata, error)
-	GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.GithubDeveloperMetadata, error)
+	GetRepositoryLanguages(ctx context.Context, owner string, name string) (map[string]int, error)
+	GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.Developer, error)
 	GetRepositoryIssues(ctx context.Context, owner string, name string) ([]*entity.GithubIssue, error)
 
 	GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.GitHubRepositoryMetadata, error)
 
-	GetUserByUsername(ctx context.Context, username string) (*entity.GithubDeveloperMetadata, error)
+	GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error)
 
 	GetUserActivity(ctx context.Context, username string) (*entity.Activity, error)
 
-	GetOrganizationByName(ctx context.Context, name string) (*entity.GithubOrganizationMetadata, error)
-	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperMetadata, error)
+	GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error)
+	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error)
 }
 
 type IManifestService interface {

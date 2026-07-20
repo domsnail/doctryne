@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	itemsPerPage = 100
+	itemsPerPage = 100 // max batch size for github api
 	maxPages     = 3
 
 	defaultCacheTTL = 24 * time.Hour
@@ -258,13 +258,13 @@ func (service GithubServiceImpl) GetUserOwnedRepositories(ctx context.Context, u
 	return nil, nil
 }
 
-func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.GithubDeveloperMetadata, error) {
+func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, owner string, name string) ([]*entity.Developer, error) {
 	if owner == "" || name == "" {
 		return nil, fmt.Errorf("repository owner and name are required")
 	}
 
 	var page = 1
-	var contributors []*entity.GithubDeveloperMetadata
+	var contributors []*entity.Developer
 
 	slog.DebugContext(ctx, "fetching github repository contributors...",
 		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -297,7 +297,7 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 			return nil, err
 		}
 
-		contributors = append(contributors, contributorsToMetadata(contrib)...)
+		contributors = append(contributors, contributorsToEntity(contrib)...)
 
 		slog.DebugContext(ctx, "fetched github repository contributors",
 			slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
@@ -318,6 +318,32 @@ func (service GithubServiceImpl) GetRepositoryContributors(ctx context.Context, 
 	)
 
 	return contributors, nil
+}
+
+func (service GithubServiceImpl) GetRepositoryLanguages(ctx context.Context, owner string, name string) (map[string]int, error) {
+	if owner == "" || name == "" {
+		return nil, fmt.Errorf("repository owner and name are required")
+	}
+
+	slog.DebugContext(ctx, "fetching github repository languages...",
+		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+	)
+
+	langs, _, err := service.c.Repositories.ListLanguages(ctx, strings.ToLower(owner), strings.ToLower(name))
+	if err != nil {
+		slog.WarnContext(ctx, "failed to fetch github repository languages",
+			slog.String("error", err.Error()),
+		)
+
+		return nil, err
+	}
+
+	slog.InfoContext(ctx, "successfully fetched github repository stargazers",
+		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
+		slog.Int("languages", len(langs)),
+	)
+
+	return langs, nil
 }
 
 // === Github Repository Issues ===
@@ -376,7 +402,7 @@ func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner,
 
 // === GitHub Users ===
 
-func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.GithubDeveloperMetadata, error) {
+func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if username == "" {
@@ -397,7 +423,7 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 		return nil, fmt.Errorf("failed to fetch github user: %w", err)
 	}
 
-	return userToMetadata(user), nil
+	return userToEntity(user), nil
 }
 
 // GetUserActivity returns up to 300 events (max past 90 days)
@@ -517,7 +543,7 @@ func (service GithubServiceImpl) GetCompanyUsers(ctx context.Context, name strin
 
 // === GitHub Organizations ===
 
-func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.GithubOrganizationMetadata, error) {
+func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if name == "" {
@@ -538,16 +564,16 @@ func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name
 		return nil, fmt.Errorf("failed to fetch github organization: %w", err)
 	}
 
-	return organizationToMetadata(organization), nil
+	return organizationToEntity(organization), nil
 }
 
-func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperMetadata, error) {
+func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error) {
 	if name == "" {
 		return nil, fmt.Errorf("github organization name is required")
 	}
 
 	var page = 1
-	var users []*entity.GithubDeveloperMetadata
+	var users []*entity.Developer
 
 	for page <= maxPages {
 		if ctx.Err() != nil {
@@ -576,7 +602,7 @@ func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name 
 			)
 		}
 
-		users = append(users, usersToMetadata(usr)...)
+		users = append(users, usersToEntity(usr)...)
 
 		slog.DebugContext(ctx, "fetched github organization members",
 			slog.String("name", name),

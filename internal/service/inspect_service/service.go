@@ -536,21 +536,126 @@ func (service *InspectionService) InspectDevelopers(ctx context.Context, inspect
 // extractAllDevelopers collects all developers from all embedded structs:
 // - Packages...
 // - Packages.RegistryMetadata.Contributors (from registry info)
-// - Repositories.GithubMetadata.Owner (from github project info)
 // - Repositories.GithubMetadata.Contributors (from github project contributors info)
+// - Repositories.GithubMetadata.Owner (from github project info)
+// - Repositories.GithubMetadata.Org (some owners can also be organizations)
 // - Repositories.Commiters (from git history)
-func extractAllDevelopers(ctx context.Context, inspection *entity.Inspection) []*entity.Developer {
-	slog.DebugContext(ctx, "extracting developers from previously collected data...")
+func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspection) ([]*entity.Developer, []*entity.Organization) {
+	slog.DebugContext(ctx, "extracting and deduping developers from previously collected data...")
 
 	var (
+		dedupes    int
+		conflicts  int
 		developers []*entity.Developer
+		orgs       []*entity.Organization
+
+		// deduping maps
+		uniqueUsernames = make(map[string]*entity.Developer)
+		uniqueOrgLogins = make(map[string]*entity.Organization)
 	)
 
-	for _, p := range inspection.Packages {
-		developers = append(developers, p.RegistryMetadata.Contributors.All()...)
+	var dedupe = func(devs []*entity.Developer) {
+		if devs == nil || len(devs) == 0 {
+			return
+		}
+
+		for i, d := range devs {
+			username := strings.ToLower(d.Username)
+
+			last, ok := uniqueUsernames[username]
+			if !ok {
+				uniqueUsernames[username] = devs[i]
+				developers = append(developers, devs[i])
+
+				continue
+			}
+
+			err := last.Merge(devs[i])
+			if err != nil {
+				developers = append(developers, devs[i])
+
+				conflicts++
+				continue
+			}
+
+			devs[i] = last
+			dedupes++
+		}
 	}
 
-	return nil
+	for _, p := range inspection.Packages {
+		contrib := p.RegistryMetadata.Contributors
+
+		dedupe(contrib.Sponsors)
+		dedupe(contrib.Maintainers)
+		dedupe(contrib.CodeOwners)
+		dedupe(contrib.Authors)
+		dedupe(contrib.Contributors)
+	}
+
+	for _, r := range inspection.Repositories {
+		dedupe(r.Commiters)
+
+		if r.GithubMetadata == nil {
+			continue
+		}
+
+		dedupe(r.GithubMetadata.Contributors)
+
+		if r.GithubMetadata.Owner != nil {
+			ownerUsername := r.GithubMetadata.Owner.Username
+			last, ok := uniqueUsernames[ownerUsername]
+			if !ok {
+				uniqueUsernames[ownerUsername] = r.GithubMetadata.Owner
+				developers = append(developers, r.GithubMetadata.Owner)
+			} else {
+				err := last.Merge(r.GithubMetadata.Owner)
+				if err != nil {
+					slog.DebugContext(ctx, "conflict on repository owner dedupe",
+						slog.String("username", r.GithubMetadata.Owner.Username),
+						slog.String("error", err.Error()),
+					)
+
+					developers = append(developers, r.GithubMetadata.Owner)
+					conflicts++
+				} else {
+					r.GithubMetadata.Owner = last
+					dedupes++
+				}
+			}
+		}
+
+		if r.GithubMetadata.Org != nil {
+			orgLogin := strings.ToLower(r.GithubMetadata.Org.Login)
+			last, ok := uniqueOrgLogins[orgLogin]
+			if !ok {
+				uniqueOrgLogins[orgLogin] = r.GithubMetadata.Org
+				orgs = append(orgs, r.GithubMetadata.Org)
+			} else {
+				err := last.Merge(r.GithubMetadata.Org)
+				if err != nil {
+					slog.DebugContext(ctx, "conflict on organization dedupe",
+						slog.String("login", r.GithubMetadata.Org.Login),
+						slog.String("error", err.Error()),
+					)
+
+					orgs = append(orgs, r.GithubMetadata.Org)
+					conflicts++
+				} else {
+					r.GithubMetadata.Org = last
+					dedupes++
+				}
+			}
+		}
+	}
+
+	slog.InfoContext(ctx, fmt.Sprintf("removed %d developers/organizations after dedupe", dedupes),
+		slog.Int("total_developers", len(developers)),
+		slog.Int("total_organizations", len(orgs)),
+		slog.Int("conflicts", conflicts),
+	)
+
+	return developers, orgs
 }
 
 func (service *InspectionService) CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error) {

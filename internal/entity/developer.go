@@ -2,6 +2,9 @@ package entity
 
 import (
 	"fmt"
+	"maps"
+	"slices"
+	"strings"
 	"time"
 )
 
@@ -17,16 +20,51 @@ type Developer struct {
 	UpdatedAt time.Time
 }
 
-func (d Developer) String() string {
+func (d *Developer) String() string {
 	return fmt.Sprintf("%s (@%s)", d.Name, d.Username)
 }
 
-func (d Developer) IsEqual(other Developer) bool {
-	return d.Name == other.Name && d.Username == other.Username
+func (d *Developer) IsEqual(other *Developer) bool {
+	return strings.EqualFold(d.Username, other.Username) && strings.EqualFold(d.Name, other.Name)
+}
+
+// Merge adds all non-existing data to the original Developer, function
+// returns error in case there are conflicting values
+func (d *Developer) Merge(other *Developer) error {
+	if other == nil {
+		return nil
+	} else if !d.IsEqual(other) {
+		return fmt.Errorf("cannot merge developers with different names/logins")
+	}
+
+	if other.GithubID != 0 {
+		if d.GithubID != 0 && other.GithubID != d.GithubID {
+			return fmt.Errorf("cannot merge developers with different github profiles")
+		}
+
+		d.GithubID = other.GithubID
+
+		if other.GithubMetadata != nil {
+			d.GithubMetadata = other.GithubMetadata
+		}
+	}
+
+	if len(other.Emails) > 0 {
+		var emails = make(map[string]bool)
+
+		for _, e := range append(other.Emails, d.Emails...) {
+			emails[strings.ToLower(e)] = false
+		}
+
+		d.Emails = slices.Collect(maps.Keys(emails))
+	}
+
+	return nil
 }
 
 type GithubDeveloperMetadata struct {
-	ID int64
+	ID     int64
+	NodeID string
 
 	Username string
 	Fullname string
@@ -54,4 +92,19 @@ type GithubDeveloperMetadata struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	SuspendedAt *time.Time
+}
+
+func (md *GithubDeveloperMetadata) Developer() *Developer {
+	return &Developer{
+		Name:           md.Fullname,
+		Username:       strings.ToLower(md.Username),
+		Emails:         []string{md.Email},
+		GithubID:       md.ID,
+		GithubMetadata: md,
+	}
+}
+
+type GithubStargazer struct {
+	Username  string
+	StarredAt *time.Time
 }

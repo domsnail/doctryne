@@ -42,6 +42,7 @@ func repositoriesToMetadata(g []*github.Repository) []*entity.GitHubRepositoryMe
 func repositoryToMetadata(g *github.Repository) *entity.GitHubRepositoryMetadata {
 	md := entity.GitHubRepositoryMetadata{
 		ID:               g.GetID(),
+		NodeID:           g.GetNodeID(),
 		Name:             g.GetName(),
 		Description:      g.GetDescription(),
 		DefaultBranch:    g.GetDefaultBranch(),
@@ -51,8 +52,8 @@ func repositoryToMetadata(g *github.Repository) *entity.GitHubRepositoryMetadata
 		IsFork:           g.GetFork(),
 		Language:         g.GetLanguage(),
 		Size:             uint64(g.GetSize()),
-		Owner:            userToMetadata(g.GetOwner()),
-		Org:              organizationToMetadata(g.GetOrganization()),
+		Owner:            userToEntity(g.GetOwner()),
+		Org:              organizationToEntity(g.GetOrganization()),
 		ForksCount:       uint64(g.GetForksCount()),
 		NetworkCount:     uint64(g.GetNetworkCount()),
 		OpenIssuesCount:  uint64(g.GetOpenIssuesCount()),
@@ -87,22 +88,23 @@ func repositoryToMetadata(g *github.Repository) *entity.GitHubRepositoryMetadata
 	return &md
 }
 
-func usersToMetadata(g []*github.User) []*entity.GithubDeveloperMetadata {
-	var dev = make([]*entity.GithubDeveloperMetadata, len(g))
+func usersToEntity(g []*github.User) []*entity.Developer {
+	var dev = make([]*entity.Developer, len(g))
 	for i, c := range g {
-		dev[i] = userToMetadata(c)
+		dev[i] = userToEntity(c)
 	}
 
 	return dev
 }
 
-func userToMetadata(g *github.User) *entity.GithubDeveloperMetadata {
+func userToEntity(g *github.User) *entity.Developer {
 	if g == nil {
 		return nil
 	}
 
 	md := entity.GithubDeveloperMetadata{
 		ID:                g.GetID(),
+		NodeID:            g.GetNodeID(),
 		Username:          g.GetLogin(),
 		Fullname:          g.GetName(),
 		TwitterUsername:   g.GetTwitterUsername(),
@@ -138,11 +140,11 @@ func userToMetadata(g *github.User) *entity.GithubDeveloperMetadata {
 		md.SuspendedAt = &g.SuspendedAt.Time
 	}
 
-	return &md
+	return md.Developer()
 }
 
-func contributorsToMetadata(g []*github.Contributor) []*entity.GithubDeveloperMetadata {
-	var dev = make([]*entity.GithubDeveloperMetadata, len(g))
+func contributorsToEntity(g []*github.Contributor) []*entity.Developer {
+	var dev = make([]*entity.Developer, len(g))
 	for i, c := range g {
 		dev[i] = contributorToEntity(c)
 	}
@@ -150,7 +152,16 @@ func contributorsToMetadata(g []*github.Contributor) []*entity.GithubDeveloperMe
 	return dev
 }
 
-func contributorToEntity(g *github.Contributor) *entity.GithubDeveloperMetadata {
+func stargazersToEntity(g []*github.Stargazer) []*entity.GithubStargazer {
+	var dev = make([]*entity.GithubStargazer, len(g))
+	for i, c := range g {
+		dev[i] = stargazerToEntity(c)
+	}
+
+	return dev
+}
+
+func contributorToEntity(g *github.Contributor) *entity.Developer {
 	if g == nil {
 		return nil
 	}
@@ -160,31 +171,49 @@ func contributorToEntity(g *github.Contributor) *entity.GithubDeveloperMetadata 
 		Fullname:    g.GetName(),
 		Username:    strings.ToLower(g.GetLogin()),
 		IsSiteAdmin: g.GetSiteAdmin(),
+		// other fields are empty
 	}
 
 	if g.Email != nil {
 		p.Email = g.GetEmail()
 	}
 
+	return p.Developer()
+}
+
+func stargazerToEntity(g *github.Stargazer) *entity.GithubStargazer {
+	if g == nil || g.User == nil {
+		return nil
+	}
+
+	p := entity.GithubStargazer{
+		Username: g.GetUser().GetLogin(),
+	}
+
+	if g.StarredAt != nil || !g.StarredAt.IsZero() {
+		p.StarredAt = &g.StarredAt.Time
+	}
+
 	return &p
 }
 
-func organizationsToEntity(g []*github.Organization) []*entity.GithubOrganizationMetadata {
-	var dev = make([]*entity.GithubOrganizationMetadata, len(g))
+func organizationsToEntity(g []*github.Organization) []*entity.Organization {
+	var dev = make([]*entity.Organization, len(g))
 	for i, c := range g {
-		dev[i] = organizationToMetadata(c)
+		dev[i] = organizationToEntity(c)
 	}
 
 	return dev
 }
 
-func organizationToMetadata(g *github.Organization) *entity.GithubOrganizationMetadata {
+func organizationToEntity(g *github.Organization) *entity.Organization {
 	if g == nil {
 		return nil
 	}
 
 	p := entity.GithubOrganizationMetadata{
 		ID:                 g.GetID(),
+		NodeID:             g.GetNodeID(),
 		Name:               g.GetName(),
 		Login:              strings.ToLower(g.GetLogin()),
 		Description:        g.GetDescription(),
@@ -220,7 +249,7 @@ func organizationToMetadata(g *github.Organization) *entity.GithubOrganizationMe
 		p.ArchivedAt = &g.ArchivedAt.Time
 	}
 
-	return &p
+	return p.Organization()
 }
 
 func issuesToEntity(issues []*github.Issue) []*entity.GithubIssue {
@@ -240,6 +269,7 @@ func issueToEntity(issue *github.Issue) *entity.GithubIssue {
 
 	i := entity.GithubIssue{
 		ID:            issue.GetID(),
+		NodeID:        issue.GetNodeID(),
 		Number:        issue.GetNumber(),
 		State:         issue.GetState(),
 		Title:         issue.GetTitle(),
@@ -265,7 +295,7 @@ func issueToEntity(issue *github.Issue) *entity.GithubIssue {
 	}
 
 	if issue.User != nil {
-		i.Author = userToMetadata(issue.User)
+		i.Author = userToEntity(issue.User)
 	}
 
 	if issue.CreatedAt != nil {

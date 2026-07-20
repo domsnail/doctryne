@@ -4,6 +4,7 @@ import "time"
 
 type GithubIssue struct {
 	ID     int64
+	NodeID string
 	Number int
 
 	State string
@@ -20,7 +21,7 @@ type GithubIssue struct {
 	CommentCounts int
 	//Comments      []*GithubIssueComment
 
-	Author *GithubDeveloperMetadata
+	Author *Developer
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
