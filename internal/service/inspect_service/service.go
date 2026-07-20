@@ -572,8 +572,12 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 
 			err := last.Merge(devs[i])
 			if err != nil {
-				developers = append(developers, devs[i])
+				slog.DebugContext(ctx, "conflict on organization dedupe",
+					slog.String("username", last.Username),
+					slog.String("error", err.Error()),
+				)
 
+				developers = append(developers, devs[i])
 				conflicts++
 				continue
 			}
