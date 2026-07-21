@@ -46,16 +46,21 @@ func (p *Parser) ParseManifest() (*entity.Package, error) {
 // NOTE: convert function currently builds flat tree with only 1 layer of dependencies.
 // Dependency tree is not built, all descendants will be places at the top layer
 func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	}
+
 	var (
 		eco  = types.Ecosystem_NPM
 		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
 	)
 
 	var rootPkg = entity.Package{
-		Name:      p.Name,
-		Version:   p.Version,
-		Ecosystem: eco,
-		Language:  lang,
+		Name:       p.Name,
+		Version:    p.Version,
+		Ecosystem:  eco,
+		Language:   lang,
+		PackageURL: getPackagePurl(&p),
 		//Resolved:   nil, // todo: get from package-lock.json
 		//Registry:   "",
 		//Integrity:  "",

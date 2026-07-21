@@ -16,7 +16,7 @@ type Package struct {
 	Language  types.Language
 
 	// SBOM specific (identity)
-	PackageURL packageurl.PackageURL
+	PackageURL *packageurl.PackageURL
 	CPE        string
 
 	// Resolved url from which dependency was downloaded

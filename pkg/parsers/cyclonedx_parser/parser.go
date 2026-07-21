@@ -134,7 +134,7 @@ func convertComponent(c *cdx.Component) *entity.Package {
 		pkg.IsDev = true
 	}
 
-	pkg.PackageURL, err = packageurl.FromString(c.PackageURL)
+	purl, err := packageurl.FromString(c.PackageURL)
 	if err != nil {
 		slog.Warn("failed to parse component purl",
 			slog.String("package_name", c.Name),
@@ -143,6 +143,7 @@ func convertComponent(c *cdx.Component) *entity.Package {
 		)
 	} else {
 		pkg.Ecosystem = types.Ecosystem(pkg.PackageURL.Type)
+		pkg.PackageURL = &purl
 		// todo: ecosystem to language
 	}
 

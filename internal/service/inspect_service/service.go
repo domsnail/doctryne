@@ -528,8 +528,35 @@ func dedupeRepositories(ctx context.Context, inspection *entity.Inspection) {
 }
 
 func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
-	slog.DebugContext(ctx, "starting developers inspection...")
+	if ctx.Err() != nil {
+		return ctx.Err()
+	}
 
+	slog.DebugContext(ctx, "starting developers/organizations inspection...")
+
+	developers, orgs := extractAndDedupeAllDevelopers(ctx, inspection)
+	wg := sync.WaitGroup{}
+
+	wg.Go(func() {
+		if len(developers) == 0 {
+			slog.DebugContext(ctx, "no developers found after dedupe")
+			return
+		}
+
+		return
+	})
+
+	wg.Go(func() {
+		if len(orgs) == 0 {
+			slog.DebugContext(ctx, "no organizations found after dedupe")
+			return
+		}
+
+		return
+	})
+
+	wg.Wait()
+	slog.InfoContext(ctx, "developers/organizations inspection finished successfully")
 	return nil
 }
 
