@@ -151,7 +151,7 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 	})
 }
 
-func (pool *GitHubInspectionPool) inspectRepositoryContributors(contributors []*entity.GithubDeveloperMetadata) error {
+func (pool *GitHubInspectionPool) inspectRepositoryContributors(contributors []*entity.GithubDeveloperProfile) error {
 	return nil
 }
 

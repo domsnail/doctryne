@@ -204,7 +204,6 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.Ra
 	}
 
 	queryURL := fmt.Sprintf("%s/%s", c.registry, name)
-
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, queryURL, nil)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to prepare request: %w", err)

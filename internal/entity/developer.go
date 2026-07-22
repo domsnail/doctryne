@@ -14,7 +14,7 @@ type Developer struct {
 	Emails   []string
 
 	GithubID       int64
-	GithubMetadata *GithubDeveloperMetadata
+	GithubMetadata *GithubDeveloperProfile
 
 	CreatedAt time.Time
 	UpdatedAt time.Time
@@ -62,7 +62,7 @@ func (d *Developer) Merge(other *Developer) error {
 	return nil
 }
 
-type GithubDeveloperMetadata struct {
+type GithubDeveloperProfile struct {
 	ID     int64
 	NodeID string
 
@@ -94,7 +94,7 @@ type GithubDeveloperMetadata struct {
 	SuspendedAt *time.Time
 }
 
-func (md *GithubDeveloperMetadata) Developer() *Developer {
+func (md *GithubDeveloperProfile) Developer() *Developer {
 	return &Developer{
 		Name:           md.Fullname,
 		Username:       strings.ToLower(md.Username),

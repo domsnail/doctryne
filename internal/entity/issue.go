@@ -21,7 +21,7 @@ type GithubIssue struct {
 	CommentCounts int
 	//Comments      []*GithubIssueComment
 
-	Author *Developer
+	Author *GithubDeveloperProfile
 
 	CreatedAt time.Time
 	UpdatedAt time.Time

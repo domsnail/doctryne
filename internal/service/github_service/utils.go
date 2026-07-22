@@ -88,8 +88,8 @@ func repositoryToMetadata(g *github.Repository) *entity.GitHubRepositoryMetadata
 	return &md
 }
 
-func usersToEntity(g []*github.User) []*entity.Developer {
-	var dev = make([]*entity.Developer, len(g))
+func usersToEntity(g []*github.User) []*entity.GithubDeveloperProfile {
+	var dev = make([]*entity.GithubDeveloperProfile, len(g))
 	for i, c := range g {
 		dev[i] = userToEntity(c)
 	}
@@ -97,12 +97,12 @@ func usersToEntity(g []*github.User) []*entity.Developer {
 	return dev
 }
 
-func userToEntity(g *github.User) *entity.Developer {
+func userToEntity(g *github.User) *entity.GithubDeveloperProfile {
 	if g == nil {
 		return nil
 	}
 
-	md := entity.GithubDeveloperMetadata{
+	md := entity.GithubDeveloperProfile{
 		ID:                g.GetID(),
 		NodeID:            g.GetNodeID(),
 		Username:          g.GetLogin(),
@@ -140,7 +140,7 @@ func userToEntity(g *github.User) *entity.Developer {
 		md.SuspendedAt = &g.SuspendedAt.Time
 	}
 
-	return md.Developer()
+	return &md
 }
 
 func contributorsToEntity(g []*github.Contributor) []*entity.Developer {
@@ -166,7 +166,7 @@ func contributorToEntity(g *github.Contributor) *entity.Developer {
 		return nil
 	}
 
-	p := entity.GithubDeveloperMetadata{
+	p := entity.GithubDeveloperProfile{
 		ID:          g.GetID(),
 		Fullname:    g.GetName(),
 		Username:    strings.ToLower(g.GetLogin()),

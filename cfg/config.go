@@ -185,8 +185,9 @@ type Output struct {
 }
 
 type Credentials struct {
-	GithubApiKey string `json:"github_api_key" yaml:"github_api_key" env:"GITHUB_API_KEY"`
-	NpmApiKey    string `json:"npm_api_key" yaml:"npm_api_key" env:"NPM_API_KEY"`
+	GithubApiKey        string `json:"github_api_key" yaml:"github_api_key" env:"GITHUB_API_KEY"`
+	NpmApiKey           string `json:"npm_api_key" yaml:"npm_api_key" env:"NPM_API_KEY"`
+	StackExchangeApiKey string `json:"stack_exchange_api_key" yaml:"stack_exchange_api_key" env:"STACK_EXCHANGE_API_KEY"`
 }
 
 type Server struct {

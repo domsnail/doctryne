@@ -1,4 +1,4 @@
-package npm
+package stack_exchange
 
 import "net/http"
 
@@ -18,8 +18,8 @@ func (t *bearerTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 		cloned.Header = make(http.Header)
 	}
 
-	if cloned.Header.Get("X-API-Access-Token") == "" {
-		cloned.Header.Set("X-API-Access-Token", t.token)
+	if cloned.Header.Get("Authorization") == "" {
+		cloned.Header.Set("Authorization", "Bearer "+t.token)
 	}
 
 	return base.RoundTrip(cloned)

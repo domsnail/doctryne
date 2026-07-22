@@ -402,7 +402,7 @@ func (service GithubServiceImpl) GetRepositoryIssues(ctx context.Context, owner,
 
 // === GitHub Users ===
 
-func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error) {
+func (service GithubServiceImpl) GetProfileByUsername(ctx context.Context, username string) (*entity.GithubDeveloperProfile, error) {
 	if ctx.Err() != nil {
 		return nil, ctx.Err()
 	} else if username == "" {
@@ -413,10 +413,34 @@ func (service GithubServiceImpl) GetUserByUsername(ctx context.Context, username
 		slog.String("username", username),
 	)
 
-	user, _, err := service.c.Users.Get(ctx, username)
+	user, _, err := service.c.Users.Get(ctx, strings.ToLower(username))
 	if err != nil {
 		slog.DebugContext(ctx, "failed to fetch github user",
 			slog.String("username", username),
+			slog.String("error", err.Error()),
+		)
+
+		return nil, fmt.Errorf("failed to fetch github user: %w", err)
+	}
+
+	return userToEntity(user), nil
+}
+
+func (service GithubServiceImpl) GetProfileByID(ctx context.Context, id int64) (*entity.GithubDeveloperProfile, error) {
+	if ctx.Err() != nil {
+		return nil, ctx.Err()
+	} else if id == 0 {
+		return nil, fmt.Errorf("github id is required")
+	}
+
+	slog.DebugContext(ctx, "fetching github user...",
+		slog.Int64("user_id", id),
+	)
+
+	user, _, err := service.c.Users.GetByID(ctx, id)
+	if err != nil {
+		slog.DebugContext(ctx, "failed to fetch github user",
+			slog.Int64("user_id", id),
 			slog.String("error", err.Error()),
 		)
 
@@ -567,13 +591,13 @@ func (service GithubServiceImpl) GetOrganizationByName(ctx context.Context, name
 	return organizationToEntity(organization), nil
 }
 
-func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error) {
+func (service GithubServiceImpl) GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperProfile, error) {
 	if name == "" {
 		return nil, fmt.Errorf("github organization name is required")
 	}
 
 	var page = 1
-	var users []*entity.Developer
+	var users []*entity.GithubDeveloperProfile
 
 	for page <= maxPages {
 		if ctx.Err() != nil {

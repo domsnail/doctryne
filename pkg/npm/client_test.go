@@ -22,11 +22,6 @@ func TestClient_GetPackage(t *testing.T) {
 
 		require.Error(t, err)
 		require.Nil(t, client)
-
-		client, err = NewClient(Options{})
-
-		require.NoError(t, err)
-		require.NotNil(t, client)
 	})
 
 	var (

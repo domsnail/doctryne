@@ -42,9 +42,10 @@ type InspectionOptions struct {
 
 	Mode types.InspectionMode
 
-	ExtractFullContributorInfo bool
-	DeepRepositoryInspection   bool
-	InspectIssues              bool
+	ExtractFullOrganizationInfo bool
+	ExtractFullContributorInfo  bool
+	DeepRepositoryInspection    bool
+	InspectIssues               bool
 }
 
 func NewInspection(opts *InspectionOptions) *Inspection {

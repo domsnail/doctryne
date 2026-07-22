@@ -30,7 +30,7 @@ type GitHubRepositoryMetadata struct {
 
 	StargazersCount uint64 // stars
 
-	Owner *Developer
+	Owner *GithubDeveloperProfile
 	Org   *Organization
 
 	// must be queried separately with another api call, see GetRepositoryContributors

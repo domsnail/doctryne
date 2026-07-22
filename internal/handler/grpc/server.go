@@ -74,7 +74,7 @@ func (handler *InspectionHandler) Inspect(ctx context.Context, opts *inspection_
 		return nil, status.Error(codes.InvalidArgument, "failed to inspect package repositories: "+err.Error())
 	}
 
-	err = handler.service.InspectDevelopers(ctx, inspection)
+	err = handler.service.InspectDevelopersAndOrganizations(ctx, inspection)
 	if err != nil {
 		return nil, status.Error(codes.InvalidArgument, "failed to inspect manifest package developers: "+err.Error())
 	}

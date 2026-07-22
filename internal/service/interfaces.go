@@ -22,7 +22,7 @@ type IInspectionService interface {
 	// then downloads and analyzes commit history trees
 	InspectRepositories(ctx context.Context, inspection *entity.Inspection) error
 
-	InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error
+	InspectDevelopersAndOrganizations(ctx context.Context, inspection *entity.Inspection) error
 
 	CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error)
 }
@@ -36,12 +36,13 @@ type IGithubService interface {
 
 	GetUserOwnedRepositories(ctx context.Context, username string) ([]*entity.GitHubRepositoryMetadata, error)
 
-	GetUserByUsername(ctx context.Context, username string) (*entity.Developer, error)
+	GetProfileByUsername(ctx context.Context, username string) (*entity.GithubDeveloperProfile, error)
+	GetProfileByID(ctx context.Context, id int64) (*entity.GithubDeveloperProfile, error)
 
 	GetUserActivity(ctx context.Context, username string) (*entity.Activity, error)
 
 	GetOrganizationByName(ctx context.Context, name string) (*entity.Organization, error)
-	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.Developer, error)
+	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperProfile, error)
 }
 
 type IManifestService interface {

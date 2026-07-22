@@ -527,9 +527,12 @@ func dedupeRepositories(ctx context.Context, inspection *entity.Inspection) {
 	return
 }
 
-func (service *InspectionService) InspectDevelopers(ctx context.Context, inspection *entity.Inspection) error {
+func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.Context, inspection *entity.Inspection) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
+	} else if !(inspection.Options.ExtractFullContributorInfo || inspection.Options.ExtractFullOrganizationInfo) {
+		slog.InfoContext(ctx, "skipped developers/organizations inspection")
+		return nil
 	}
 
 	slog.DebugContext(ctx, "starting developers/organizations inspection...")
@@ -537,23 +540,31 @@ func (service *InspectionService) InspectDevelopers(ctx context.Context, inspect
 	developers, orgs := extractAndDedupeAllDevelopers(ctx, inspection)
 	wg := sync.WaitGroup{}
 
-	wg.Go(func() {
-		if len(developers) == 0 {
-			slog.DebugContext(ctx, "no developers found after dedupe")
+	if inspection.Options.ExtractFullContributorInfo {
+		wg.Go(func() {
+			if len(developers) == 0 {
+				slog.DebugContext(ctx, "no developers found after dedupe")
+				return
+			}
+
 			return
-		}
+		})
+	} else {
+		slog.DebugContext(ctx, "skipped developers inspection")
+	}
 
-		return
-	})
+	if inspection.Options.ExtractFullOrganizationInfo {
+		wg.Go(func() {
+			if len(orgs) == 0 {
+				slog.DebugContext(ctx, "no organizations found after dedupe")
+				return
+			}
 
-	wg.Go(func() {
-		if len(orgs) == 0 {
-			slog.DebugContext(ctx, "no organizations found after dedupe")
 			return
-		}
-
-		return
-	})
+		})
+	} else {
+		slog.DebugContext(ctx, "skipped organizations inspection")
+	}
 
 	wg.Wait()
 	slog.InfoContext(ctx, "developers/organizations inspection finished successfully")

@@ -163,7 +163,7 @@ func TestGithubServiceImpl_GetUserInfo(t *testing.T) {
 	require.NotNil(t, service)
 
 	t.Run("get user info", func(t *testing.T) {
-		user, err := service.GetUserByUsername(context.Background(), "Qvineox")
+		user, err := service.GetProfileByUsername(context.Background(), "Qvineox")
 		require.NoError(t, err)
 		require.NotNil(t, user)
 

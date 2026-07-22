@@ -322,7 +322,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 2",
 								Username: "test-2",
 								GithubID: 2,
-								GithubMetadata: &entity.GithubDeveloperMetadata{
+								GithubMetadata: &entity.GithubDeveloperProfile{
 									ID:     2,
 									NodeID: "test-node-id-2",
 								},
@@ -331,7 +331,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 5",
 								Username: "test-5",
 								GithubID: 5,
-								GithubMetadata: &entity.GithubDeveloperMetadata{
+								GithubMetadata: &entity.GithubDeveloperProfile{
 									ID:     5,
 									NodeID: "test-node-id-5",
 								},
@@ -353,7 +353,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 2",
 								Username: "test-2",
 								GithubID: 22,
-								GithubMetadata: &entity.GithubDeveloperMetadata{
+								GithubMetadata: &entity.GithubDeveloperProfile{
 									ID: 22,
 								},
 							},
@@ -395,10 +395,10 @@ func TestDeveloperDedupe(t *testing.T) {
 				Name: "test2",
 				GithubMetadata: &entity.GitHubRepositoryMetadata{
 					ID: 2,
-					Owner: &entity.Developer{
-						Name:     "test 5",
+					Owner: &entity.GithubDeveloperProfile{
+						Fullname: "test 5",
 						Username: "test-5",
-						GithubID: 5,
+						ID:       5,
 						Emails:   []string{"test5@test.com"},
 					},
 					Org: nil,
