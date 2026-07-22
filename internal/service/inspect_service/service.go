@@ -21,6 +21,7 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
+	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
 	"golang.org/x/sync/errgroup"
@@ -32,13 +33,15 @@ const (
 
 type InspectionService struct {
 	manifests service.IManifestService
+	registry  service.IRegistryService
 
-	github   service.IGithubService
-	registry service.IRegistryService
+	github service.IGithubService
+
+	stackExchange *stack_exchange.Client
 }
 
-func NewInspectionService(manifests service.IManifestService, github service.IGithubService, registry service.IRegistryService) *InspectionService {
-	return &InspectionService{manifests: manifests, github: github, registry: registry}
+func NewInspectionService(manifests service.IManifestService, github service.IGithubService, stackExchange *stack_exchange.Client, registry service.IRegistryService) *InspectionService {
+	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry}
 }
 
 func (service *InspectionService) InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error) {
@@ -542,9 +545,24 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 
 	if inspection.Options.ExtractFullContributorInfo {
 		wg.Go(func() {
+			availableSources := service.availableSources()
+			if len(availableSources) == 0 {
+				slog.WarnContext(ctx, "skipped developers/organizations inspection: no available sources")
+				return
+			}
+
 			if len(developers) == 0 {
 				slog.DebugContext(ctx, "no developers found after dedupe")
 				return
+			}
+
+			pool := NewDeveloperInspectionPool(ctx, service.github, service.stackExchange)
+
+			for i := range developers {
+				for _, source := range availableSources {
+					time.Sleep(defaultDelay)
+					pool.Inspect(developers[i], source)
+				}
 			}
 
 			return
@@ -580,6 +598,8 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 // - Repositories.Commiters (from git history)
 func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspection) ([]*entity.Developer, []*entity.Organization) {
 	slog.DebugContext(ctx, "extracting and deduping developers from previously collected data...")
+
+	// todo: dedupe on same name to username
 
 	var (
 		dedupes    int
@@ -648,20 +668,21 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 			ownerUsername := r.GithubMetadata.Owner.Username
 			last, ok := uniqueUsernames[ownerUsername]
 			if !ok {
-				uniqueUsernames[ownerUsername] = r.GithubMetadata.Owner
-				developers = append(developers, r.GithubMetadata.Owner)
+				dev := r.GithubMetadata.Owner.ToDeveloper()
+				uniqueUsernames[ownerUsername] = dev
+				developers = append(developers, dev)
 			} else {
-				err := last.Merge(r.GithubMetadata.Owner)
+				err := last.AddGithubProfile(r.GithubMetadata.Owner)
 				if err != nil {
 					slog.DebugContext(ctx, "conflict on repository owner dedupe",
 						slog.String("username", r.GithubMetadata.Owner.Username),
 						slog.String("error", err.Error()),
 					)
 
-					developers = append(developers, r.GithubMetadata.Owner)
+					developers = append(developers, r.GithubMetadata.Owner.ToDeveloper())
 					conflicts++
 				} else {
-					r.GithubMetadata.Owner = last
+					r.GithubMetadata.Owner = last.GithubMetadata
 					dedupes++
 				}
 			}
@@ -703,4 +724,18 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 func (service *InspectionService) CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (service *InspectionService) availableSources() []InspectionSource {
+	var s []InspectionSource
+
+	if service.github != nil {
+		s = append(s, InspectionSource_GitHub)
+	}
+
+	if service.stackExchange != nil {
+		s = append(s, InspectionSource_StackExchange)
+	}
+
+	return s
 }

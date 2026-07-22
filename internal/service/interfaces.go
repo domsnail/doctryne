@@ -45,6 +45,11 @@ type IGithubService interface {
 	GetOrganizationUsers(ctx context.Context, name string) ([]*entity.GithubDeveloperProfile, error)
 }
 
+type IStackExchangeService interface {
+	GetProfileByUsername(ctx context.Context, username string) (*entity.StackExchangeDeveloperProfile, error)
+	GetProfileByID(ctx context.Context, id int64) (*entity.StackExchangeDeveloperProfile, error)
+}
+
 type IManifestService interface {
 	ProcessManifest(ctx context.Context, manifest *entity.Manifest) error
 }

@@ -178,7 +178,7 @@ func contributorToEntity(g *github.Contributor) *entity.Developer {
 		p.Email = g.GetEmail()
 	}
 
-	return p.Developer()
+	return p.ToDeveloper()
 }
 
 func stargazerToEntity(g *github.Stargazer) *entity.GithubStargazer {

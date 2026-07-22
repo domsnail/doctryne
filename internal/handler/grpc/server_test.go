@@ -13,6 +13,7 @@ import (
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
+	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"github.com/stretchr/testify/require"
 )
 
@@ -35,6 +36,7 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 	handler := NewInspectionGRPCHandler(inspect_service.NewInspectionService(
 		manifest_service.NewManifestServiceImpl(),
 		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
+		stack_exchange.NewClient(stack_exchange.Options{}),
 		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
 	))
 
@@ -145,7 +147,7 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 			Mode:            new(inspection_v1.InspectionMode_INSPECTION_MODE_DIRECT),
 			ManifestType:    new("package.json"),
 			Manifest:        []byte(rawURL),
-			LoadUserProfile: new(false),
+			LoadUserProfile: new(true),
 		}.Build()
 
 		inspection, err := handler.Inspect(context.Background(), opts)

@@ -10,8 +10,9 @@ type UserList struct {
 }
 
 type User struct {
-	UserID    int `json:"user_id"`
-	AccountID int `json:"account_id"`
+	// https://meta.stackoverflow.com/a/332787/13775941
+	AccountID uint64 `json:"account_id"`
+	UserID    uint64 `json:"user_id"`
 
 	DisplayName string `json:"display_name"`
 	WebsiteUrl  string `json:"website_url"`
@@ -22,12 +23,12 @@ type User struct {
 	AcceptRate int    `json:"accept_rate"`
 	UserType   string `json:"user_type"`
 
-	Reputation              int `json:"reputation"`
-	ReputationChangeYear    int `json:"reputation_change_year"`
-	ReputationChangeQuarter int `json:"reputation_change_quarter"`
-	ReputationChangeMonth   int `json:"reputation_change_month"`
-	ReputationChangeWeek    int `json:"reputation_change_week"`
-	ReputationChangeDay     int `json:"reputation_change_day"`
+	Reputation              uint32 `json:"reputation"`
+	ReputationChangeYear    int32  `json:"reputation_change_year"`
+	ReputationChangeQuarter int32  `json:"reputation_change_quarter"`
+	ReputationChangeMonth   int32  `json:"reputation_change_month"`
+	ReputationChangeWeek    int32  `json:"reputation_change_week"`
+	ReputationChangeDay     int32  `json:"reputation_change_day"`
 
 	ViewCount     int `json:"view_count"`
 	DownVoteCount int `json:"down_vote_count"`
@@ -49,4 +50,13 @@ type User struct {
 
 	ProfileImage string `json:"profile_image"`
 	Link         string `json:"link"`
+}
+
+func (s *User) IsRegistered() bool {
+	switch s.UserType {
+	case "registered", "moderator", "team_admin":
+		return true
+	default:
+		return false
+	}
 }

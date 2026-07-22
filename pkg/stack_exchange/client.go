@@ -41,7 +41,7 @@ type Options struct {
 	CacheTTL time.Duration
 }
 
-func NewClient(opts Options) (*Client, error) {
+func NewClient(opts Options) *Client {
 	slog.Debug("initializing stack exchange client...",
 		slog.Bool("using_access_token", opts.AccessToken != ""),
 	)
@@ -95,14 +95,14 @@ func NewClient(opts Options) (*Client, error) {
 
 		api, err = url.Parse(opts.ApiURL)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse stack exchange api url: %w", err)
+			panic(fmt.Errorf("failed to parse stack exchange api url: %w", err))
 		}
 	} else {
 		slog.Debug("using default stack exchange api url...", slog.String("url", defaultApiURL))
 
 		api, err = url.Parse(defaultApiURL)
 		if err != nil {
-			return nil, fmt.Errorf("failed to parse default api url: %w", err)
+			panic(fmt.Errorf("failed to parse default api url: %w", err))
 		}
 	}
 
@@ -120,7 +120,7 @@ func NewClient(opts Options) (*Client, error) {
 	return &Client{
 		api: api,
 		h:   &client,
-	}, nil
+	}
 }
 
 func (c *Client) GetMe(ctx context.Context) (*User, json.RawMessage, error) {

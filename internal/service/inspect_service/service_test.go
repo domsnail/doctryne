@@ -399,7 +399,7 @@ func TestDeveloperDedupe(t *testing.T) {
 						Fullname: "test 5",
 						Username: "test-5",
 						ID:       5,
-						Emails:   []string{"test5@test.com"},
+						Email:    "test5@test.com",
 					},
 					Org: nil,
 					Contributors: []*entity.Developer{
@@ -424,8 +424,8 @@ func TestDeveloperDedupe(t *testing.T) {
 				Name: "test3",
 				GithubMetadata: &entity.GitHubRepositoryMetadata{
 					ID: 3,
-					Owner: &entity.Developer{
-						Name:     "test 11",
+					Owner: &entity.GithubDeveloperProfile{
+						Fullname: "test 11",
 						Username: "test-11",
 					},
 					Org: &entity.Organization{
@@ -494,7 +494,7 @@ func TestDeveloperDedupe(t *testing.T) {
 	require.NotNil(t, test5.GithubMetadata, "must be filled")
 	require.EqualValues(t, 5, test5.GithubID)
 	require.Len(t, test5.Emails, 1)
-	require.Same(t, test5, inspection.Repositories[1].GithubMetadata.Owner)
+	require.Same(t, test5.GithubMetadata, inspection.Repositories[1].GithubMetadata.Owner)
 
 	test1 := inspection.Packages[0].RegistryMetadata.Contributors.Authors[0]
 	require.Len(t, test1.Emails, 3)

@@ -16,6 +16,9 @@ type Developer struct {
 	GithubID       int64
 	GithubMetadata *GithubDeveloperProfile
 
+	StackExchangeAccountID uint64
+	StackExchangeProfile   *StackExchangeDeveloperProfile
+
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -62,6 +65,29 @@ func (d *Developer) Merge(other *Developer) error {
 	return nil
 }
 
+func (d *Developer) AddGithubProfile(profile *GithubDeveloperProfile) error {
+	if profile == nil || profile.ID == 0 {
+		return nil
+	} else if d.GithubID != 0 && d.GithubID != profile.ID {
+		return fmt.Errorf("cannot merge developers with different github profiles")
+	}
+
+	d.GithubMetadata = profile
+	d.GithubID = profile.ID
+
+	if profile.Email != "" {
+		var emails = make(map[string]bool)
+
+		for _, e := range append(d.Emails, profile.Email) {
+			emails[strings.ToLower(e)] = false
+		}
+
+		d.Emails = slices.Collect(maps.Keys(emails))
+	}
+
+	return nil
+}
+
 type GithubDeveloperProfile struct {
 	ID     int64
 	NodeID string
@@ -94,17 +120,49 @@ type GithubDeveloperProfile struct {
 	SuspendedAt *time.Time
 }
 
-func (md *GithubDeveloperProfile) Developer() *Developer {
-	return &Developer{
-		Name:           md.Fullname,
-		Username:       strings.ToLower(md.Username),
-		Emails:         []string{md.Email},
-		GithubID:       md.ID,
-		GithubMetadata: md,
+func (profile *GithubDeveloperProfile) ToDeveloper() *Developer {
+	d := Developer{
+		Name:           profile.Fullname,
+		Username:       profile.Username,
+		GithubID:       profile.ID,
+		GithubMetadata: profile,
 	}
+
+	if profile.Email != "" {
+		d.Emails = []string{profile.Email}
+	}
+
+	return &d
 }
 
 type GithubStargazer struct {
 	Username  string
 	StarredAt *time.Time
+}
+
+type StackExchangeDeveloperProfile struct {
+	UserID    uint64
+	AccountID uint64
+
+	DisplayName string
+	WebsiteUrl  string
+	AboutMe     string
+	Location    string
+
+	IsEmployee   bool
+	IsRegistered bool
+
+	Reputation uint32
+	Badges     StackExchangeBadges
+
+	CreatedAt    time.Time
+	UpdatedAt    *time.Time
+	LastAccessAt time.Time
+	PenaltyTill  *time.Time
+}
+
+type StackExchangeBadges struct {
+	Bronze uint32
+	Silver uint32
+	Gold   uint32
 }
