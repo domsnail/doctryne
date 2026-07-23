@@ -7,20 +7,17 @@ label {
 }
 
 body {
-    background-color: cadetblue;
-
-    padding: 2vh 4vw;
-
-    width: 100%;
-    display: grid;
-
-    grid-template-columns: auto 20vw;
-    grid-template-rows: repeat(3, 20vh);
+    background-color: #dbe1ff;
+    padding: 0;
+    margin: 0;
 }
 
 .page-content {
     display: flex;
     flex-direction: row;
+
+    height: 100vh;
+    width: 100vw;
 
     #search-filter {
         width: 20vw;
@@ -39,4 +36,17 @@ body {
             }
         }
     }
+}
+
+.manifest-upload-page {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.light-border {
+    padding: 2vh 1vw;
+
+    border-radius: 15px;
+    border: 1px solid darkslateblue;
 }

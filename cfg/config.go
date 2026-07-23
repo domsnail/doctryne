@@ -193,8 +193,8 @@ type Credentials struct {
 type Server struct {
 	Enabled bool `json:"enabled" yaml:"enabled" env:"ENABLED"`
 
-	Host string `json:"host" yaml:"host" env:"HOST"`
-	Port uint32 `json:"port" yaml:"port" env:"PORT"`
+	Host string `json:"host" yaml:"host" env:"HOST" env-default:"0.0.0.0"`
+	Port uint32 `json:"port" yaml:"port" env:"PORT" env-default:"8080"`
 
 	DisableHealth  bool `json:"disable_health" yaml:"disable_health"`
 	DisableMetrics bool `json:"disable_metrics" yaml:"disable_metrics"`
