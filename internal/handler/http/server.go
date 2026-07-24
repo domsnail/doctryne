@@ -12,31 +12,34 @@ import (
 	"github.com/domsnail/doctryne/internal/service"
 )
 
-type InspectionHandler struct {
+type Handler struct {
 	service service.IInspectionService
 	config  cfg.Server
 }
 
-func NewInspectionHTTPHandler(service service.IInspectionService, config cfg.Server) *InspectionHandler {
+const pathPrefix = "/api/v1"
+
+func NewHandler(service service.IInspectionService, config cfg.Server) *Handler {
 	if service == nil {
 		panic("inspection service is nil")
 	}
 
-	return &InspectionHandler{service: service, config: config}
+	return &Handler{service: service, config: config}
 }
 
-func (handler *InspectionHandler) RunServer(ctx context.Context) {
+func (h *Handler) RunServer(ctx context.Context) {
 	var mux = http.NewServeMux()
-	mux.HandleFunc("/upload", handler.handleManifestUpload)
+	mux.HandleFunc("/upload", h.handleManifestUpload)
+	mux.HandleFunc("/", h.static())
 
 	srv := http.Server{
-		Addr:    net.JoinHostPort(handler.config.Host, strconv.Itoa(int(handler.config.Port))),
+		Addr:    net.JoinHostPort(h.config.Host, strconv.Itoa(int(h.config.Port))),
 		Handler: defaultSlogMiddleware()(mux),
 	}
 
 	go func() {
 		slog.InfoContext(ctx, "starting http server...",
-			slog.String("host", net.JoinHostPort(handler.config.Host, strconv.Itoa(int(handler.config.Port)))),
+			slog.String("host", net.JoinHostPort(h.config.Host, strconv.Itoa(int(h.config.Port)))),
 		)
 
 		err := srv.ListenAndServe()

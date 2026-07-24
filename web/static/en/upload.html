@@ -4,16 +4,18 @@
         integrity="sha384-5dnhUXCt1hXGvYrjAnKwgNX3I8xtIJiW6eIHIbeo7oWyXv2XpWYC/rl+ZiWfuYO5"
         crossorigin="anonymous">
 </script>
-<link rel="stylesheet" href="styles/root.css">
-<link rel="stylesheet" href="styles/upload.css">
+<link rel="stylesheet" href="../styles/root.css">
+<link rel="stylesheet" href="../styles/upload.css">
 <head>
     <meta charset="UTF-8">
     <title>Upload file • Doctryne</title>
 </head>
 <body>
 <div class="page-content manifest-upload-page">
-    <form class="light-border" id="manifest-upload-container" hx-encoding='multipart/form-data'
-          hx-post='http://0.0.0.0:8080/upload'>
+    <form class="light-border"
+          id="manifest-upload-container"
+          hx-encoding='multipart/form-data'
+          hx-post='/upload'>
         <label for="manifest-upload">Upload manifest file:</label>
         <input type="file" id="manifest-upload" name="manifest_file" accept="application/json"/>
         <button>

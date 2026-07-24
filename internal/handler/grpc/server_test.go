@@ -33,7 +33,7 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 	config.Languages.JavaScript.CheckOptionalDependencies = true
 	cfg.SetGlobalConfig(config)
 
-	handler := NewInspectionGRPCHandler(inspect_service.NewInspectionService(
+	handler := NewHandler(inspect_service.NewInspectionService(
 		manifest_service.NewManifestServiceImpl(),
 		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
 		stack_exchange.NewClient(stack_exchange.Options{}),

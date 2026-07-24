@@ -15,20 +15,20 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-type InspectionHandler struct {
+type Handler struct {
 	service service.IInspectionService
 }
 
-func (handler *InspectionHandler) GetInspectionByUUID(ctx context.Context, uid *utils_v1.UUID) (*inspection_v1.Inspection, error) {
+func (handler *Handler) GetInspectionByUUID(ctx context.Context, uid *utils_v1.UUID) (*inspection_v1.Inspection, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func NewInspectionGRPCHandler(service service.IInspectionService) *InspectionHandler {
-	return &InspectionHandler{service: service}
+func NewHandler(service service.IInspectionService) *Handler {
+	return &Handler{service: service}
 }
 
-func (handler *InspectionHandler) Inspect(ctx context.Context, opts *inspection_v1.InspectionOptions) (*inspection_v1.Inspection, error) {
+func (handler *Handler) Inspect(ctx context.Context, opts *inspection_v1.InspectionOptions) (*inspection_v1.Inspection, error) {
 	if !opts.HasManifest() {
 		return nil, status.Error(codes.InvalidArgument, "manifest file is not specified")
 	} else if !opts.HasManifestType() {

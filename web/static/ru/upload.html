@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<script src="https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta5"
+        integrity="sha384-5dnhUXCt1hXGvYrjAnKwgNX3I8xtIJiW6eIHIbeo7oWyXv2XpWYC/rl+ZiWfuYO5"
+        crossorigin="anonymous">
+</script>
+<link rel="stylesheet" href="../styles/root.css">
+<link rel="stylesheet" href="../styles/upload.css">
+<head>
+    <meta charset="UTF-8">
+    <title>Загрузка файла • Doctryne</title>
+</head>
+<body>
+<div class="page-content manifest-upload-page">
+    <form class="light-border"
+          id="manifest-upload-container"
+          hx-encoding='multipart/form-data'
+          hx-post='/upload'>
+        <label for="manifest-upload">Загрузите файл манифеста:</label>
+        <input type="file" id="manifest-upload" name="manifest_file" accept="application/json"/>
+        <button>
+            Отправить
+        </button>
+    </form>
+</div>
+</body>
+</html>
