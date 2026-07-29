@@ -9,6 +9,11 @@ import (
 	"syscall"
 
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/service/github_service"
+	"github.com/domsnail/doctryne/internal/service/inspect_service"
+	"github.com/domsnail/doctryne/internal/service/manifest_service"
+	"github.com/domsnail/doctryne/internal/service/registry_service"
+	"github.com/domsnail/doctryne/pkg/stack_exchange"
 )
 
 func main() {
@@ -61,8 +66,19 @@ func main() {
 	slog.DebugContext(rootCtx, "setting global config...")
 	cfg.SetGlobalConfig(config)
 
+	inspectionService := inspect_service.NewInspectionService(
+		manifest_service.NewManifestServiceImpl(),
+		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
+		stack_exchange.NewClient(stack_exchange.Options{}),
+		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
+	)
+
 	if config.Server.Enabled {
-		srv, err := CreateServer(rootCtx, &config.Server)
+		srv, err := CreateServer(ServerOptions{
+			config:            &config.Server,
+			inspectionService: inspectionService,
+		})
+
 		if err != nil {
 			slog.ErrorContext(rootCtx, err.Error())
 			os.Exit(1)
@@ -74,7 +90,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		slog.InfoContext(rootCtx, fmt.Sprintf("grpc server successfully started on %s:%d", config.Server.Host, config.Server.Port))
+		slog.InfoContext(rootCtx, fmt.Sprintf("server successfully started on %s:%d", config.Server.Host, config.Server.Port))
 
 		select {
 		case <-rootCtx.Done():

@@ -39,7 +39,7 @@ type Config struct {
 
 	Server   Server    `json:"server" yaml:"server" env-prefix:"SRV_"`
 	Database *Database `json:"database" yaml:"database" env-prefix:"DB_"`
-	Logging  Logging   `json:"logs" yaml:"logs" env-prefix:"LOGS_"`
+	Logging  Logging   `json:"logs" yaml:"logs" env-prefix:"LOG_"`
 
 	FilePath string `json:"-" yaml:"-"`
 }
@@ -196,6 +196,7 @@ type Server struct {
 	Host string `json:"host" yaml:"host" env:"HOST" env-default:"0.0.0.0"`
 	Port uint32 `json:"port" yaml:"port" env:"PORT" env-default:"8080"`
 
+	DisableWebUI   bool `json:"disable_webui" yaml:"disable_webui"`
 	DisableHealth  bool `json:"disable_health" yaml:"disable_health"`
 	DisableMetrics bool `json:"disable_metrics" yaml:"disable_metrics"`
 	DisableReflect bool `json:"disable_reflect" yaml:"disable_reflect"`

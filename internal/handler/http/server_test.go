@@ -1,8 +1,8 @@
 package http
 
 import (
-	"context"
 	"log/slog"
+	"net/http"
 	"os"
 	"testing"
 
@@ -34,9 +34,9 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
 		stack_exchange.NewClient(stack_exchange.Options{}),
 		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
-	), config.Server)
+	), &config.Server)
 
 	t.Run("start test http server", func(t *testing.T) {
-		handler.RunServer(context.Background())
+		handler.HandleMux(http.NewServeMux())
 	})
 }
