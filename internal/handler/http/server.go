@@ -23,6 +23,7 @@ func NewHandler(service service.IInspectionService, config *cfg.Server) *Handler
 }
 
 func (h *Handler) HandleMux(mux *http.ServeMux) {
-	mux.HandleFunc("/upload", h.handleManifestUpload)
+	mux.HandleFunc(pathPrefix+"/upload", h.handleManifestUpload)
+
 	mux.HandleFunc("/", h.static())
 }

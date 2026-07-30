@@ -18,6 +18,29 @@
           hx-post='/upload'>
         <label for="manifest-upload">Загрузите файл манифеста:</label>
         <input type="file" id="manifest-upload" name="manifest_file" accept="application/json"/>
+
+        <label for="manifest-type">Тип манифеста</label>
+        <select name="manifest-type" id="manifest-type">
+            <option selected value="cyclonedx.json">cyclonedx.json (1.6+)</option>
+            <option value="package.json">package.json</option>
+            <option value="go.mod">go.mod</option>
+        </select>
+
+        <span>
+            <label for="extract-full-contibutor-info">Загружать профили разработчиков</label>
+            <input type="checkbox" name="extract-full-contibutor-info" id="extract-full-contibutor-info">
+        </span>
+
+        <span>
+            <label for="extract-full-organization-info">Загружать профили организаций</label>
+            <input type="checkbox" name="extract-full-organization-info" id="extract-full-organization-info">
+        </span>
+
+        <span>
+            <label for="deep-repository-inspection">Глубокий анализ репозиториев</label>
+            <input type="checkbox" name="deep-repository-inspection" id="deep-repository-inspection">
+        </span>
+
         <button>
             Отправить
         </button>

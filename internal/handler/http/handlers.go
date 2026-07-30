@@ -3,6 +3,8 @@ package http
 import (
 	"log/slog"
 	"net/http"
+
+	"github.com/domsnail/doctryne/internal/entity"
 )
 
 func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +38,26 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("size", header.Size),
 	)
 
-	w.WriteHeader(http.StatusOK)
+	opts := entity.InspectionOptions{
+		ScanType:                    "",
+		Manifest:                    nil,
+		ManifestType:                "",
+		Lockfile:                    nil,
+		LockfileType:                "",
+		Mode:                        "",
+		ExtractFullOrganizationInfo: false,
+		ExtractFullContributorInfo:  false,
+		DeepRepositoryInspection:    false,
+		InspectIssues:               false,
+	}
+
+	inspection, err := h.service.InitInspection(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	h.service.
+		w.WriteHeader(http.StatusOK)
 	return
 }
