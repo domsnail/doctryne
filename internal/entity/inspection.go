@@ -10,7 +10,8 @@ import (
 // Inspection is a resulting entity for a scan of a target (one inspection = multiple manifests) from API or CLI.
 // If Inspection runs in dir mode multiple manifests can be found
 type Inspection struct {
-	UUID uuid.UUID
+	UUID     uuid.UUID
+	Revision uint32
 
 	// target can be a binary file, url or directory path
 	// todo: idea: maybe replace with slice of targets with target_type field?
@@ -51,6 +52,7 @@ type InspectionOptions struct {
 func NewInspection(opts *InspectionOptions) *Inspection {
 	ins := Inspection{
 		UUID:           uuid.Must(uuid.NewV7()),
+		Revision:       1,
 		Target:         opts.Manifest,
 		TargetLockfile: opts.Lockfile,
 		ScanType:       opts.ScanType,

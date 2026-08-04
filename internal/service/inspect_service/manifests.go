@@ -51,9 +51,11 @@ func (service *InspectionService) InspectManifests(ctx context.Context, inspecti
 
 	err := group.Wait()
 	if err != nil {
-		slog.WarnContext(ctx, "manifest processing completed with errors",
+		slog.WarnContext(ctx, "failed to process manifests",
 			slog.String("error", err.Error()),
 		)
+
+		return err
 	}
 
 	slog.DebugContext(ctx, "manifest processing completed",

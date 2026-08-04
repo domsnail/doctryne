@@ -1,10 +1,14 @@
 package http
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/pkg/types"
 )
 
 func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
@@ -15,22 +19,62 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := r.ParseMultipartForm(1024 * 1024)
+	opts, err := parseInspectionOptionsForm(ctx, r)
 	if err != nil {
-		slog.WarnContext(ctx, "failed to parse multipart form", slog.String("error", err.Error()))
+		slog.WarnContext(ctx, "failed to parse options from multipart form", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	file, header, err := r.FormFile("manifest_file")
+	inspection, err := h.service.InitInspection(ctx, opts)
 	if err != nil {
-		slog.WarnContext(ctx, "failed to read manifest file form data", slog.String("error", err.Error()))
 		w.WriteHeader(http.StatusBadRequest)
 		return
+	}
+
+	err = h.service.InspectManifests(ctx, inspection)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	err = h.service.InspectPackages(ctx, inspection)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	// https://htmx.org/headers/hx-redirect/
+	w.Header().Set("HX-Redirect", fmt.Sprintf("/inspections/%s/revisions/%d", inspection.UUID.String(), inspection.Revision))
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
+func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
+	inspectionUUID := r.PathValue("uuid")
+	inspectionRevision := r.PathValue("revision")
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("%s/%s", inspectionUUID, inspectionRevision)))
+	return
+}
+
+func parseInspectionOptionsForm(ctx context.Context, req *http.Request) (*entity.InspectionOptions, error) {
+	var opts = entity.InspectionOptions{
+		ScanType: types.ScanType_Binary,
+		Mode:     types.InspectionMode_Direct,
+	}
+
+	err := req.ParseMultipartForm(1024 * 1024)
+	if err != nil {
+		return nil, err
+	}
+
+	file, header, err := req.FormFile("manifest-file")
+	if err != nil {
+		return nil, err
 	} else if file == nil {
-		slog.WarnContext(ctx, "empty form data passed")
-		w.WriteHeader(http.StatusBadRequest)
-		return
+		return nil, errors.New("no manifest file provided")
 	}
 
 	slog.DebugContext(ctx, "uploaded manifest file",
@@ -38,26 +82,12 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		slog.Int64("size", header.Size),
 	)
 
-	opts := entity.InspectionOptions{
-		ScanType:                    "",
-		Manifest:                    nil,
-		ManifestType:                "",
-		Lockfile:                    nil,
-		LockfileType:                "",
-		Mode:                        "",
-		ExtractFullOrganizationInfo: false,
-		ExtractFullContributorInfo:  false,
-		DeepRepositoryInspection:    false,
-		InspectIssues:               false,
-	}
+	opts.Manifest = file
+	opts.ManifestType = types.ManifestType(req.FormValue("manifest-type"))
 
-	inspection, err := h.service.InitInspection(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
+	opts.DeepRepositoryInspection = req.FormValue("deep-repository-inspection") == "on"
+	opts.ExtractFullContributorInfo = req.FormValue("extract-full-contibutor-info") == "on"
+	opts.ExtractFullOrganizationInfo = req.FormValue("extract-full-organization-info") == "on"
 
-	h.service.
-		w.WriteHeader(http.StatusOK)
-	return
+	return &opts, nil
 }

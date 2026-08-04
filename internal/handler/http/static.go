@@ -27,6 +27,11 @@ func (h *Handler) static() http.HandlerFunc {
 			return
 		}
 
+		if strings.HasPrefix(r.URL.Path, "/assets/") {
+			fileServer.ServeHTTP(w, r)
+			return
+		}
+
 		lang := preferredLanguage(r.Header.Get("Accept-Language"))
 		switch lang {
 		case "ru":

@@ -10,23 +10,36 @@
     <meta charset="UTF-8">
     <title>Загрузка файла • Doctryne</title>
 </head>
+<script>
+    function onManifestSend() {
+        document.getElementById("manifest-upload-btn").disabled = true;
+    }
+</script>
 <body>
 <div class="page-content manifest-upload-page">
+    <div id="loading" class="htmx-indicator">
+        <img src="/assets/rings.svg" alt="loading...">
+        <span>Обработка...</span>
+    </div>
     <form class="light-border"
           id="manifest-upload-container"
           hx-encoding='multipart/form-data'
-          hx-post='/upload'>
+          hx-indicator="#loading"
+          hx-post='/api/v1/upload'
+          hx-swap="none"
+          onsubmit="onManifestSend()"
+        >
         <label for="manifest-upload">Загрузите файл манифеста:</label>
-        <input type="file" id="manifest-upload" name="manifest_file" accept="application/json"/>
+        <input type="file" id="manifest-upload" name="manifest-file" accept="application/json"/>
 
         <label for="manifest-type">Тип манифеста</label>
-        <select name="manifest-type" id="manifest-type">
+        <select name="manifest-type" id="manifest-type" style="margin-bottom: 1rem">
             <option selected value="cyclonedx.json">cyclonedx.json (1.6+)</option>
             <option value="package.json">package.json</option>
             <option value="go.mod">go.mod</option>
         </select>
 
-        <span>
+        <span title="Искать и выгружать дополнительную информацию о каждом разработчике из сторонних ресурсов (GitHub). В результате будет собрана информация о прочих проектах, организациях и активности каждого разработчика.">
             <label for="extract-full-contibutor-info">Загружать профили разработчиков</label>
             <input type="checkbox" name="extract-full-contibutor-info" id="extract-full-contibutor-info">
         </span>
@@ -41,7 +54,7 @@
             <input type="checkbox" name="deep-repository-inspection" id="deep-repository-inspection">
         </span>
 
-        <button>
+        <button id="manifest-upload-btn" style="margin-top: 1rem">
             Отправить
         </button>
     </form>
