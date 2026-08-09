@@ -10,6 +10,9 @@ body {
     background-color: #dbe1ff;
     padding: 0;
     margin: 0;
+
+    display: flex;
+    justify-content: center;
 }
 
 .page-content {

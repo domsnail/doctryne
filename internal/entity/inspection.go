@@ -10,35 +10,35 @@ import (
 // Inspection is a resulting entity for a scan of a target (one inspection = multiple manifests) from API or CLI.
 // If Inspection runs in dir mode multiple manifests can be found
 type Inspection struct {
-	UUID     uuid.UUID
-	Revision uint32
+	UUID     uuid.UUID `json:"uuid"`
+	Revision uint32    `json:"revision"`
 
 	// target can be a binary file, url or directory path
 	// todo: idea: maybe replace with slice of targets with target_type field?
-	Target         io.Reader
-	TargetLockfile io.Reader
+	Target         io.Reader `json:"-"`
+	TargetLockfile io.Reader `json:"-"`
 
-	ScanType types.ScanType
+	ScanType types.ScanType `json:"scan_type"`
 
-	Manifests []*Manifest
+	Manifests []*Manifest `json:"manifests"`
 
-	Packages     []*Package
-	Repositories []*Repository
-	Developers   []*Developer
+	Packages     []*Package    `json:"packages"`
+	Repositories []*Repository `json:"repositories"`
+	Developers   []*Developer  `json:"developers"`
 
-	Options *InspectionOptions
+	Options *InspectionOptions `json:"options"`
 
-	UploadedBy   string
-	UploadedFrom string
+	UploadedBy   string `json:"uploaded_by"`
+	UploadedFrom string `json:"uploaded_from"`
 }
 
 type InspectionOptions struct {
 	ScanType types.ScanType
 
-	Manifest     io.Reader
+	Manifest     io.Reader `json:"-"`
 	ManifestType types.ManifestType
 
-	Lockfile     io.Reader
+	Lockfile     io.Reader `json:"-"`
 	LockfileType types.ManifestType
 
 	Mode types.InspectionMode
@@ -52,7 +52,6 @@ type InspectionOptions struct {
 func NewInspection(opts *InspectionOptions) *Inspection {
 	ins := Inspection{
 		UUID:           uuid.Must(uuid.NewV7()),
-		Revision:       1,
 		Target:         opts.Manifest,
 		TargetLockfile: opts.Lockfile,
 		ScanType:       opts.ScanType,

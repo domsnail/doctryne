@@ -6,9 +6,12 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/web/templates"
+	"github.com/google/uuid"
 )
 
 func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +47,12 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = h.service.SaveInspection(ctx, inspection)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// https://htmx.org/headers/hx-redirect/
 	w.Header().Set("HX-Redirect", fmt.Sprintf("/inspections/%s/revisions/%d", inspection.UUID.String(), inspection.Revision))
 	w.WriteHeader(http.StatusOK)
@@ -51,11 +60,41 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
 	inspectionUUID := r.PathValue("uuid")
 	inspectionRevision := r.PathValue("revision")
 
+	rev, err := strconv.ParseUint(inspectionRevision, 10, 32)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	uid, err := uuid.Parse(inspectionUUID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	inspection, err := h.service.LoadInspection(ctx, uid, uint32(rev))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf("%s/%s", inspectionUUID, inspectionRevision)))
+	err = templates.Inspection_page(inspection).Render(ctx, w)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	return
 }
 

@@ -12,7 +12,7 @@ type Repository struct {
 	GitURL *url.URL
 
 	// Only set from .git directory inspection, see at internal/service/git_service/service.go
-	DeveloperCommitStats DeveloperCommitStats
+	DeveloperCommitStats DeveloperCommitStats `json:"-"`
 	Commiters            []*Developer
 	CommitStats          *CommitStats
 	Commits              []*Commit

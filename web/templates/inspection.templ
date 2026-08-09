@@ -1,0 +1,32 @@
+package templates
+
+import (
+	"github.com/domsnail/doctryne/internal/entity"
+	)
+
+templ Inspection_page(ins *entity.Inspection) {
+    <!DOCTYPE html>
+    <html lang="en">
+        @GlobalStyles()
+        <link rel="stylesheet" href="/styles/inspection.css">
+        <head>
+            <meta charset="UTF-8">
+            <title>Просмотр отчета • Doctryne</title>
+        </head>
+        <body>
+        <div class="page-content inspection-page">
+            <div class="grid-item info">1</div>
+            <div class="grid-item file-data">2</div>
+            <div class="grid-item metadata">3</div>
+            <div class="grid-item violations">4</div>
+            <div class="grid-item developer-stats">5</div>
+            <div class="grid-item stats">6</div>
+            <div class="grid-item packages-stats">7</div>
+            <div class="grid-item packages">8</div>
+            <div class="grid-item developers">9</div>
+            <div class="grid-item repositories">10</div>
+            <div class="grid-item additional-info">11</div>
+        </div>
+        </body>
+	</html>
+}

@@ -12,16 +12,16 @@ import (
 // Manifest contains information about incoming application packages. Represents package.json, go.mod and other
 // language manifests and/or software bill of materials.
 type Manifest struct {
-	UUID     uuid.UUID
-	Metadata ManifestMetadata
+	UUID     uuid.UUID        `json:"uuid"`
+	Metadata ManifestMetadata `json:"metadata"`
 
-	Language types.Language
-	Type     types.ManifestType
+	Language types.Language     `json:"language"`
+	Type     types.ManifestType `json:"type"`
 
-	DiscoveredPackages []*Package
+	DiscoveredPackages []*Package `json:"discovered_packages"`
 
-	Lockfile io.Reader
-	Contents io.Reader
+	Lockfile io.Reader `json:"-"`
+	Contents io.Reader `json:"-"`
 }
 
 func NewManifest() *Manifest {

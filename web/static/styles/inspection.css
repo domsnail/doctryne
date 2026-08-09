@@ -1,0 +1,75 @@
+.inspection-page {
+    display: grid;
+
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(8, 1fr);
+
+    gap: 8px;
+    padding: 4vh 4vw;
+    margin-bottom: 10vh;
+
+    div.grid-item {
+        border: 2px solid crimson;
+        padding: 1rem;
+
+        min-height: 10vh;
+    }
+}
+
+.info {
+    grid-row: span 4 / span 4;
+}
+
+.file-data {
+    grid-column: span 2 / span 2;
+}
+
+.metadata {
+    grid-column-start: 4;
+}
+
+.stats {
+    grid-column: span 3 / span 3;
+    grid-column-start: 2;
+    grid-row-start: 2;
+}
+
+.developer-stats {
+    grid-column-start: 4;
+    grid-row-start: 3;
+}
+
+.violations {
+    grid-column: span 2 / span 2;
+    grid-row: span 2 / span 2;
+    grid-column-start: 2;
+    grid-row-start: 3;
+}
+
+.packages-stats {
+    grid-column-start: 4;
+    grid-row-start: 4;
+}
+
+.packages {
+    grid-column: span 3 / span 3;
+    grid-column-start: 2;
+    grid-row-start: 5;
+}
+
+.developers {
+    grid-column: span 3 / span 3;
+    grid-column-start: 2;
+    grid-row-start: 6;
+}
+
+.repositories {
+    grid-column: span 3 / span 3;
+    grid-column-start: 2;
+    grid-row-start: 7;
+}
+
+.additional-info {
+    grid-column: span 4 / span 4;
+    grid-row-start: 8;
+}

@@ -5,6 +5,7 @@ import (
 	"net/url"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/google/uuid"
 )
 
 type IInspectionService interface {
@@ -25,6 +26,16 @@ type IInspectionService interface {
 	InspectDevelopersAndOrganizations(ctx context.Context, inspection *entity.Inspection) error
 
 	CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error)
+
+	SaveInspection(ctx context.Context, inspection *entity.Inspection) error
+	LoadInspection(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
+}
+
+type IInspectionsRepository interface {
+	CreateInspection(ctx context.Context, ins *entity.Inspection) error
+
+	GetInspection(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error)
+	GetInspectionRevision(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
 }
 
 type IGithubService interface {

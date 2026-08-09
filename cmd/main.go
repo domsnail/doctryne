@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/repos/memory_repo"
 	"github.com/domsnail/doctryne/internal/service/github_service"
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
@@ -71,6 +72,7 @@ func main() {
 		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
 		stack_exchange.NewClient(stack_exchange.Options{}),
 		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
+		memory_repo.NewInMemoryRepo(),
 	)
 
 	if config.Server.Enabled {

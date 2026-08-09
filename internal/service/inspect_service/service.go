@@ -24,6 +24,7 @@ import (
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
+	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -38,10 +39,12 @@ type InspectionService struct {
 	github service.IGithubService
 
 	stackExchange *stack_exchange.Client
+
+	repo service.IInspectionsRepository
 }
 
-func NewInspectionService(manifests service.IManifestService, github service.IGithubService, stackExchange *stack_exchange.Client, registry service.IRegistryService) *InspectionService {
-	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry}
+func NewInspectionService(manifests service.IManifestService, github service.IGithubService, stackExchange *stack_exchange.Client, registry service.IRegistryService, repo service.IInspectionsRepository) *InspectionService {
+	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry, repo: repo}
 }
 
 func (service *InspectionService) InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error) {
@@ -738,4 +741,16 @@ func (service *InspectionService) availableSources() []InspectionSource {
 	}
 
 	return s
+}
+
+func (service *InspectionService) SaveInspection(ctx context.Context, inspection *entity.Inspection) error {
+	return service.repo.CreateInspection(ctx, inspection)
+}
+
+func (service *InspectionService) LoadInspection(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
+	if rev > 0 {
+		return service.repo.GetInspectionRevision(ctx, uid, rev)
+	}
+
+	return service.repo.GetInspection(ctx, uid)
 }
