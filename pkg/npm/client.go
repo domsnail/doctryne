@@ -227,7 +227,7 @@ func (c *Client) GetPackage(ctx context.Context, name string) (*Package, json.Ra
 
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		slog.WarnContext(ctx, "package not found",
+		slog.WarnContext(ctx, "package not found in npm registry",
 			slog.String("package_name", name),
 			slog.Int("status_code", resp.StatusCode),
 		)
@@ -310,7 +310,7 @@ func (c *Client) GetPackageStats(ctx context.Context, name string, period time.D
 
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotFound {
-		slog.WarnContext(ctx, "package not found",
+		slog.WarnContext(ctx, "package not found in npm registry",
 			slog.String("package_name", name),
 			slog.Int("status_code", resp.StatusCode),
 		)

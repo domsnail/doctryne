@@ -29,7 +29,7 @@ func GlobalStyles() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta5\" integrity=\"sha384-5dnhUXCt1hXGvYrjAnKwgNX3I8xtIJiW6eIHIbeo7oWyXv2XpWYC/rl+ZiWfuYO5\" crossorigin=\"anonymous\">\r\n    </script><link rel=\"stylesheet\" href=\"/styles/root.css\"><link rel=\"stylesheet\" href=\"/styles/upload.css\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<script src=\"https://cdn.jsdelivr.net/npm/htmx.org@4.0.0-beta5\" integrity=\"sha384-5dnhUXCt1hXGvYrjAnKwgNX3I8xtIJiW6eIHIbeo7oWyXv2XpWYC/rl+ZiWfuYO5\" crossorigin=\"anonymous\">\r\n    </script><link rel=\"stylesheet\" href=\"https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css\"><link rel=\"stylesheet\" href=\"/styles/root.css\"><link rel=\"stylesheet\" href=\"/styles/upload.css\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -213,9 +213,9 @@ type Database struct {
 }
 
 type Logging struct {
-	Level     int    `json:"level" yaml:"level" env:"LEVEL"`
-	Format    string `json:"format" yaml:"format" env:"FORMAT"`
-	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE"`
+	Level     int    `json:"level" yaml:"level" env:"LEVEL" env-default:"0"`
+	Format    string `json:"format" yaml:"format" env:"FORMAT" env-default:"text"`
+	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE" env-default:"false"`
 }
 
 type RateLimits struct {

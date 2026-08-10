@@ -4,29 +4,163 @@ import (
 	"github.com/domsnail/doctryne/internal/entity"
 	)
 
-templ Inspection_page(ins *entity.Inspection) {
+templ Inspection_page(inspection *entity.Inspection) {
     <!DOCTYPE html>
     <html lang="en">
         @GlobalStyles()
         <link rel="stylesheet" href="/styles/inspection.css">
+        <link href="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.css" rel="stylesheet" crossorigin="anonymous">
+        <script src="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.js"></script>
         <head>
             <meta charset="UTF-8">
             <title>Просмотр отчета • Doctryne</title>
         </head>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const componentsTable = new DataTable('#components-table', {
+                    // Configuration options
+                });
+
+                const developersTable = new DataTable('#developers-table', {
+                    // Configuration options
+                });
+
+                console.debug(table)
+            });
+
+        </script>
         <body>
         <div class="page-content inspection-page">
-            <div class="grid-item info">1</div>
-            <div class="grid-item file-data">2</div>
-            <div class="grid-item metadata">3</div>
-            <div class="grid-item violations">4</div>
-            <div class="grid-item developer-stats">5</div>
+            <div class="grid-item info">
+                <h1>Просмотр отчета</h1>
+                <h4 style="text-wrap: nowrap">{ inspection.UUID.String() }</h4>
+                <p class="hint">ревизия { inspection.Revision }</p>
+            </div>
+
+            <div class="grid-item manifests-data">
+                <h2>Манифесты</h2>
+                <label for="manifest-selection">
+                    Активный манифест
+                </label>
+                <select id="manifest-selection">
+                    <option value="all" selected>Все</option>
+                    for _, manifest := range inspection.Manifests {
+                        <option value={ manifest.UUID.String() }>
+                            { manifest.Metadata.Filename } ({ manifest.Type }, { manifest.Language })
+                        </option>
+                    }
+                </select>
+            </div>
+
+            <div class="grid-item metadata">
+                <h2>Метаданные</h2>
+
+                <label for="md-uploaded-by">Пользователь</label>
+                <p id="md-uploaded-by">
+                if inspection.UploadedBy != "" {
+                    inspection.UploadedBy
+                } else {
+                    -
+                }
+                </p>
+
+                <label for="md-uploaded-from">Источник</label>
+                <p id="md-uploaded-from">
+                if inspection.UploadedFrom != "" {
+                    inspection.UploadedFrom
+                } else {
+                    -
+                }
+                </p>
+
+                <label for="md-created-at">Дата создания</label>
+                <p id="md-created-at">{ inspection.CreatedAt.Format("02.01.2006 15:04:05") }</p>
+
+                <label for="md-updated-at">Дата обновления</label>
+                <p id="md-updated-at">{ inspection.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
+            </div>
+
+            <div class="grid-item violations">
+                <h2>Нарушения</h2>
+            </div>
+
+            <div class="grid-item developer-stats">
+
+            </div>
+
             <div class="grid-item stats">6</div>
-            <div class="grid-item packages-stats">7</div>
-            <div class="grid-item packages">8</div>
-            <div class="grid-item developers">9</div>
+            <div class="grid-item packages-stats">
+
+
+            </div>
+            <div class="grid-item packages">
+                <div class="grid-icons">
+                    <i class="bi bi-diagram-2"></i>
+                    <i class="bi bi-list"></i>
+                </div>
+                <h2>Компоненты</h2>
+                <table id="components-table" class="stripe hover order-column row-border">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Версия</th>
+                            <th>Метки</th>
+                            <th>Опционально</th>
+                            <th>Лицензия</th>
+                            <th>Звезды</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        for _, pkg := range inspection.Packages {
+                            <tr>
+                                <td>{ pkg.Name }</td>
+                                <td>{ pkg.Version }</td>
+                                <td>?</td>
+                                <td>{ pkg.IsOptional }</td>
+                                <td>{ pkg.RegistryMetadata.License }</td>
+                                <td>61</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="grid-item developers">
+                <div class="grid-icons">
+                    <i class="bi bi-person"></i>
+                </div>
+
+                <h2>Разработчики</h2>
+                <table id="developers-table" class="stripe hover order-column row-border">
+                    <thead>
+                        <tr>
+                            <th>Имя</th>
+                            <th>Никнейм</th>
+                            <th>Github ID</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        for _, pkg := range inspection.Developers {
+                            <tr>
+                                <td>{ pkg.Name }</td>
+                                <td>{ pkg.Username }</td>
+                                <td>{ pkg.GithubID }</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
             <div class="grid-item repositories">10</div>
             <div class="grid-item additional-info">11</div>
         </div>
+        <footer>
+            <div class="links">
+                <a href="/upload.html">Загрузить новый отчет</a>
+            </div>
+            <div class="links">
+                <a href="https://github.com/domsnail/doctryne">Github</a>
+            </div>
+        </footer>
         </body>
 	</html>
 }
+

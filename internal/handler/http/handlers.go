@@ -47,6 +47,12 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = h.service.InspectDevelopersAndOrganizations(ctx, inspection)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	err = h.service.SaveInspection(ctx, inspection)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -123,6 +129,7 @@ func parseInspectionOptionsForm(ctx context.Context, req *http.Request) (*entity
 
 	opts.Manifest = file
 	opts.ManifestType = types.ManifestType(req.FormValue("manifest-type"))
+	opts.ManifestName = header.Filename
 
 	opts.DeepRepositoryInspection = req.FormValue("deep-repository-inspection") == "on"
 	opts.ExtractFullContributorInfo = req.FormValue("extract-full-contibutor-info") == "on"

@@ -121,7 +121,11 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		// todo: search for files
 		return nil, errors.New("not implemented")
 	case types.ScanType_Binary:
-		var manifest = entity.NewManifest().WithType(ins.Options.ManifestType)
+		var manifest = entity.
+			NewManifest().
+			WithType(ins.Options.ManifestType).
+			WithFilename(ins.Options.ManifestName)
+
 		err := manifest.SetFileContent(ins.Options.Manifest)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read manifest body contents: %w", err)
@@ -563,8 +567,10 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 
 			for i := range developers {
 				for _, source := range availableSources {
-					time.Sleep(defaultDelay)
-					pool.Inspect(developers[i], source)
+					err := pool.Inspect(developers[i], source)
+					if err == nil {
+						time.Sleep(defaultDelay)
+					}
 				}
 			}
 
@@ -589,6 +595,8 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 
 	wg.Wait()
 	slog.InfoContext(ctx, "developers/organizations inspection finished successfully")
+	inspection.Developers = developers
+
 	return nil
 }
 
@@ -611,7 +619,9 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 		orgs       []*entity.Organization
 
 		// deduping maps
+		uniqueFullnames = make(map[string]*entity.Developer)
 		uniqueUsernames = make(map[string]*entity.Developer)
+
 		uniqueOrgLogins = make(map[string]*entity.Organization)
 	)
 
@@ -621,6 +631,38 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 		}
 
 		for i, d := range devs {
+			if d.Username == "" && d.Name == "" {
+				slog.WarnContext(ctx, "removed developer with no username or full name")
+				continue
+			} else if d.Username == "" {
+				fullname := strings.ToLower(d.Name)
+
+				last, ok := uniqueFullnames[fullname]
+				if !ok {
+					uniqueFullnames[fullname] = devs[i]
+					developers = append(developers, devs[i])
+
+					continue
+				}
+
+				err := last.Merge(devs[i])
+				if err != nil {
+					slog.WarnContext(ctx, "conflict on developers dedupe",
+						slog.String("fullname", last.Name),
+						slog.String("error", err.Error()),
+					)
+
+					developers = append(developers, devs[i])
+					conflicts++
+					continue
+				}
+
+				devs[i] = last
+				dedupes++
+
+				continue
+			}
+
 			username := strings.ToLower(d.Username)
 
 			last, ok := uniqueUsernames[username]
@@ -633,7 +675,7 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 
 			err := last.Merge(devs[i])
 			if err != nil {
-				slog.DebugContext(ctx, "conflict on organization dedupe",
+				slog.WarnContext(ctx, "conflict on developers dedupe",
 					slog.String("username", last.Username),
 					slog.String("error", err.Error()),
 				)
@@ -649,6 +691,10 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 	}
 
 	for _, p := range inspection.Packages {
+		if p.RegistryMetadata == nil {
+			continue
+		}
+
 		contrib := p.RegistryMetadata.Contributors
 
 		dedupe(contrib.Sponsors)
@@ -736,7 +782,7 @@ func (service *InspectionService) availableSources() []InspectionSource {
 		s = append(s, InspectionSource_GitHub)
 	}
 
-	if service.stackExchange != nil {
+	if service.stackExchange != nil && cfg.GlobalConfig.Credentials.StackExchangeApiKey != "" {
 		s = append(s, InspectionSource_StackExchange)
 	}
 

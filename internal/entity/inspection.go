@@ -2,6 +2,7 @@ package entity
 
 import (
 	"io"
+	"time"
 
 	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/google/uuid"
@@ -30,15 +31,20 @@ type Inspection struct {
 
 	UploadedBy   string `json:"uploaded_by"`
 	UploadedFrom string `json:"uploaded_from"`
+
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 type InspectionOptions struct {
 	ScanType types.ScanType
 
 	Manifest     io.Reader `json:"-"`
+	ManifestName string
 	ManifestType types.ManifestType
 
 	Lockfile     io.Reader `json:"-"`
+	LockfileName string
 	LockfileType types.ManifestType
 
 	Mode types.InspectionMode
@@ -57,6 +63,8 @@ func NewInspection(opts *InspectionOptions) *Inspection {
 		ScanType:       opts.ScanType,
 		Options:        opts,
 		Manifests:      []*Manifest{},
+		CreatedAt:      time.Now(),
+		UpdatedAt:      time.Now(),
 	}
 
 	return &ins

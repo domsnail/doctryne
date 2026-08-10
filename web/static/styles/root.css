@@ -1,5 +1,10 @@
-text, h1, h2, p, label {
+text, h1, h2, h3, h4, p, label {
     font-family: Roboto, sans-serif;
+    margin: 0;
+}
+
+p.hint {
+    opacity: 0.75;
 }
 
 label {
@@ -12,7 +17,24 @@ body {
     margin: 0;
 
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+table {
+    font-family: Roboto, sans-serif;
+    margin: 0;
+}
+
+footer {
+    display: grid;
+    padding: 2vh 0;
+
+    grid-template-columns: repeat(3, 20vw);
+    grid-template-rows: repeat(3, 1fr);
+
+    gap: 8px;
 }
 
 .page-content {

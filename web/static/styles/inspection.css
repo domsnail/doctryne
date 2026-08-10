@@ -5,23 +5,55 @@
     grid-template-rows: repeat(8, 1fr);
 
     gap: 8px;
-    padding: 4vh 4vw;
+    padding: 4vh 0;
     margin-bottom: 10vh;
 
-    div.grid-item {
-        border: 2px solid crimson;
-        padding: 1rem;
+    width: 100vw;
+    max-width: 1600px;
 
-        min-height: 10vh;
+    div.grid-item {
+        position: relative;
+
+        background-color: #f6f4ff;
+        border: 1px solid #303030;
+        padding: 10px 1rem 0.5rem 1rem;
+
+        min-width: 200px;
+
+        border-radius: 0.5rem;
+        box-shadow: 0 0 16px 4px rgba(34, 60, 80, 0.3);
+
+        div.grid-icons {
+            position: absolute;
+
+            top: 0.5rem;
+            right: 0.6rem;
+
+            i {
+                &:hover {
+                    cursor: pointer;
+                }
+            }
+        }
     }
 }
 
-.info {
-    grid-row: span 4 / span 4;
+h1, h2 {
+    margin-bottom: 1rem;
 }
 
-.file-data {
+.info {
+    grid-row: span 2;
+    padding-bottom: 0.5rem;
+}
+
+.manifests-data {
     grid-column: span 2 / span 2;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 4px
 }
 
 .metadata {

@@ -41,6 +41,11 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 		return NewConfigFromFile(*configFile)
 	}
 
+	config, err = NewConfigFromEnv()
+	if err != nil {
+		return nil, err
+	}
+
 	if format != nil && *format != "" {
 		config.Output.Format = types.ReportFormat(*format)
 	}

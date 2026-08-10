@@ -338,7 +338,7 @@ func (service GithubServiceImpl) GetRepositoryLanguages(ctx context.Context, own
 		return nil, err
 	}
 
-	slog.InfoContext(ctx, "successfully fetched github repository stargazers",
+	slog.InfoContext(ctx, "successfully fetched github repository languages",
 		slog.String("repository_path", fmt.Sprintf("%s/%s", strings.ToLower(owner), strings.ToLower(name))),
 		slog.Int("languages", len(langs)),
 	)

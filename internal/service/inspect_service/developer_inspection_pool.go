@@ -57,12 +57,16 @@ const (
 	InspectionSource_Telegram
 )
 
-func (pool *DeveloperInspectionPool) Inspect(developer *entity.Developer, source InspectionSource) {
+func (pool *DeveloperInspectionPool) Inspect(developer *entity.Developer, source InspectionSource) error {
 	if developer == nil {
-		return
+		return errors.New("developer is nil")
 	} else if developer.Username == "" {
-		slog.WarnContext(pool.ctx, "skipping developer inspection: no username provided")
-		return
+		slog.WarnContext(pool.ctx, "skipping developer inspection: no username provided",
+			slog.String("name", developer.Name),
+			slog.String("info_source", source.String()),
+		)
+
+		return errors.New("no developer username provided")
 	}
 
 	pool.c.L.Lock()
@@ -111,7 +115,7 @@ func (pool *DeveloperInspectionPool) Inspect(developer *entity.Developer, source
 		}
 	})
 
-	return
+	return nil
 }
 
 func (pool *DeveloperInspectionPool) inspectGitHub(ctx context.Context, developer *entity.Developer) (err error) {
