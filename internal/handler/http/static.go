@@ -19,15 +19,18 @@ func (h *Handler) static() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/favicon.ico" {
 			fileServer.ServeHTTP(w, r)
+			w.Header().Add("Cache-Control", "public, max-age=3600")
 			return
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/styles/") {
+			w.Header().Add("Cache-Control", "public, max-age=3600")
 			fileServer.ServeHTTP(w, r)
 			return
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/assets/") {
+			w.Header().Add("Cache-Control", "public, max-age=3600")
 			fileServer.ServeHTTP(w, r)
 			return
 		}

@@ -66,7 +66,7 @@ func (repo *InMemoryRepoImpl) CreateInspection(ctx context.Context, ins *entity.
 	return nil
 }
 
-func (repo *InMemoryRepoImpl) GetInspection(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error) {
+func (repo *InMemoryRepoImpl) SelectInspectionByUUID(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error) {
 	if uid.String() == "" {
 		return nil, errors.New("uid is empty")
 	}
@@ -84,7 +84,7 @@ func (repo *InMemoryRepoImpl) GetInspection(ctx context.Context, uid uuid.UUID) 
 	return revisions[len(revisions)-1], nil
 }
 
-func (repo *InMemoryRepoImpl) GetInspectionRevision(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
+func (repo *InMemoryRepoImpl) SelectInspectionRevisionByUUID(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
 	if uid.String() == "" {
 		return nil, errors.New("uid is empty")
 	}

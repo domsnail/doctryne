@@ -103,7 +103,7 @@ func userToEntity(g *github.User) *entity.GithubDeveloperProfile {
 	}
 
 	md := entity.GithubDeveloperProfile{
-		ID:                g.GetID(),
+		ID:                g.ID,
 		NodeID:            g.GetNodeID(),
 		Username:          g.GetLogin(),
 		Fullname:          g.GetName(),
@@ -167,7 +167,7 @@ func contributorToEntity(g *github.Contributor) *entity.Developer {
 	}
 
 	p := entity.GithubDeveloperProfile{
-		ID:          g.GetID(),
+		ID:          g.ID,
 		Fullname:    g.GetName(),
 		Username:    strings.ToLower(g.GetLogin()),
 		IsSiteAdmin: g.GetSiteAdmin(),

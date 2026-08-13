@@ -121,8 +121,8 @@ func (pool *DeveloperInspectionPool) Inspect(developer *entity.Developer, source
 func (pool *DeveloperInspectionPool) inspectGitHub(ctx context.Context, developer *entity.Developer) (err error) {
 	var profile *entity.GithubDeveloperProfile
 
-	if developer.GithubID != 0 {
-		profile, err = pool.github.GetProfileByID(ctx, developer.GithubID)
+	if developer.GithubID != nil {
+		profile, err = pool.github.GetProfileByID(ctx, *developer.GithubID)
 		if err != nil {
 			return err
 		}
@@ -138,11 +138,11 @@ func (pool *DeveloperInspectionPool) inspectGitHub(ctx context.Context, develope
 	}
 
 	developer.GithubID = profile.ID
-	developer.GithubMetadata = profile
+	developer.GithubProfile = profile
 
 	slog.DebugContext(pool.ctx, "found developer github profile",
 		slog.String("username", developer.Username),
-		slog.Int64("github_profile", developer.GithubID),
+		slog.Int64("github_profile", *developer.GithubID),
 	)
 
 	return nil
@@ -206,7 +206,7 @@ func (pool *DeveloperInspectionPool) inspectStackExchange(ctx context.Context, d
 
 	slog.DebugContext(pool.ctx, "found developer stack exchange profile",
 		slog.String("username", developer.Username),
-		slog.Uint64("account_id", developer.StackExchangeAccountID),
+		slog.Uint64("account_id", *developer.StackExchangeAccountID),
 	)
 
 	return nil

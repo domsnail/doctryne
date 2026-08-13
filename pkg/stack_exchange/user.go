@@ -11,8 +11,8 @@ type UserList struct {
 
 type User struct {
 	// https://meta.stackoverflow.com/a/332787/13775941
-	AccountID uint64 `json:"account_id"`
-	UserID    uint64 `json:"user_id"`
+	AccountID *uint64 `json:"account_id"`
+	UserID    *uint64 `json:"user_id"`
 
 	DisplayName string `json:"display_name"`
 	WebsiteUrl  string `json:"website_url"`

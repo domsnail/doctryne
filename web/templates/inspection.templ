@@ -8,7 +8,7 @@ templ Inspection_page(inspection *entity.Inspection) {
     <!DOCTYPE html>
     <html lang="en">
         @GlobalStyles()
-        <link rel="stylesheet" href="/styles/inspection.css">
+        <link rel="stylesheet" href="/styles/inspections.css">
         <link href="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.css" rel="stylesheet" crossorigin="anonymous">
         <script src="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.js"></script>
         <head>
@@ -16,16 +16,69 @@ templ Inspection_page(inspection *entity.Inspection) {
             <title>Просмотр отчета • Doctryne</title>
         </head>
         <script>
+            function format(data) {
+                console.debug(data)
+
+
+                if (data.gh_id !== "0") {
+                    return (
+                        '<div class="developer-card">' +
+                           '<div>' +
+                               '<h4>Github</h1>' +
+                               '<dt>Full name:</dt>' +
+                               `<dd>${data.gh_fullname}</dd>` +
+                               '<dt>Location:</dt>' +
+                               `<dd>${data.gh_location}</dd>` +
+                               '<dt>Email:</dt>' +
+                               `<dd>${data.gh_email}</dd>` +
+                           '</div>' +
+                       '</div>'
+                   )
+                }
+
+                // `d` is the original data object for the row
+                return (
+                    '<div class="developer-card">' +
+
+                   '</div>'
+                );
+            }
+
             document.addEventListener("DOMContentLoaded", function() {
                 const componentsTable = new DataTable('#components-table', {
                     // Configuration options
                 });
 
                 const developersTable = new DataTable('#developers-table', {
-                    // Configuration options
+                    columns: [
+                        {
+                            className: 'dt-control',
+                            orderable: false,
+                            data: null,
+                            defaultContent: ''
+                        },
+                        { data: 'name' },
+                        { data: 'nickname' },
+                        { data: 'gh_id' },
+                        { data: 'gh_fullname', visible: false },
+                        { data: 'gh_location', visible: false },
+                        { data: 'gh_email', visible: false }
+                    ],
                 });
 
-                console.debug(table)
+                developersTable.on('click', 'tbody td.dt-control', function (e) {
+                	let tr = e.target.closest('tr');
+                	let row = developersTable.row(tr);
+
+                	if (row.child.isShown()) {
+                		// This row is already open - close it
+                		row.child.hide();
+                	}
+                	else {
+                		// Open this row
+                		row.child(format(row.data())).show();
+                	}
+                });
             });
 
         </script>
@@ -99,9 +152,10 @@ templ Inspection_page(inspection *entity.Inspection) {
                     <i class="bi bi-list"></i>
                 </div>
                 <h2>Компоненты</h2>
-                <table id="components-table" class="stripe hover order-column row-border">
+                <table id="components-table" class="display stripe hover order-column row-border">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Имя</th>
                             <th>Версия</th>
                             <th>Метки</th>
@@ -113,12 +167,13 @@ templ Inspection_page(inspection *entity.Inspection) {
                     <tbody>
                         for _, pkg := range inspection.Packages {
                             <tr>
+                                <td class="dt-control"></td>
                                 <td>{ pkg.Name }</td>
                                 <td>{ pkg.Version }</td>
                                 <td>?</td>
                                 <td>{ pkg.IsOptional }</td>
                                 <td>{ pkg.RegistryMetadata.License }</td>
-                                <td>61</td>
+                                <td class="dt-type-numeric">61</td>
                             </tr>
                         }
                     </tbody>
@@ -133,17 +188,35 @@ templ Inspection_page(inspection *entity.Inspection) {
                 <table id="developers-table" class="stripe hover order-column row-border">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Имя</th>
                             <th>Никнейм</th>
                             <th>Github ID</th>
+                            <th>Github fullname</th>
+                            <th>Github location</th>
+                            <th>Github email</th>
                         </tr>
                     </thead>
                     <tbody>
-                        for _, pkg := range inspection.Developers {
+                        for _, dev := range inspection.Developers {
                             <tr>
-                                <td>{ pkg.Name }</td>
-                                <td>{ pkg.Username }</td>
-                                <td>{ pkg.GithubID }</td>
+                                <td class="dt-control"></td>
+                                <td>{ dev.Name }</td>
+                                <td>{ dev.Username }</td>
+                                if dev.GithubID != nil {
+                                    <td>{ *dev.GithubID }</td>
+                                } else {
+                                    <td></td>
+                                }
+                                if dev.GithubMetadata != nil {
+                                    <td>{ dev.GithubMetadata.Fullname }</td>
+                                    <td>{ dev.GithubMetadata.Location }</td>
+                                    <td>{ dev.GithubMetadata.Email }</td>
+                                } else {
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                }
                             </tr>
                         }
                     </tbody>
@@ -152,15 +225,18 @@ templ Inspection_page(inspection *entity.Inspection) {
             <div class="grid-item repositories">10</div>
             <div class="grid-item additional-info">11</div>
         </div>
-        <footer>
-            <div class="links">
-                <a href="/upload.html">Загрузить новый отчет</a>
-            </div>
-            <div class="links">
-                <a href="https://github.com/domsnail/doctryne">Github</a>
-            </div>
-        </footer>
+        @Footer()
         </body>
 	</html>
 }
 
+templ developer_card(developer *entity.Developer) {
+    <div class="developer-card">
+        <div>
+            <h1>Github</h1>
+            <dd>data.gh_fullname</dd>
+            <dt>Location:</dt>
+            <dd>data.gh_location</dd>
+        </div>
+    </div>
+}

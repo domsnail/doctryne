@@ -35,13 +35,17 @@ footer {
     grid-template-rows: repeat(3, 1fr);
 
     gap: 8px;
+
+    .links {
+        display: flex;
+        flex-direction: column;
+    }
 }
 
 .page-content {
     display: flex;
     flex-direction: row;
 
-    height: 100vh;
     width: 100vw;
 
     #search-filter {

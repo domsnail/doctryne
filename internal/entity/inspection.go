@@ -21,16 +21,16 @@ type Inspection struct {
 
 	ScanType types.ScanType `json:"scan_type"`
 
-	Manifests []*Manifest `json:"manifests"`
+	Manifests []*Manifest `json:"manifests,omitempty"`
 
-	Packages     []*Package    `json:"packages"`
-	Repositories []*Repository `json:"repositories"`
-	Developers   []*Developer  `json:"developers"`
+	Packages     []*Package    `json:"packages,omitempty"`
+	Repositories []*Repository `json:"repositories,omitempty"`
+	Developers   []*Developer  `json:"developers,omitempty"`
 
-	Options *InspectionOptions `json:"options"`
+	Options *InspectionOptions `json:"options,omitempty"`
 
-	UploadedBy   string `json:"uploaded_by"`
-	UploadedFrom string `json:"uploaded_from"`
+	UploadedBy   string `json:"uploaded_by,omitempty"`
+	UploadedFrom string `json:"uploaded_from,omitempty"`
 
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
@@ -83,4 +83,11 @@ func (i *Inspection) AddManifest(m *Manifest) {
 	}
 
 	i.Manifests = append(i.Manifests, m)
+}
+
+type InspectionsQueryFilter struct {
+	ScanType types.ScanType `json:"scan_type"`
+
+	QueryFilter
+	Sorting
 }

@@ -73,13 +73,19 @@ func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var (
+		rev uint64
+		err error
+	)
+
 	inspectionUUID := r.PathValue("uuid")
 	inspectionRevision := r.PathValue("revision")
-
-	rev, err := strconv.ParseUint(inspectionRevision, 10, 32)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	if inspectionRevision != "" {
+		rev, err = strconv.ParseUint(inspectionRevision, 10, 32)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
 	}
 
 	uid, err := uuid.Parse(inspectionUUID)
@@ -88,7 +94,7 @@ func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inspection, err := h.service.LoadInspection(ctx, uid, uint32(rev))
+	inspection, err := h.service.GetInspectionByUUID(ctx, uid, uint32(rev))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -96,6 +102,35 @@ func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	err = templates.Inspection_page(inspection).Render(ctx, w)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	return
+}
+
+func (h *Handler) handleInspectionsPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	inspections, err := h.service.GetInspectionsByQueryFilter(ctx, entity.InspectionsQueryFilter{
+		QueryFilter: entity.QueryFilter{
+			Limit: 10,
+		},
+	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = templates.Inspections_page(inspections).Render(ctx, w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

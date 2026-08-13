@@ -6,17 +6,21 @@ import (
 	"slices"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Developer struct {
+	UUID uuid.UUID
+
 	Name     string
 	Username string
 	Emails   []string
 
-	GithubID       int64
-	GithubMetadata *GithubDeveloperProfile
+	GithubID      *int64
+	GithubProfile *GithubDeveloperProfile
 
-	StackExchangeAccountID uint64
+	StackExchangeAccountID *uint64
 	StackExchangeProfile   *StackExchangeDeveloperProfile
 
 	CreatedAt time.Time
@@ -40,15 +44,15 @@ func (d *Developer) Merge(other *Developer) error {
 		return fmt.Errorf("cannot merge developers with different names/logins")
 	}
 
-	if other.GithubID != 0 {
-		if d.GithubID != 0 && other.GithubID != d.GithubID {
+	if other.GithubID != nil {
+		if d.GithubID != nil && other.GithubID != d.GithubID {
 			return fmt.Errorf("cannot merge developers with different github profiles")
 		}
 
 		d.GithubID = other.GithubID
 
-		if other.GithubMetadata != nil {
-			d.GithubMetadata = other.GithubMetadata
+		if other.GithubProfile != nil {
+			d.GithubProfile = other.GithubProfile
 		}
 	}
 
@@ -66,13 +70,13 @@ func (d *Developer) Merge(other *Developer) error {
 }
 
 func (d *Developer) AddGithubProfile(profile *GithubDeveloperProfile) error {
-	if profile == nil || profile.ID == 0 {
+	if profile == nil || *profile.ID == 0 {
 		return nil
-	} else if d.GithubID != 0 && d.GithubID != profile.ID {
+	} else if d.GithubID != nil && d.GithubID != profile.ID {
 		return fmt.Errorf("cannot merge developers with different github profiles")
 	}
 
-	d.GithubMetadata = profile
+	d.GithubProfile = profile
 	d.GithubID = profile.ID
 
 	if profile.Email != "" {
@@ -89,7 +93,7 @@ func (d *Developer) AddGithubProfile(profile *GithubDeveloperProfile) error {
 }
 
 type GithubDeveloperProfile struct {
-	ID     int64
+	ID     *int64
 	NodeID string
 
 	Username string
@@ -122,10 +126,10 @@ type GithubDeveloperProfile struct {
 
 func (profile *GithubDeveloperProfile) ToDeveloper() *Developer {
 	d := Developer{
-		Name:           profile.Fullname,
-		Username:       profile.Username,
-		GithubID:       profile.ID,
-		GithubMetadata: profile,
+		Name:          profile.Fullname,
+		Username:      profile.Username,
+		GithubID:      profile.ID,
+		GithubProfile: profile,
 	}
 
 	if profile.Email != "" {
@@ -141,8 +145,8 @@ type GithubStargazer struct {
 }
 
 type StackExchangeDeveloperProfile struct {
-	UserID    uint64
-	AccountID uint64
+	UserID    *uint64
+	AccountID *uint64
 
 	DisplayName string
 	WebsiteUrl  string
@@ -165,4 +169,7 @@ type StackExchangeBadges struct {
 	Bronze uint32
 	Silver uint32
 	Gold   uint32
+}
+
+type DevelopersQueryFilter struct {
 }

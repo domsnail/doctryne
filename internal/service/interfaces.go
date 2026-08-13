@@ -28,15 +28,40 @@ type IInspectionService interface {
 	CollectViolations(ctx context.Context, inspection *entity.Inspection) ([]*entity.Violation, error)
 
 	SaveInspection(ctx context.Context, inspection *entity.Inspection) error
-	LoadInspection(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
+	GetInspectionByUUID(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
+	GetInspectionsByQueryFilter(ctx context.Context, filter entity.InspectionsQueryFilter) ([]*entity.Inspection, error)
 }
 
 type IInspectionsRepository interface {
 	CreateInspection(ctx context.Context, ins *entity.Inspection) error
 
-	GetInspection(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error)
-	GetInspectionRevision(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
+	SelectInspectionByUUID(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error)
+	SelectInspectionRevisionByUUID(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error)
+
+	SelectInspectionsByQueryFilter(ctx context.Context, filter entity.InspectionsQueryFilter) ([]*entity.Inspection, error)
 }
+
+// ---
+
+type IDeveloperService interface {
+	GetDeveloperByUUID(ctx context.Context, uid uuid.UUID) (*entity.Developer, error)
+	GetDeveloperByQueryFilter(ctx context.Context, filter entity.DevelopersQueryFilter) ([]*entity.Developer, error)
+
+	SaveDeveloper(ctx context.Context, developer *entity.Developer) error
+	SaveDevelopers(ctx context.Context, developers []*entity.Developer) error
+}
+
+type IDeveloperRepository interface {
+	CreateDeveloper(ctx context.Context, developer *entity.Developer) error
+
+	UpsertDeveloper(ctx context.Context, developer *entity.Developer) (error, int64)
+	UpsertDevelopers(ctx context.Context, developers []*entity.Developer) (error, int64)
+
+	SelectDeveloperByUUID(ctx context.Context, uid uuid.UUID) (*entity.Developer, error)
+	SelectDevelopersByQueryFilter(ctx context.Context, filter entity.DevelopersQueryFilter) ([]*entity.Developer, error)
+}
+
+// ---
 
 type IGithubService interface {
 	GetRepositoryByName(ctx context.Context, owner string, name string) (*entity.GitHubRepositoryMetadata, error)

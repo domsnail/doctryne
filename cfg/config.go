@@ -34,12 +34,13 @@ type Config struct {
 
 	Output Output `json:"output" yaml:"output"`
 
-	Credentials Credentials `json:"credentials" yaml:"credentials"`
-	RateLimits  RateLimits  `json:"rate_limits" yaml:"rate_limits"`
+	Credentials       Credentials   `json:"credentials" yaml:"credentials"`
+	RateLimits        RateLimits    `json:"rate_limits" yaml:"rate_limits"`
+	ProfileDataMaxAge time.Duration `json:"profile_data_max_age" yaml:"profile_data_max_age" env:"PROFILE_DATA_MAX_AGE" env-default:"2160h"`
 
-	Server   Server    `json:"server" yaml:"server" env-prefix:"SRV_"`
-	Database *Database `json:"database" yaml:"database" env-prefix:"DB_"`
-	Logging  Logging   `json:"logs" yaml:"logs" env-prefix:"LOG_"`
+	Server   Server          `json:"server" yaml:"server" env-prefix:"SRV_"`
+	Database *DatabaseConfig `json:"database" yaml:"database" env-prefix:"DB_"`
+	Logging  Logging         `json:"logs" yaml:"logs" env-prefix:"LOG_"`
 
 	FilePath string `json:"-" yaml:"-"`
 }
@@ -72,11 +73,12 @@ func setGlobalHttpClient(cfg *Config) {
 
 func NewConfigWithDefaultValues() *Config {
 	return &Config{
-		Insecure:    false,
-		Timeout:     time.Second * 30,
-		CacheMaxAge: 14 * 24 * time.Hour, // 2 weeks
-		Output:      Output{Format: types.ReportFormat_TextTable},
-		Concurrency: int32(runtime.NumCPU()),
+		Insecure:          false,
+		Timeout:           time.Second * 30,
+		CacheMaxAge:       14 * 24 * time.Hour, // 2 weeks
+		Output:            Output{Format: types.ReportFormat_TextTable},
+		Concurrency:       int32(runtime.NumCPU()),
+		ProfileDataMaxAge: 90 * 24 * time.Hour,
 		Logging: Logging{
 			Format: "text",
 		},
@@ -204,12 +206,24 @@ type Server struct {
 	AccessKey string `json:"api_key" yaml:"api_key" env:"ACCESS_KEY"`
 }
 
-type Database struct {
-	Host     string `json:"host" yaml:"host" env:"HOST"`
-	Port     uint32 `json:"port" yaml:"port" env:"PORT"`
-	User     string `json:"user" yaml:"user" env:"USER"`
-	Name     string `json:"name" yaml:"name" env:"NAME"`
+type DatabaseConfig struct {
+	Driver string `json:"driver" yaml:"driver" env:"DRIVER" env-default:"postgres"`
+
+	Host string `json:"host" yaml:"host" env:"HOST"`
+	Port uint32 `json:"port" yaml:"port" env:"PORT"`
+	Name string `json:"name" yaml:"name" env:"NAME" env-default:"doctryne"`
+	User string `json:"user" yaml:"user" env:"USER"`
+	Pass string `json:"pass" yaml:"pass" env:"PASS"`
+
 	Timezone string `json:"timezone" yaml:"timezone" env:"TZ"`
+	Ssl      bool   `json:"ssl" yaml:"ssl" env:"SSL"`
+
+	TraceAll bool `json:"trace_all" yaml:"trace_all" env:"TRACE_ALL"`
+
+	// File is sqlite exclusive,
+	// can use file::memory:?cache=shared to store database in memory,
+	// see https://gorm.io/docs/connecting_to_the_database.html#SQLite
+	File string `json:"file" yaml:"file" env:"FILE" env-default:"doctryne.db"`
 }
 
 type Logging struct {

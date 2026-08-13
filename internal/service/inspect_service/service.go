@@ -40,11 +40,12 @@ type InspectionService struct {
 
 	stackExchange *stack_exchange.Client
 
-	repo service.IInspectionsRepository
+	inspections service.IInspectionsRepository
+	developers  service.IDeveloperRepository
 }
 
 func NewInspectionService(manifests service.IManifestService, github service.IGithubService, stackExchange *stack_exchange.Client, registry service.IRegistryService, repo service.IInspectionsRepository) *InspectionService {
-	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry, repo: repo}
+	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry, inspections: repo}
 }
 
 func (service *InspectionService) InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error) {
@@ -550,6 +551,18 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 	developers, orgs := extractAndDedupeAllDevelopers(ctx, inspection)
 	wg := sync.WaitGroup{}
 
+	// find already existing developers' ids and profile info
+	err := service.lookupOrCreateInternalDeveloperInfo(ctx, developers)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to lookup or upsert developers",
+			slog.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	//maxAge := time.Now().Add(-cfg.GlobalConfig.ProfileDataMaxAge)
+
 	if inspection.Options.ExtractFullContributorInfo {
 		wg.Go(func() {
 			availableSources := service.availableSources()
@@ -567,6 +580,8 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 
 			for i := range developers {
 				for _, source := range availableSources {
+					// todo: check if sourced info is stale
+
 					err := pool.Inspect(developers[i], source)
 					if err == nil {
 						time.Sleep(defaultDelay)
@@ -596,6 +611,27 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 	wg.Wait()
 	slog.InfoContext(ctx, "developers/organizations inspection finished successfully")
 	inspection.Developers = developers
+
+	return nil
+}
+
+// lookupOrCreateInternalDeveloperInfo queries already existing info in internal database
+func (service *InspectionService) lookupOrCreateInternalDeveloperInfo(ctx context.Context, developers []*entity.Developer) error {
+	if ctx.Err() != nil {
+		return ctx.Err()
+	} else if len(developers) == 0 {
+		return nil
+	}
+
+	slog.DebugContext(ctx, "upserting developer info in internal database...")
+	err, rows := service.developers.UpsertDevelopers(ctx, developers)
+	if err != nil {
+		return err
+	}
+
+	slog.DebugContext(ctx, "successfully upserted developer info in internal database",
+		slog.Int64("rows_updated", rows),
+	)
 
 	return nil
 }
@@ -731,7 +767,7 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 					developers = append(developers, r.GithubMetadata.Owner.ToDeveloper())
 					conflicts++
 				} else {
-					r.GithubMetadata.Owner = last.GithubMetadata
+					r.GithubMetadata.Owner = last.GithubProfile
 					dedupes++
 				}
 			}
@@ -790,13 +826,31 @@ func (service *InspectionService) availableSources() []InspectionSource {
 }
 
 func (service *InspectionService) SaveInspection(ctx context.Context, inspection *entity.Inspection) error {
-	return service.repo.CreateInspection(ctx, inspection)
+	return service.inspections.CreateInspection(ctx, inspection)
 }
 
-func (service *InspectionService) LoadInspection(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
+func (service *InspectionService) GetInspectionByUUID(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
 	if rev > 0 {
-		return service.repo.GetInspectionRevision(ctx, uid, rev)
+		return service.inspections.SelectInspectionRevisionByUUID(ctx, uid, rev)
 	}
 
-	return service.repo.GetInspection(ctx, uid)
+	return service.inspections.SelectInspectionByUUID(ctx, uid)
+}
+
+func (service *InspectionService) GetInspectionsByQueryFilter(ctx context.Context, filter entity.InspectionsQueryFilter) ([]*entity.Inspection, error) {
+	return service.inspections.SelectInspectionsByQueryFilter(ctx, filter)
+}
+
+func isProfileDataUpToDate(maxAge time.Time, source InspectionSource, developer *entity.Developer) bool {
+	switch source {
+	case InspectionSource_GitHub:
+		if developer.GithubProfile != nil && maxAge.Before(developer.GithubProfile.UpdatedAt) {
+			return true
+		}
+
+	default:
+		return false
+	}
+
+	return false
 }

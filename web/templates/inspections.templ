@@ -1,0 +1,37 @@
+package templates
+
+import (
+	"github.com/domsnail/doctryne/internal/entity"
+	)
+
+templ Inspections_page(inspections []*entity.Inspection) {
+    <!DOCTYPE html>
+    <html lang="en">
+        @GlobalStyles()
+        <link rel="stylesheet" href="/styles/inspections.css">
+        <link href="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.css" rel="stylesheet" crossorigin="anonymous">
+        <script src="https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.js"></script>
+        <head>
+            <meta charset="UTF-8">
+            <title>Отчеты • Doctryne</title>
+        </head>
+        <body>
+        <div class="page-content inspections-page">
+        <ul>
+        for _, inspection := range inspections {
+            @Inspection_card(inspection)
+        }
+        </ul>
+        </div>
+        @Footer()
+        </body>
+	</html>
+}
+
+templ Inspection_card(inspection *entity.Inspection) {
+    <li>
+        <a href={"/inspections/" + inspection.UUID.String()}>{ inspection.UUID.String() }</a>
+        <p class="hint">Загружен { inspection.CreatedAt.Format("02.01.2006 15:04:05") }</p>
+    </li>
+}
+

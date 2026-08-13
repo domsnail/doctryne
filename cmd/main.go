@@ -9,12 +9,14 @@ import (
 	"syscall"
 
 	"github.com/domsnail/doctryne/cfg"
-	"github.com/domsnail/doctryne/internal/repos/memory_repo"
+	"github.com/domsnail/doctryne/internal/repos"
+	"github.com/domsnail/doctryne/internal/repos/orm"
 	"github.com/domsnail/doctryne/internal/service/github_service"
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -67,12 +69,56 @@ func main() {
 	slog.DebugContext(rootCtx, "setting global config...")
 	cfg.SetGlobalConfig(config)
 
+	var (
+		conn *gorm.DB
+	)
+
+	if config.Database == nil {
+		slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
+		conn, err = orm.NewDatabaseConn(rootCtx, cfg.DatabaseConfig{
+			Driver: "sqlite",
+			File:   "file::memory:?cache=shared",
+			Name:   "doctryne",
+		})
+	} else {
+		switch config.Database.Driver {
+		case "sqlite3", "sqlite":
+			if config.Database.File == "" {
+				panic(fmt.Sprintf("sqlite3 database file not set"))
+			}
+
+			conn, err = orm.NewDatabaseConn(rootCtx, *config.Database)
+		case "postgres", "mysql":
+			conn, err = orm.NewDatabaseConn(rootCtx, *config.Database)
+		case "local", "cache":
+			slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
+			conn, err = orm.NewDatabaseConn(rootCtx, cfg.DatabaseConfig{
+				Driver: "sqlite",
+				File:   "file::memory:?cache=shared",
+				Name:   "doctryne",
+			})
+		default:
+			panic(fmt.Sprintf("unsupported database driver: %s", config.Database.Driver))
+		}
+	}
+
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize database connection: %s", err.Error()))
+	}
+
+	slog.DebugContext(rootCtx, "running migrations...")
+	err = orm.AutoMigrate(conn)
+	if err != nil {
+		panic(fmt.Sprintf("failed to complete database migrations: %s", err.Error()))
+	}
+	slog.InfoContext(rootCtx, "database migrations completed successfully")
+
 	inspectionService := inspect_service.NewInspectionService(
 		manifest_service.NewManifestServiceImpl(),
 		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
 		stack_exchange.NewClient(stack_exchange.Options{}),
 		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
-		memory_repo.NewInMemoryRepo(),
+		repos.NewInspectionsRepoImpl(conn),
 	)
 
 	if config.Server.Enabled {

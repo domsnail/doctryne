@@ -1,5 +1,9 @@
 .idea
 .run
+.env
 
 /internal/service/git_service/test/
 /web/node_modules/
+
+/docker/*.dev.*
+/cfg/config.dev.yaml

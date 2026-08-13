@@ -322,7 +322,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 2",
 								Username: "test-2",
 								GithubID: 2,
-								GithubMetadata: &entity.GithubDeveloperProfile{
+								GithubProfile: &entity.GithubDeveloperProfile{
 									ID:     2,
 									NodeID: "test-node-id-2",
 								},
@@ -331,7 +331,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 5",
 								Username: "test-5",
 								GithubID: 5,
-								GithubMetadata: &entity.GithubDeveloperProfile{
+								GithubProfile: &entity.GithubDeveloperProfile{
 									ID:     5,
 									NodeID: "test-node-id-5",
 								},
@@ -353,7 +353,7 @@ func TestDeveloperDedupe(t *testing.T) {
 								Name:     "test 2",
 								Username: "test-2",
 								GithubID: 22,
-								GithubMetadata: &entity.GithubDeveloperProfile{
+								GithubProfile: &entity.GithubDeveloperProfile{
 									ID: 22,
 								},
 							},
@@ -479,22 +479,22 @@ func TestDeveloperDedupe(t *testing.T) {
 
 	test2 := inspection.Packages[0].RegistryMetadata.Contributors.Contributors[0]
 	require.Len(t, inspection.Packages[0].RegistryMetadata.Contributors.Contributors, 1)
-	require.NotNil(t, test2.GithubMetadata, "must be filled")
+	require.NotNil(t, test2.GithubProfile, "must be filled")
 	require.EqualValues(t, 2, test2.GithubID)
 
 	test2_next := inspection.Packages[2].RegistryMetadata.Contributors.CodeOwners[0]
 	require.Len(t, inspection.Packages[2].RegistryMetadata.Contributors.CodeOwners, 2)
-	require.NotNil(t, test2_next.GithubMetadata, "must be filled")
+	require.NotNil(t, test2_next.GithubProfile, "must be filled")
 	require.EqualValues(t, 2, test2_next.GithubID)
 	require.Same(t, test2, test2_next)
 	require.Same(t, test2, test2_next, inspection.Packages[2].RegistryMetadata.Contributors.Authors[0])
 
 	test5 := inspection.Packages[2].RegistryMetadata.Contributors.CodeOwners[1]
 	require.Len(t, inspection.Packages[2].RegistryMetadata.Contributors.CodeOwners, 2)
-	require.NotNil(t, test5.GithubMetadata, "must be filled")
+	require.NotNil(t, test5.GithubProfile, "must be filled")
 	require.EqualValues(t, 5, test5.GithubID)
 	require.Len(t, test5.Emails, 1)
-	require.Same(t, test5.GithubMetadata, inspection.Repositories[1].GithubMetadata.Owner)
+	require.Same(t, test5.GithubProfile, inspection.Repositories[1].GithubMetadata.Owner)
 
 	test1 := inspection.Packages[0].RegistryMetadata.Contributors.Authors[0]
 	require.Len(t, test1.Emails, 3)
