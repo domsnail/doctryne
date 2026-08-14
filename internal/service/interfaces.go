@@ -47,8 +47,13 @@ type IDeveloperService interface {
 	GetDeveloperByUUID(ctx context.Context, uid uuid.UUID) (*entity.Developer, error)
 	GetDeveloperByQueryFilter(ctx context.Context, filter entity.DevelopersQueryFilter) ([]*entity.Developer, error)
 
-	SaveDeveloper(ctx context.Context, developer *entity.Developer) error
-	SaveDevelopers(ctx context.Context, developers []*entity.Developer) error
+	// LookupDevelopers searches for existing developers and sets their existing uuid
+	LookupDevelopers(ctx context.Context, developers []*entity.Developer) error
+
+	CreateDevelopers(ctx context.Context, developers []*entity.Developer) (error, int64)
+
+	SaveDeveloper(ctx context.Context, developer *entity.Developer) (error, int64)
+	SaveDevelopers(ctx context.Context, developers []*entity.Developer) (error, int64)
 }
 
 type IDeveloperRepository interface {

@@ -138,7 +138,7 @@ func main() {
 			os.Exit(1)
 		}
 
-		slog.InfoContext(rootCtx, fmt.Sprintf("server successfully started on %s:%d", config.Server.Host, config.Server.Port))
+		slog.InfoContext(rootCtx, fmt.Sprintf("server successfully started on http://%s:%d", config.Server.Host, config.Server.Port))
 
 		select {
 		case <-rootCtx.Done():

@@ -33,19 +33,38 @@ const (
 )
 
 type InspectionService struct {
-	manifests service.IManifestService
-	registry  service.IRegistryService
+	manifests  service.IManifestService
+	registry   service.IRegistryService
+	developers service.IDeveloperService
 
 	github service.IGithubService
 
 	stackExchange *stack_exchange.Client
 
-	inspections service.IInspectionsRepository
-	developers  service.IDeveloperRepository
+	repo service.IInspectionsRepository
 }
 
-func NewInspectionService(manifests service.IManifestService, github service.IGithubService, stackExchange *stack_exchange.Client, registry service.IRegistryService, repo service.IInspectionsRepository) *InspectionService {
-	return &InspectionService{manifests: manifests, github: github, stackExchange: stackExchange, registry: registry, inspections: repo}
+type InspectionServiceOptions struct {
+	manifests  service.IManifestService
+	registry   service.IRegistryService
+	developers service.IDeveloperService
+
+	github service.IGithubService
+
+	stackExchange *stack_exchange.Client
+
+	repo service.IInspectionsRepository
+}
+
+func NewInspectionService(opts InspectionServiceOptions) *InspectionService {
+	return &InspectionService{
+		manifests:     opts.manifests,
+		github:        opts.github,
+		developers:    opts.developers,
+		stackExchange: opts.stackExchange,
+		registry:      opts.registry,
+		repo:          opts.repo,
+	}
 }
 
 func (service *InspectionService) InitInspection(ctx context.Context, opts *entity.InspectionOptions) (*entity.Inspection, error) {
@@ -640,8 +659,22 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 	}
 
 	wg.Wait()
-	slog.InfoContext(ctx, "developers/organizations inspection finished successfully")
 	inspection.Developers = developers
+	slog.DebugContext(ctx, "developers/organizations inspection completed, updating in database...")
+
+	err, rows := service.developers.SaveDevelopers(ctx, developers)
+	if err != nil {
+		slog.ErrorContext(ctx, "failed to update developers",
+			slog.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	slog.InfoContext(ctx, "developers/organizations inspection finished successfully",
+		slog.Int("total_developers", len(developers)),
+		slog.Int64("rows_updated", rows),
+	)
 
 	return nil
 }
@@ -655,7 +688,7 @@ func (service *InspectionService) lookupOrCreateInternalDeveloperInfo(ctx contex
 	}
 
 	slog.DebugContext(ctx, "upserting developer info in internal database...")
-	err, rows := service.developers.UpsertDevelopers(ctx, developers)
+	err, rows := service.developers.SaveDevelopers(ctx, developers)
 	if err != nil {
 		return err
 	}
@@ -857,17 +890,17 @@ func (service *InspectionService) availableSources() []InspectionSource {
 }
 
 func (service *InspectionService) SaveInspection(ctx context.Context, inspection *entity.Inspection) error {
-	return service.inspections.CreateInspection(ctx, inspection)
+	return service.repo.CreateInspection(ctx, inspection)
 }
 
 func (service *InspectionService) GetInspectionByUUID(ctx context.Context, uid uuid.UUID, rev uint32) (*entity.Inspection, error) {
 	if rev > 0 {
-		return service.inspections.SelectInspectionRevisionByUUID(ctx, uid, rev)
+		return service.repo.SelectInspectionRevisionByUUID(ctx, uid, rev)
 	}
 
-	return service.inspections.SelectInspectionByUUID(ctx, uid)
+	return service.repo.SelectInspectionByUUID(ctx, uid)
 }
 
 func (service *InspectionService) GetInspectionsByQueryFilter(ctx context.Context, filter entity.InspectionsQueryFilter) ([]*entity.Inspection, error) {
-	return service.inspections.SelectInspectionsByQueryFilter(ctx, filter)
+	return service.repo.SelectInspectionsByQueryFilter(ctx, filter)
 }
