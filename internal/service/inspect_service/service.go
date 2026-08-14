@@ -561,8 +561,6 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 		return err
 	}
 
-	//maxAge := time.Now().Add(-cfg.GlobalConfig.ProfileDataMaxAge)
-
 	if inspection.Options.ExtractFullContributorInfo {
 		wg.Go(func() {
 			availableSources := service.availableSources()
@@ -576,11 +574,44 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 				return
 			}
 
+			maxAge := time.Now().Add(-cfg.GlobalConfig.ProfileDataMaxAge)
 			pool := NewDeveloperInspectionPool(ctx, service.github, service.stackExchange)
 
+			slog.DebugContext(ctx, "looking up all developers profiles...",
+				slog.Int("total_developers", len(developers)),
+				slog.Time("profile_max_age", maxAge),
+			)
+
 			for i := range developers {
+				upToDate := false
+				if developers[i].LastLookupAt != nil && maxAge.Before(*developers[i].LastLookupAt) {
+					upToDate = true
+				}
+
 				for _, source := range availableSources {
-					// todo: check if sourced info is stale
+					var skip = false
+					if upToDate {
+						switch source {
+						case InspectionSource_StackExchange:
+							skip = developers[i].StackExchangeProfile != nil
+							break
+						case InspectionSource_GitHub:
+							skip = developers[i].GithubProfile != nil
+							break
+						default:
+							panic(fmt.Sprintf("unknown source in developer profile inspections loop: %s", source))
+						}
+					}
+
+					if skip {
+						slog.DebugContext(ctx, "skipping developer profile inspections: up to date",
+							slog.String("username", developers[i].Username),
+							slog.String("source", source.String()),
+							slog.Time("last_lookup_at", *developers[i].LastLookupAt),
+						)
+
+						continue
+					}
 
 					err := pool.Inspect(developers[i], source)
 					if err == nil {
@@ -839,18 +870,4 @@ func (service *InspectionService) GetInspectionByUUID(ctx context.Context, uid u
 
 func (service *InspectionService) GetInspectionsByQueryFilter(ctx context.Context, filter entity.InspectionsQueryFilter) ([]*entity.Inspection, error) {
 	return service.inspections.SelectInspectionsByQueryFilter(ctx, filter)
-}
-
-func isProfileDataUpToDate(maxAge time.Time, source InspectionSource, developer *entity.Developer) bool {
-	switch source {
-	case InspectionSource_GitHub:
-		if developer.GithubProfile != nil && maxAge.Before(developer.GithubProfile.UpdatedAt) {
-			return true
-		}
-
-	default:
-		return false
-	}
-
-	return false
 }

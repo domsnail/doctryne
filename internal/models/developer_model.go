@@ -22,8 +22,9 @@ type DeveloperModel struct {
 	StackExchangeAccountID *uint64                                                   `gorm:"column:stack_exchange_account_id;uniqueIndex"`
 	StackExchangeProfile   datatypes.JSONType[*entity.StackExchangeDeveloperProfile] `gorm:"column:stack_exchange_profile;type:jsonb"`
 
-	CreatedAt time.Time `gorm:"column:created_at;autoCreateTime"`
-	UpdatedAt time.Time `gorm:"column:updated_at;autoUpdateTime"`
+	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime"`
+	UpdatedAt    time.Time  `gorm:"column:updated_at;autoUpdateTime"`
+	LastLookupAt *time.Time `gorm:"column:last_lookup_at"`
 }
 
 func NewDeveloperModel(developer *entity.Developer) *DeveloperModel {
@@ -34,6 +35,7 @@ func NewDeveloperModel(developer *entity.Developer) *DeveloperModel {
 		Emails:                 developer.Emails,
 		GithubID:               developer.GithubID,
 		StackExchangeAccountID: developer.StackExchangeAccountID,
+		LastLookupAt:           developer.LastLookupAt,
 	}
 
 	if developer.GithubProfile != nil {
@@ -57,6 +59,7 @@ func (model *DeveloperModel) ToEntity() *entity.Developer {
 		StackExchangeAccountID: model.StackExchangeAccountID,
 		CreatedAt:              model.CreatedAt,
 		UpdatedAt:              model.UpdatedAt,
+		LastLookupAt:           model.LastLookupAt,
 	}
 
 	githubProfile := model.GithubProfile.Data()

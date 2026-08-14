@@ -23,8 +23,9 @@ type Developer struct {
 	StackExchangeAccountID *uint64
 	StackExchangeProfile   *StackExchangeDeveloperProfile
 
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	LastLookupAt *time.Time
 }
 
 func (d *Developer) String() string {
