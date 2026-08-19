@@ -29,31 +29,31 @@ func (h *Handler) handleManifestUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inspection, err := h.service.InitInspection(ctx, opts)
+	inspection, err := h.inspections.InitInspection(ctx, opts)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.InspectManifests(ctx, inspection)
+	err = h.inspections.InspectManifests(ctx, inspection)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.InspectPackages(ctx, inspection)
+	err = h.inspections.InspectPackages(ctx, inspection)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.InspectDevelopersAndOrganizations(ctx, inspection)
+	err = h.inspections.InspectDevelopersAndOrganizations(ctx, inspection)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	err = h.service.SaveInspection(ctx, inspection)
+	err = h.inspections.SaveInspection(ctx, inspection)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -94,14 +94,45 @@ func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inspection, err := h.service.GetInspectionByUUID(ctx, uid, uint32(rev))
+	inspection, err := h.inspections.GetInspectionByUUID(ctx, uid, uint32(rev))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = templates.Inspection_page(inspection).Render(ctx, w)
+	err = templates.InspectionPage(inspection).Render(ctx, w)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	return
+}
+
+func (h *Handler) handleDeveloperCard(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	developerUUID := r.PathValue("uuid")
+	uid, err := uuid.Parse(developerUUID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	developer, err := h.developers.GetDeveloperByUUID(ctx, uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = templates.DeveloperCard(developer).Render(ctx, w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -118,7 +149,7 @@ func (h *Handler) handleInspectionsPage(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	inspections, err := h.service.GetInspectionsByQueryFilter(ctx, entity.InspectionsQueryFilter{
+	inspections, err := h.inspections.GetInspectionsByQueryFilter(ctx, entity.InspectionsQueryFilter{
 		QueryFilter: entity.QueryFilter{
 			Limit: 10,
 		},
@@ -130,7 +161,7 @@ func (h *Handler) handleInspectionsPage(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.WriteHeader(http.StatusOK)
-	err = templates.Inspections_page(inspections).Render(ctx, w)
+	err = templates.InspectionsPage(inspections).Render(ctx, w)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

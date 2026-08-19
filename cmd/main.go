@@ -116,7 +116,7 @@ func main() {
 	slog.InfoContext(rootCtx, "database migrations completed successfully")
 
 	slog.DebugContext(rootCtx, "initializing services...")
-	developersService := developer_service.NewDeveloperServiceImpl(
+	developerService := developer_service.NewDeveloperServiceImpl(
 		repos.NewDevelopersRepoImpl(conn),
 	)
 
@@ -126,7 +126,7 @@ func main() {
 			Registry:      registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
 			Github:        github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
 			StackExchange: stack_exchange.NewClient(stack_exchange.Options{}),
-			Developers:    developersService,
+			Developers:    developerService,
 			Repo:          repos.NewInspectionsRepoImpl(conn),
 		},
 	)
@@ -135,6 +135,7 @@ func main() {
 		srv, err := CreateServer(ServerOptions{
 			config:            &config.Server,
 			inspectionService: inspectionService,
+			developerService:  developerService,
 		})
 
 		if err != nil {

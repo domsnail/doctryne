@@ -70,12 +70,12 @@ func (model *DeveloperModel) ToEntity() *entity.Developer {
 	}
 
 	githubProfile := model.GithubProfile.Data()
-	if githubProfile == nil {
+	if githubProfile != nil {
 		developer.GithubProfile = githubProfile
 	}
 
 	stackExchangeProfile := model.StackExchangeProfile.Data()
-	if stackExchangeProfile == nil {
+	if stackExchangeProfile != nil {
 		developer.StackExchangeProfile = stackExchangeProfile
 	}
 

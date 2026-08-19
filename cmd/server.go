@@ -33,6 +33,7 @@ type ServerOptions struct {
 	config *cfg.Server
 
 	inspectionService service.IInspectionService
+	developerService  service.IDeveloperService
 }
 
 func CreateServer(opts ServerOptions) (*Server, error) {
@@ -67,7 +68,12 @@ func CreateServer(opts ServerOptions) (*Server, error) {
 	if !opts.config.DisableWebUI {
 		slog.Warn("server web user interface enabled")
 
-		httpHandler := http_handler.NewHandler(opts.inspectionService, opts.config)
+		httpHandler := http_handler.NewHandler(&http_handler.HandlerOptions{
+			InspectionService: opts.inspectionService,
+			DeveloperService:  opts.developerService,
+			Config:            opts.config,
+		})
+
 		httpHandler.HandleMux(httpServer)
 	}
 
@@ -123,6 +129,7 @@ func grpcHandlerFunc(grpcServer *grpc.Server, httpHandler http.Handler) http.Han
 		}
 	})
 }
+
 func defaultSlogMiddleware() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

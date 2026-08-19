@@ -8,18 +8,27 @@ import (
 )
 
 type Handler struct {
-	service service.IInspectionService
-	config  *cfg.Server
+	inspections service.IInspectionService
+	developers  service.IDeveloperService
+
+	config *cfg.Server
 }
 
 const pathPrefix = "/api/v1"
 
-func NewHandler(service service.IInspectionService, config *cfg.Server) *Handler {
-	if service == nil {
-		panic("inspection service is nil")
+type HandlerOptions struct {
+	InspectionService service.IInspectionService
+	DeveloperService  service.IDeveloperService
+
+	Config *cfg.Server
+}
+
+func NewHandler(opts *HandlerOptions) *Handler {
+	if opts.InspectionService == nil || opts.DeveloperService == nil {
+		panic("service is nil")
 	}
 
-	return &Handler{service: service, config: config}
+	return &Handler{inspections: opts.InspectionService, developers: opts.DeveloperService, config: opts.Config}
 }
 
 func (h *Handler) HandleMux(mux *http.ServeMux) {
@@ -28,6 +37,8 @@ func (h *Handler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/inspections/{uuid}", h.handleInspectionPage)
 	mux.HandleFunc("/inspections/{uuid}/revisions/{revision}", h.handleInspectionPage)
 	mux.HandleFunc("/inspections", h.handleInspectionsPage)
+
+	mux.HandleFunc("/developers/{uuid}", h.handleDeveloperCard)
 
 	mux.HandleFunc("/", h.static())
 }

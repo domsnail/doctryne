@@ -1,0 +1,71 @@
+package templates
+
+import (
+	"github.com/domsnail/doctryne/internal/entity"
+)
+
+templ DeveloperCard(developer *entity.Developer) {
+    <html lang="ru">
+        <link rel="stylesheet" href="/styles/developers.css">
+        <div class="developer-card">
+            <a href={"/developers/" + developer.UUID.String()} class="hint uid">
+                { developer.UUID.String() }
+            </a>
+
+            <div class="identity">
+                if developer.Username != "" {
+                    <h3>{ developer.Username }</h3>
+                } else {
+                    <h3>{ developer.Name }</h3>
+                }
+            </div>
+
+            <div class="personal-info">
+                <p>{ developer.Name }</p>
+                <p>Почтовые адреса:</p>
+                <ul>
+                    for _, email := range developer.Emails {
+                        <li>{ email }</li>
+                    }
+                </ul>
+            </div>
+
+            <div class="github-info">
+                if developer.GithubID != nil {
+                    <h4>Github Info</h4>
+                    <p>Profile ID №{ *developer.GithubID }</p>
+                }
+
+                if developer.GithubProfile != nil {
+                    @GithubProfileDetails(developer.GithubProfile)
+                }
+            </div>
+
+            <div class="stack-exchange-info">
+                if developer.StackExchangeAccountID != nil {
+                    <h4>StackExchange Info</h4>
+                    <p>{ *developer.StackExchangeAccountID }</p>
+                }
+            </div>
+
+            <div class="timestamps">
+                <p>обн. { developer.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
+            </div>
+        </div>
+    </html>
+}
+
+templ GithubProfileDetails(profile *entity.GithubDeveloperProfile) {
+    <html lang="ru">
+        <details>
+            <summary>
+                Просмотреть
+            </summary>
+            <p>Location { profile.Location }</p>
+            <p>Company { profile.Company }</p>
+            <p>Blog { profile.Blog }</p>
+            <p>Bio { profile.Bio }</p>
+        </details>
+    </html>
+}
+

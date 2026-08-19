@@ -2,9 +2,9 @@ package templates
 
 import (
 	"github.com/domsnail/doctryne/internal/entity"
-	)
+)
 
-templ Inspection_page(inspection *entity.Inspection) {
+templ InspectionPage(inspection *entity.Inspection) {
     <!DOCTYPE html>
     <html lang="en">
         @GlobalStyles()
@@ -200,7 +200,12 @@ templ Inspection_page(inspection *entity.Inspection) {
                     <tbody>
                         for _, dev := range inspection.Developers {
                             <tr>
-                                <td class="dt-control"></td>
+                                <td hx-get={"/developers/" + dev.UUID.String()}
+                                    hx-trigger="click"
+                                    hx-target="closest tr"
+                                    hx-swap="innerHTML"
+                                    class="dt-control">
+                                </td>
                                 <td>{ dev.Name }</td>
                                 <td>{ dev.Username }</td>
                                 if dev.GithubID != nil {
@@ -208,10 +213,10 @@ templ Inspection_page(inspection *entity.Inspection) {
                                 } else {
                                     <td></td>
                                 }
-                                if dev.GithubMetadata != nil {
-                                    <td>{ dev.GithubMetadata.Fullname }</td>
-                                    <td>{ dev.GithubMetadata.Location }</td>
-                                    <td>{ dev.GithubMetadata.Email }</td>
+                                if dev.GithubProfile != nil {
+                                    <td>{ dev.GithubProfile.Fullname }</td>
+                                    <td>{ dev.GithubProfile.Location }</td>
+                                    <td>{ dev.GithubProfile.Email }</td>
                                 } else {
                                     <td></td>
                                     <td></td>
