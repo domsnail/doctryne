@@ -8,6 +8,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
@@ -79,6 +80,8 @@ func (pool *DeveloperInspectionPool) Inspect(developer *entity.Developer, source
 
 	pool.wg.Go(func() {
 		defer func() {
+			developer.LastLookupAt = new(time.Now())
+
 			pool.c.L.Lock()
 			pool.active.Add(-1)
 			pool.c.L.Unlock()

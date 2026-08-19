@@ -45,25 +45,24 @@ type InspectionService struct {
 }
 
 type InspectionServiceOptions struct {
-	manifests  service.IManifestService
-	registry   service.IRegistryService
-	developers service.IDeveloperService
+	Manifests  service.IManifestService
+	Registry   service.IRegistryService
+	Developers service.IDeveloperService
 
-	github service.IGithubService
+	Github        service.IGithubService
+	StackExchange *stack_exchange.Client
 
-	stackExchange *stack_exchange.Client
-
-	repo service.IInspectionsRepository
+	Repo service.IInspectionsRepository
 }
 
 func NewInspectionService(opts InspectionServiceOptions) *InspectionService {
 	return &InspectionService{
-		manifests:     opts.manifests,
-		github:        opts.github,
-		developers:    opts.developers,
-		stackExchange: opts.stackExchange,
-		registry:      opts.registry,
-		repo:          opts.repo,
+		manifests:     opts.Manifests,
+		github:        opts.Github,
+		developers:    opts.Developers,
+		stackExchange: opts.StackExchange,
+		registry:      opts.Registry,
+		repo:          opts.Repo,
 	}
 }
 
@@ -632,7 +631,7 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 						continue
 					}
 
-					err := pool.Inspect(developers[i], source)
+					err = pool.Inspect(developers[i], source)
 					if err == nil {
 						time.Sleep(defaultDelay)
 					}
@@ -680,6 +679,11 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 }
 
 // lookupOrCreateInternalDeveloperInfo queries already existing info in internal database
+// 1. try to find existing usernames
+// 2. try to find existing full names
+// 3. try to find existing emails
+// 4. add new data to existing developers
+// 5. update all developers (updated and new)
 func (service *InspectionService) lookupOrCreateInternalDeveloperInfo(ctx context.Context, developers []*entity.Developer) error {
 	if ctx.Err() != nil {
 		return ctx.Err()
@@ -687,8 +691,8 @@ func (service *InspectionService) lookupOrCreateInternalDeveloperInfo(ctx contex
 		return nil
 	}
 
-	slog.DebugContext(ctx, "upserting developer info in internal database...")
-	err, rows := service.developers.SaveDevelopers(ctx, developers)
+	slog.DebugContext(ctx, "searching for in internal database and creating new developers...")
+	err, rows := service.developers.FindOrCreateDevelopers(ctx, developers)
 	if err != nil {
 		return err
 	}

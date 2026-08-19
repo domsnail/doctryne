@@ -1,6 +1,7 @@
 package models
 
 import (
+	"database/sql"
 	"strings"
 	"time"
 
@@ -12,14 +13,14 @@ import (
 type DeveloperModel struct {
 	UUID uuid.UUID `gorm:"column:uuid;primaryKey;type:uuid"`
 
-	Username string                      `gorm:"column:username;index"`
-	FullName string                      `gorm:"column:full_name"`
+	Username sql.NullString              `gorm:"column:username;index"`
+	FullName sql.NullString              `gorm:"column:full_name"`
 	Emails   datatypes.JSONSlice[string] `gorm:"column:emails"`
 
-	GithubID      *int64                                             `gorm:"column:github_id;uniqueIndex"`
+	GithubID      *int64                                             `gorm:"column:github_id;index"`
 	GithubProfile datatypes.JSONType[*entity.GithubDeveloperProfile] `gorm:"column:github_profile;type:jsonb"`
 
-	StackExchangeAccountID *uint64                                                   `gorm:"column:stack_exchange_account_id;uniqueIndex"`
+	StackExchangeAccountID *uint64                                                   `gorm:"column:stack_exchange_account_id;index"`
 	StackExchangeProfile   datatypes.JSONType[*entity.StackExchangeDeveloperProfile] `gorm:"column:stack_exchange_profile;type:jsonb"`
 
 	CreatedAt    time.Time  `gorm:"column:created_at;autoCreateTime"`
@@ -30,12 +31,18 @@ type DeveloperModel struct {
 func NewDeveloperModel(developer *entity.Developer) *DeveloperModel {
 	model := DeveloperModel{
 		UUID:                   developer.UUID,
-		Username:               developer.Username,
-		FullName:               developer.Name,
 		Emails:                 developer.Emails,
 		GithubID:               developer.GithubID,
 		StackExchangeAccountID: developer.StackExchangeAccountID,
 		LastLookupAt:           developer.LastLookupAt,
+	}
+
+	if developer.Username != "" {
+		model.Username = sql.NullString{String: developer.Username, Valid: true}
+	}
+
+	if developer.Name != "" {
+		model.FullName = sql.NullString{String: developer.Name, Valid: true}
 	}
 
 	if developer.GithubProfile != nil {
@@ -52,8 +59,8 @@ func NewDeveloperModel(developer *entity.Developer) *DeveloperModel {
 func (model *DeveloperModel) ToEntity() *entity.Developer {
 	developer := entity.Developer{
 		UUID:                   model.UUID,
-		Name:                   model.FullName,
-		Username:               model.Username,
+		Name:                   model.FullName.String,
+		Username:               model.Username.String,
 		Emails:                 model.Emails,
 		GithubID:               model.GithubID,
 		StackExchangeAccountID: model.StackExchangeAccountID,
@@ -80,7 +87,9 @@ func (model *DeveloperModel) TableName() string {
 }
 
 func (model *DeveloperModel) BeforeSave() error {
-	model.Username = strings.ToLower(model.Username)
+	if model.Username.Valid {
+		model.Username.String = strings.ToLower(strings.TrimSpace(model.Username.String))
+	}
 
 	return nil
 }

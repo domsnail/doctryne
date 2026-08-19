@@ -12,6 +12,10 @@ type DeveloperServiceImpl struct {
 	repo service.IDeveloperRepository
 }
 
+func NewDeveloperServiceImpl(repo service.IDeveloperRepository) *DeveloperServiceImpl {
+	return &DeveloperServiceImpl{repo: repo}
+}
+
 func (service *DeveloperServiceImpl) GetDeveloperByUUID(ctx context.Context, uid uuid.UUID) (*entity.Developer, error) {
 	return service.repo.SelectDeveloperByUUID(ctx, uid)
 }
@@ -26,4 +30,12 @@ func (service *DeveloperServiceImpl) SaveDeveloper(ctx context.Context, develope
 
 func (service *DeveloperServiceImpl) SaveDevelopers(ctx context.Context, developers []*entity.Developer) (error, int64) {
 	return service.repo.UpsertDevelopers(ctx, developers)
+}
+
+func (service *DeveloperServiceImpl) CreateDevelopers(ctx context.Context, developers []*entity.Developer) error {
+	return service.repo.CreateDevelopers(ctx, developers)
+}
+
+func (service *DeveloperServiceImpl) FindOrCreateDevelopers(ctx context.Context, developers []*entity.Developer) (error, int64) {
+	return service.repo.FindOrCreateDevelopers(ctx, developers)
 }

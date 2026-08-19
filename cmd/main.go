@@ -11,6 +11,7 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/repos"
 	"github.com/domsnail/doctryne/internal/repos/orm"
+	"github.com/domsnail/doctryne/internal/service/developer_service"
 	"github.com/domsnail/doctryne/internal/service/github_service"
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
@@ -111,14 +112,23 @@ func main() {
 	if err != nil {
 		panic(fmt.Sprintf("failed to complete database migrations: %s", err.Error()))
 	}
+
 	slog.InfoContext(rootCtx, "database migrations completed successfully")
 
+	slog.DebugContext(rootCtx, "initializing services...")
+	developersService := developer_service.NewDeveloperServiceImpl(
+		repos.NewDevelopersRepoImpl(conn),
+	)
+
 	inspectionService := inspect_service.NewInspectionService(
-		manifest_service.NewManifestServiceImpl(),
-		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
-		stack_exchange.NewClient(stack_exchange.Options{}),
-		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
-		repos.NewInspectionsRepoImpl(conn),
+		inspect_service.InspectionServiceOptions{
+			Manifests:     manifest_service.NewManifestServiceImpl(),
+			Registry:      registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
+			Github:        github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
+			StackExchange: stack_exchange.NewClient(stack_exchange.Options{}),
+			Developers:    developersService,
+			Repo:          repos.NewInspectionsRepoImpl(conn),
+		},
 	)
 
 	if config.Server.Enabled {

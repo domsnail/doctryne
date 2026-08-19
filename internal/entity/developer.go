@@ -29,7 +29,7 @@ type Developer struct {
 }
 
 func (d *Developer) String() string {
-	return fmt.Sprintf("%s (@%s)", d.Name, d.Username)
+	return fmt.Sprintf("%s @%s (UUID: %s)", d.Name, d.Username, d.UUID.String())
 }
 
 func (d *Developer) IsEqual(other *Developer) bool {
