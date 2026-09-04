@@ -24,13 +24,13 @@ func (h *Handler) static() http.HandlerFunc {
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/styles/") {
-			w.Header().Add("Cache-Control", "public, max-age=3600")
+			//w.Header().Add("Cache-Control", "public, max-age=3600")
 			fileServer.ServeHTTP(w, r)
 			return
 		}
 
 		if strings.HasPrefix(r.URL.Path, "/assets/") {
-			w.Header().Add("Cache-Control", "public, max-age=3600")
+			//w.Header().Add("Cache-Control", "public, max-age=3600")
 			fileServer.ServeHTTP(w, r)
 			return
 		}

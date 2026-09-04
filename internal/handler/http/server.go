@@ -38,7 +38,8 @@ func (h *Handler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/inspections/{uuid}/revisions/{revision}", h.handleInspectionPage)
 	mux.HandleFunc("/inspections", h.handleInspectionsPage)
 
-	mux.HandleFunc("/developers/{uuid}", h.handleDeveloperCard)
+	mux.HandleFunc("/developers/{uuid}", h.handleDeveloperPage)
+	mux.HandleFunc("/developers/{uuid}/card", h.handleDeveloperCard)
 
 	mux.HandleFunc("/", h.static())
 }

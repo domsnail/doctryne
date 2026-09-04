@@ -1,0 +1,47 @@
+table {
+    border: 1px solid #eee;
+    width: 100%;
+    margin-bottom: 20px;
+    border-collapse: collapse;
+}
+
+table th {
+    font-weight: bold;
+    padding: 5px;
+    background: #efefef;
+    border: 1px solid #dddddd;
+}
+
+table td {
+    padding: 5px 10px;
+    border: 1px solid #eee;
+    text-align: left;
+}
+
+table tbody tr:nth-child(odd) {
+    background: #fff;
+}
+
+table tbody tr:nth-child(even) {
+    background: #F7F7F7;
+}
+
+tr:not(.row-data):hover {
+    background-color: #bdf8bd !important;
+    cursor: pointer;
+}
+
+th.row-id, td.row-id {
+    width: 1rem;
+}
+
+th.row-actions, td.row-actions {
+    width: 0.5rem;
+}
+
+tr.row-data {
+    td {
+        padding: 0;
+        border: none;
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "id": "PKG-0201",
+  "description": "Requires time to pass after package version release",
+  "cvss": 9.1,
+  "period": "72h",
+  "disabled": false
+}

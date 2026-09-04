@@ -1,0 +1,8 @@
+{
+  "id": "CVE-0101",
+  "description": "Max CVSS rating of any CVE",
+  "cvss": 9.1,
+  "min": 2.0,
+  "max": 9.0,
+  "disabled": false
+}

@@ -631,6 +631,10 @@ func (service *InspectionService) InspectDevelopersAndOrganizations(ctx context.
 						continue
 					}
 
+					if ctx.Err() != nil {
+						return
+					}
+
 					err = pool.Inspect(developers[i], source)
 					if err == nil {
 						time.Sleep(defaultDelay)

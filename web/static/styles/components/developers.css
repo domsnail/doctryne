@@ -1,0 +1,181 @@
+.developer-page {
+    padding: 4vh 2vw;
+    margin-bottom: 10vh;
+
+    width: 100vw;
+    max-width: 1600px;
+
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+
+    .main-info {
+        grid-area: 1 / 1 / 3 / 2;
+
+        ul.labels {
+            margin: 2rem 0 1rem 0;
+        }
+    }
+
+    .personal-info {
+        grid-area: 1 / 2 / 2 / 4;
+    }
+
+    .scoring-info {
+        grid-area: 1 / 4 / 3 / 5;
+    }
+
+    .github-info {
+        grid-area: 4 / 2 / 5 / 4;
+    }
+
+    .stack-exchange-info {
+        grid-area: 5 / 2 / 6 / 4;
+    }
+
+    .projects-overview {
+        grid-area: 2 / 2 / 4 / 4;
+    }
+}
+
+.developer-card {
+    position: relative;
+    background-color: whitesmoke;
+
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+
+    min-height: 10vh;
+
+    padding: 3rem 1rem 1rem 1rem;
+
+    p, h3, h4 {
+        margin: 0;
+    }
+
+    ul {
+        margin: 0;
+        padding: 0 1rem;
+
+        li {
+
+        }
+    }
+
+    a.uid {
+        position: absolute;
+        opacity: 0.55;
+        text-align: end;
+
+        top: 10px;
+        right: 10px;
+    }
+
+    .identity {
+        position: absolute;
+        text-align: start;
+
+        top: 10px;
+        left: 1rem;
+    }
+}
+
+ul.emails {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0 0 0;
+
+    li {
+        user-select: all;
+    }
+}
+
+.timestamps {
+    position: absolute;
+    opacity: 0.3;
+    bottom: 5px;
+    right: 8px;
+
+    p {
+        user-select: all;
+
+        font-size: 0.75rem;
+        text-align: end;
+    }
+}
+
+article.github-profile-info, article.stack-exchange-profile-info {
+    margin: 5px 0;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+
+    gap: 4px;
+}
+
+article.github-profile-info {
+    article.about {
+        grid-area: 1/1/2/2;
+    }
+
+    article.stats {
+        grid-area: 1/2/2/3;
+    }
+
+    article.location {
+        grid-area: 1/3/2/4;
+    }
+
+    article.links {
+        grid-area: 2 / 1 / 3 / 2;
+    }
+
+    article.bio {
+        grid-area: 2 / 2 / 3 / 4;
+    }
+
+    details.projects {
+        grid-area: 3 / 1 / 4 / 4;
+    }
+
+    details.activity {
+        grid-area: 4 / 1 / 5 / 4;
+    }
+}
+
+article.stack-exchange-profile-info {
+    article.about {
+        grid-area: 1 / 1 / 2 / 2;
+    }
+
+    article.stats {
+        grid-area: 1 / 2 / 2 / 3;
+    }
+
+    article.location {
+        grid-area: 1 / 3 / 2 / 4;
+    }
+
+    article.links {
+        grid-area: 2 / 1 / 3 / 2;
+    }
+
+    article.bio {
+        grid-area: 2 / 2 / 3 / 4;
+    }
+
+    details.time {
+        grid-area: 3 / 1 / 4 / 2;
+    }
+}
+
+label {
+    display: inline-block;
+    margin-bottom: 5px;
+
+    font-size: 0.65rem;
+    opacity: 0.55;
+
+    user-select: none;
+}

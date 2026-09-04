@@ -110,6 +110,37 @@ func (h *Handler) handleInspectionPage(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func (h *Handler) handleDeveloperPage(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	developerUUID := r.PathValue("uuid")
+	uid, err := uuid.Parse(developerUUID)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	developer, err := h.developers.GetDeveloperByUUID(ctx, uid)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	err = templates.DeveloperPage(developer).Render(ctx, w)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	return
+}
+
 func (h *Handler) handleDeveloperCard(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 

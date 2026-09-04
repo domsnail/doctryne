@@ -2,12 +2,204 @@ package templates
 
 import (
 	"github.com/domsnail/doctryne/internal/entity"
+	"fmt"
 )
+
+templ DeveloperPage(developer *entity.Developer) {
+    <html lang="ru">
+        @GlobalStyles()
+        <head>
+            <meta charset="UTF-8">
+            <title>Профиль разработчика • Doctryne</title>
+        </head>
+        <body>
+        <div class="page-content grid-container developer-page">
+            <div class="grid-item main-info">
+                <h2>
+                    { developer.Username }
+                </h2>
+
+                if developer.Name != "" {
+                    <h4>{ developer.Name }</h4>
+                    <label>полное имя</label>
+                }
+
+                <ul class="emails">
+                    for _, email := range developer.Emails {
+                        <li>
+                            { email }
+                        </li>
+                    }
+                </ul>
+                <label>связанные почтовые адреса</label>
+                <ul class="labels">
+                    <li class="danger">malicious</li>
+                </ul>
+                <div class="timestamps">
+                    <p>обн. { developer.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
+                </div>
+            </div>
+            <div class="grid-item personal-info">personal-info</div>
+            <div class="grid-item scoring-info">scoring-info</div>
+            <div class="grid-item projects-overview">
+                <div class="grid-icons">
+                    <i class="bi bi-braces"></i>
+                    <i class="bi bi-box-seam"></i>
+                </div>
+                <h2>Проекты и компоненты</h2>
+            </div>
+
+            if developer.GithubProfile != nil {
+                <div class="grid-item github-info">
+                    <div class="grid-icons">
+                        <a href={ "https://github.com/" + developer.GithubProfile.Username }
+                            class="bi bi-github"/>
+                    </div>
+                    <h2>Профиль Github</h2>
+                    @GithubProfileInfo(developer.GithubProfile)
+                </div>
+            }
+
+            if developer.StackExchangeProfile != nil {
+                <div class="grid-item stack-exchange-info">
+                    <div class="grid-icons">
+                        <a href={ fmt.Sprintf("https://meta.stackoverflow.com/users/%d/", *developer.StackExchangeProfile.UserID) }
+                            class="bi bi-stack-overflow"/>
+                    </div>
+                    <h2>Профиль StackExchange</h2>
+                    @StackExchangeProfileInfo(developer.StackExchangeProfile)
+                </div>
+            }
+        </div>
+        </body>
+    </html>
+}
+
+templ GithubProfileInfo(profile *entity.GithubDeveloperProfile) {
+    <article class="github-profile-info">
+        <article class="about">
+            <p>{ profile.Username }</p>
+            <label>имя пользователя</label>
+
+            <p>{ profile.Fullname }</p>
+            <label>полное имя</label>
+
+            <p>{ *profile.ID }</p>
+            <label>идентификатор</label>
+
+            <p>{ profile.Email }</p>
+            <label>почтовый адрес</label>
+
+            <p>{ profile.CreatedAt.Format("02.01.2006") }</p>
+            <label>регистрация</label>
+        </article>
+        <article class="stats">
+            <p>{ profile.FollowersCount }</p>
+            <label>подписчики</label>
+
+            <p>{ profile.FollowingCount }</p>
+            <label>подписки</label>
+
+            <p style="margin-top: 0.5rem">{ profile.PublicReposCount } публичные</p>
+            <p>{ profile.PrivateReposCount } приватные</p>
+            <label>репозитории</label>
+        </article>
+        <article class="location">
+            <p>{ profile.Location }</p>
+            <label>локация</label>
+
+            <p>{ profile.Company }</p>
+            <label>компания</label>
+        </article>
+        <article class="links">
+            <p>{ profile.TwitterUsername }</p>
+            <label>twitter (x.com)</label>
+
+            <p>{ profile.Blog }</p>
+            <label>блог</label>
+        </article>
+        <article class="bio">
+            <p>{ profile.Bio }</p>
+            <label>описание профиля</label>
+        </article>
+
+        if len(profile.Repositories) > 0 {
+            <details class="projects">
+                <summary>
+                    Проекты
+                </summary>
+            </details>
+        }
+
+        if len(profile.LatestActivity) > 0 {
+            <details class="activity">
+                <summary>
+                    Активность
+                </summary>
+            </details>
+        }
+    </article>
+    <div class="timestamps">
+        <p>обн. { profile.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
+    </div>
+}
+
+templ StackExchangeProfileInfo(profile *entity.StackExchangeDeveloperProfile) {
+    <article class="stack-exchange-profile-info">
+        <article class="about">
+            <p>{ profile.DisplayName }</p>
+            <label>имя пользователя</label>
+
+            <p>{ *profile.UserID }</p>
+            <label>идентификатор</label>
+
+            <p>{ profile.LastAccessAt.Format("02.01.2006") }</p>
+            <label>последний вход</label>
+
+            <p>{ profile.CreatedAt.Format("02.01.2006") }</p>
+            <label>регистрация</label>
+
+            if profile.PenaltyTill != nil {
+                <p>{ profile.PenaltyTill.Format("02.01.2006") }</p>
+                <label>блокировка</label>
+            }
+        </article>
+
+        <article class="stats">
+            <p>{ profile.Reputation }</p>
+            <label>репутация</label>
+
+            <p style="margin-top: 0.5rem">
+                { profile.Badges.Gold } gold<br/>
+                { profile.Badges.Silver } silver<br/>
+                { profile.Badges.Bronze } bronze<br/>
+            </p>
+            <label>медали</label>
+        </article>
+
+        <article class="location">
+            <p>{ profile.Location }</p>
+            <label>локация</label>
+        </article>
+
+        <article class="links">
+            <p>{ profile.WebsiteUrl }</p>
+            <label>веб-сайт</label>
+        </article>
+
+        <article class="bio">
+            <p>{ profile.AboutMe }</p>
+            <label>описание профиля</label>
+        </article>
+    </article>
+    <div class="timestamps">
+        <p>обн. { profile.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
+    </div>
+}
 
 templ DeveloperCard(developer *entity.Developer) {
     <html lang="ru">
-        <link rel="stylesheet" href="/styles/developers.css">
-        <div class="developer-card">
+        <div class="developer-card" id={"developer-card-" + developer.UUID.String()}>
             <a href={"/developers/" + developer.UUID.String()} class="hint uid">
                 { developer.UUID.String() }
             </a>
@@ -51,6 +243,10 @@ templ DeveloperCard(developer *entity.Developer) {
             <div class="timestamps">
                 <p>обн. { developer.UpdatedAt.Format("02.01.2006 15:04:05") }</p>
             </div>
+
+            <button id="close">
+                Закрыть
+            </button>
         </div>
     </html>
 }

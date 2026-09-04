@@ -9,6 +9,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
+	"fmt"
 	"github.com/domsnail/doctryne/internal/entity"
 )
 
@@ -41,14 +42,14 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<link rel=\"stylesheet\" href=\"/styles/inspections.css\"><link href=\"https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.css\" rel=\"stylesheet\" crossorigin=\"anonymous\"><script src=\"https://cdn.datatables.net/v/dt/dt-3.0.1/datatables.min.js\"></script><head><meta charset=\"UTF-8\"><title>Просмотр отчета • Doctryne</title></head><script>\r\n            function format(data) {\r\n                console.debug(data)\r\n\r\n\r\n                if (data.gh_id !== \"0\") {\r\n                    return (\r\n                        '<div class=\"developer-card\">' +\r\n                           '<div>' +\r\n                               '<h4>Github</h1>' +\r\n                               '<dt>Full name:</dt>' +\r\n                               `<dd>${data.gh_fullname}</dd>` +\r\n                               '<dt>Location:</dt>' +\r\n                               `<dd>${data.gh_location}</dd>` +\r\n                               '<dt>Email:</dt>' +\r\n                               `<dd>${data.gh_email}</dd>` +\r\n                           '</div>' +\r\n                       '</div>'\r\n                   )\r\n                }\r\n\r\n                // `d` is the original data object for the row\r\n                return (\r\n                    '<div class=\"developer-card\">' +\r\n\r\n                   '</div>'\r\n                );\r\n            }\r\n\r\n            document.addEventListener(\"DOMContentLoaded\", function() {\r\n                const componentsTable = new DataTable('#components-table', {\r\n                    // Configuration options\r\n                });\r\n\r\n                const developersTable = new DataTable('#developers-table', {\r\n                    columns: [\r\n                        {\r\n                            className: 'dt-control',\r\n                            orderable: false,\r\n                            data: null,\r\n                            defaultContent: ''\r\n                        },\r\n                        { data: 'name' },\r\n                        { data: 'nickname' },\r\n                        { data: 'gh_id' },\r\n                        { data: 'gh_fullname', visible: false },\r\n                        { data: 'gh_location', visible: false },\r\n                        { data: 'gh_email', visible: false }\r\n                    ],\r\n                });\r\n\r\n                developersTable.on('click', 'tbody td.dt-control', function (e) {\r\n                \tlet tr = e.target.closest('tr');\r\n                \tlet row = developersTable.row(tr);\r\n\r\n                \tif (row.child.isShown()) {\r\n                \t\t// This row is already open - close it\r\n                \t\trow.child.hide();\r\n                \t}\r\n                \telse {\r\n                \t\t// Open this row\r\n                \t\trow.child(format(row.data())).show();\r\n                \t}\r\n                });\r\n            });\r\n\r\n        </script><body><div class=\"page-content inspection-page\"><div class=\"grid-item info\"><h1>Просмотр отчета</h1><h4 style=\"text-wrap: nowrap\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<head><meta charset=\"UTF-8\"><title>Просмотр отчета • Doctryne</title></head><body><div class=\"page-content inspection-page\"><div class=\"grid-item info\"><h1>Просмотр отчета</h1><h4 style=\"text-wrap: nowrap\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(inspection.UUID.String())
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 89, Col: 72}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 20, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -61,7 +62,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(inspection.Revision)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 90, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 21, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -79,7 +80,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.ResolveAttributeValue(manifest.UUID.String())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 101, Col: 62}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 32, Col: 62}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var4)
 			if templ_7745c5c3_Err != nil {
@@ -92,7 +93,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Metadata.Filename)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 102, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 33, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -105,7 +106,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Type)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 102, Col: 75}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 33, Col: 75}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -118,7 +119,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(manifest.Language)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 102, Col: 98}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 33, Col: 98}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -166,7 +167,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(inspection.CreatedAt.Format("02.01.2006 15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 130, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 61, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -179,25 +180,25 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(inspection.UpdatedAt.Format("02.01.2006 15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 133, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 64, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</p></div><div class=\"grid-item violations\"><h2>Нарушения</h2></div><div class=\"grid-item developer-stats\"></div><div class=\"grid-item stats\">6</div><div class=\"grid-item packages-stats\"></div><div class=\"grid-item packages\"><div class=\"grid-icons\"><i class=\"bi bi-diagram-2\"></i> <i class=\"bi bi-list\"></i></div><h2>Компоненты</h2><table id=\"components-table\" class=\"display stripe hover order-column row-border\"><thead><tr><th></th><th>Имя</th><th>Версия</th><th>Метки</th><th>Опционально</th><th>Лицензия</th><th>Звезды</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 18, "</p></div><div class=\"grid-item violations\"><h2>Нарушения</h2></div><div class=\"grid-item developer-stats\"></div><div class=\"grid-item stats\">6</div><div class=\"grid-item packages-stats\"></div><div class=\"grid-item packages\"><div class=\"grid-icons\"><i class=\"bi bi-diagram-2\"></i> <i class=\"bi bi-list\"></i></div><h2>Компоненты</h2><table id=\"components-table\" class=\"\"><thead><tr><th class=\"row-id\"></th><th>Имя</th><th>Версия</th><th>Метки</th><th>Опционально</th><th>Лицензия</th><th>Действия</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, pkg := range inspection.Packages {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<tr><td class=\"dt-control\"></td><td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, "<tr><td class=\"row-id\"></td><td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 171, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 102, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -210,7 +211,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.Version)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 172, Col: 49}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 103, Col: 49}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -223,7 +224,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.IsOptional)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 174, Col: 52}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 105, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -236,43 +237,43 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(pkg.RegistryMetadata.License)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 175, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 106, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td class=\"dt-type-numeric\">61</td></tr>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</td><td class=\"row-actions\"><a href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var14 templ.SafeURL
+			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinURLErrs(fmt.Sprintf("/package/%s/%s/%s", pkg.Ecosystem, pkg.Name, pkg.Version))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 108, Col: 115}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\">Инфо</a></td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</tbody></table></div><div class=\"grid-item developers\"><div class=\"grid-icons\"><i class=\"bi bi-person\"></i></div><h2>Разработчики</h2><table id=\"developers-table\" class=\"stripe hover order-column row-border\"><thead><tr><th></th><th>Имя</th><th>Никнейм</th><th>Github ID</th><th>Github fullname</th><th>Github location</th><th>Github email</th></tr></thead> <tbody>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</tbody></table></div><div class=\"grid-item developers\"><div class=\"grid-icons\"><i class=\"bi bi-person\"></i></div><h2>Разработчики</h2><table id=\"developers-table\"><thead><tr><th class=\"row-id\"></th><th>Имя</th><th>Никнейм</th><th>Github ID</th><th class=\"row-actions\">Действия</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, dev := range inspection.Developers {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "<tr><td hx-get=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var14 string
-			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.ResolveAttributeValue("/developers/" + dev.UUID.String())
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 203, Col: 78}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ_7745c5c3_Var14)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" hx-trigger=\"click\" hx-target=\"closest tr\" hx-swap=\"innerHTML\" class=\"dt-control\"></td><td>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<tr><td class=\"row-id\"></td><td>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(dev.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 209, Col: 46}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 135, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -285,7 +286,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(dev.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 210, Col: 50}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 136, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
@@ -303,7 +304,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 				var templ_7745c5c3_Var17 string
 				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(*dev.GithubID)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 212, Col: 55}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 138, Col: 55}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -319,62 +320,25 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 					return templ_7745c5c3_Err
 				}
 			}
-			if dev.GithubProfile != nil {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<td>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var18 string
-				templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(dev.GithubProfile.Fullname)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 217, Col: 68}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</td><td>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var19 string
-				templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(dev.GithubProfile.Location)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 218, Col: 68}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</td><td>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var20 string
-				templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(dev.GithubProfile.Email)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 219, Col: 65}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</td>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-			} else {
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<td></td><td></td><td></td>")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "<td class=\"row-actions\"><a hx-boost=\"true\" href=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</tr>")
+			var templ_7745c5c3_Var18 templ.SafeURL
+			templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinURLErrs("/developers/" + dev.UUID.String())
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `inspection.templ`, Line: 143, Col: 95}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\">Инфо</a></td></tr>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</tbody></table></div><div class=\"grid-item repositories\">10</div><div class=\"grid-item additional-info\">11</div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</tbody></table></div><div class=\"grid-item repositories\">10</div><div class=\"grid-item additional-info\">11</div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -382,7 +346,7 @@ func InspectionPage(inspection *entity.Inspection) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</body></html>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</body></html>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -406,12 +370,12 @@ func developer_card(developer *entity.Developer) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var21 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var21 == nil {
-			templ_7745c5c3_Var21 = templ.NopComponent
+		templ_7745c5c3_Var19 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var19 == nil {
+			templ_7745c5c3_Var19 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<div class=\"developer-card\"><div><h1>Github</h1><dd>data.gh_fullname</dd><dt>Location:</dt><dd>data.gh_location</dd></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"developer-card\"><div><h1>Github</h1><dd>data.gh_fullname</dd><dt>Location:</dt><dd>data.gh_location</dd></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

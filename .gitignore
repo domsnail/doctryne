@@ -7,3 +7,5 @@
 
 /docker/*.dev.*
 /cfg/config.dev.yaml
+
+/tmp/

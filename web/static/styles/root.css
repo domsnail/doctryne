@@ -1,6 +1,10 @@
-text, h1, h2, h3, h4, p, label {
+text, h1, h2, h3, h4, p, label, details, summary, li {
     font-family: Roboto, sans-serif;
     margin: 0;
+}
+
+summary {
+    cursor: pointer;
 }
 
 p.hint {
@@ -44,8 +48,6 @@ footer {
 
 .page-content {
     display: flex;
-    flex-direction: row;
-
     width: 100vw;
 
     #search-filter {
@@ -71,6 +73,61 @@ footer {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+ul.labels {
+    padding: 0;
+    list-style: none;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    li {
+        padding: 4px;
+
+        border-radius: 4px;
+        border: 1px solid #303030;
+
+        &.danger {
+            background-color: #FF3636FF;
+            color: whitesmoke;
+        }
+    }
+}
+
+div.grid-item {
+    position: relative;
+
+    background-color: #f6f4ff;
+    border: 1px solid #303030;
+    padding: 10px 1rem;
+
+    min-width: 200px;
+    min-height: 2rem;
+
+    border-radius: 0.5rem;
+    box-shadow: 0 0 16px 4px rgba(34, 60, 80, 0.3);
+
+    div.grid-icons {
+        position: absolute;
+
+        top: 0.5rem;
+        right: 0.6rem;
+
+        i {
+            &:hover {
+                cursor: pointer;
+            }
+        }
+    }
+}
+
+span.empty-placeholder {
+    margin-top: 0.5rem;
+
+    opacity: 0.75;
+    width: 100%;
 }
 
 .light-border {

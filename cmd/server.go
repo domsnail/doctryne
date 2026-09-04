@@ -1,4 +1,4 @@
-package main
+package cmd
 
 import (
 	"context"
@@ -30,15 +30,15 @@ type Server struct {
 }
 
 type ServerOptions struct {
-	config *cfg.Server
+	Config *cfg.Server
 
-	inspectionService service.IInspectionService
-	developerService  service.IDeveloperService
+	InspectionService service.IInspectionService
+	DeveloperService  service.IDeveloperService
 }
 
 func CreateServer(opts ServerOptions) (*Server, error) {
 	var server = Server{
-		cfg: opts.config,
+		cfg: opts.Config,
 		mux: http.NewServeMux(),
 	}
 
@@ -55,23 +55,23 @@ func CreateServer(opts ServerOptions) (*Server, error) {
 
 	grpcServer := grpc.NewServer(grpcOpts...)
 
-	if !opts.config.DisableReflect {
+	if !opts.Config.DisableReflect {
 		slog.Warn("grpc server reflection enabled")
 		reflection.Register(grpcServer)
 	}
 
-	if !opts.config.DisableHealth {
+	if !opts.Config.DisableHealth {
 		slog.Warn("grpc server health check enabled")
 		grpc_health_v1.RegisterHealthServer(grpcServer, health.NewServer())
 	}
 
-	if !opts.config.DisableWebUI {
+	if !opts.Config.DisableWebUI {
 		slog.Warn("server web user interface enabled")
 
 		httpHandler := http_handler.NewHandler(&http_handler.HandlerOptions{
-			InspectionService: opts.inspectionService,
-			DeveloperService:  opts.developerService,
-			Config:            opts.config,
+			InspectionService: opts.InspectionService,
+			DeveloperService:  opts.DeveloperService,
+			Config:            opts.Config,
 		})
 
 		httpHandler.HandleMux(httpServer)

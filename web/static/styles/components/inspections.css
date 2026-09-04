@@ -36,40 +36,16 @@
 
 .inspection-page {
     display: grid;
-
     grid-template-columns: repeat(4, 1fr);
-
     gap: 8px;
-
-    div.grid-item {
-        position: relative;
-
-        background-color: #f6f4ff;
-        border: 1px solid #303030;
-        padding: 10px 1rem 0.5rem 1rem;
-
-        min-width: 200px;
-
-        border-radius: 0.5rem;
-        box-shadow: 0 0 16px 4px rgba(34, 60, 80, 0.3);
-
-        div.grid-icons {
-            position: absolute;
-
-            top: 0.5rem;
-            right: 0.6rem;
-
-            i {
-                &:hover {
-                    cursor: pointer;
-                }
-            }
-        }
-    }
 }
 
 h1, h2 {
     margin-bottom: 1rem;
+}
+
+table {
+    width: 100%;
 }
 
 .info {

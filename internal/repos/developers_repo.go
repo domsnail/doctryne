@@ -3,6 +3,7 @@ package repos
 import (
 	"context"
 	"errors"
+	"slices"
 	"strings"
 
 	"github.com/domsnail/doctryne/internal/entity"
@@ -185,11 +186,7 @@ func (repo *DevelopersRepoImpl) FindOrCreateDevelopers(ctx context.Context, deve
 		if m.GithubID != nil && *m.GithubID != 0 {
 			found, ok := githubMap[*m.GithubID]
 			if ok {
-				// todo: maybe load previous information
-				found.UUID = m.UUID
-
-				found.CreatedAt = m.CreatedAt
-				found.UpdatedAt = m.UpdatedAt
+				fillDeveloperInfo(m, found)
 				continue
 			}
 		}
@@ -197,10 +194,7 @@ func (repo *DevelopersRepoImpl) FindOrCreateDevelopers(ctx context.Context, deve
 		if m.Username.Valid {
 			found, ok := usernameMap[m.Username.String]
 			if ok {
-				found.UUID = m.UUID
-
-				found.CreatedAt = m.CreatedAt
-				found.UpdatedAt = m.UpdatedAt
+				fillDeveloperInfo(m, found)
 				continue
 			}
 		}
@@ -208,10 +202,7 @@ func (repo *DevelopersRepoImpl) FindOrCreateDevelopers(ctx context.Context, deve
 		if m.FullName.Valid {
 			found, ok := fullnameMap[m.FullName.String]
 			if ok {
-				found.UUID = m.UUID
-
-				found.CreatedAt = m.CreatedAt
-				found.UpdatedAt = m.UpdatedAt
+				fillDeveloperInfo(m, found)
 				continue
 			}
 		}
@@ -234,4 +225,37 @@ func (repo *DevelopersRepoImpl) FindOrCreateDevelopers(ctx context.Context, deve
 	}
 
 	return nil, result.RowsAffected + int64(len(developersToCreate))
+}
+
+func fillDeveloperInfo(src *models.DeveloperModel, dest *entity.Developer) {
+	dest.UUID = src.UUID
+
+	if dest.Username == "" && src.Username.Valid {
+		dest.Username = src.Username.String
+	}
+
+	if dest.Name == "" && src.FullName.Valid {
+		dest.Name = src.FullName.String
+	}
+
+	if dest.GithubID == nil {
+		dest.GithubID = src.GithubID
+		dest.GithubProfile = src.GithubProfile.Data()
+	}
+
+	if dest.StackExchangeAccountID == nil {
+		dest.StackExchangeAccountID = src.StackExchangeAccountID
+		dest.StackExchangeProfile = src.StackExchangeProfile.Data()
+	}
+
+	if len(src.Emails) > 0 {
+		emails := slices.Concat(dest.Emails, src.Emails)
+		slices.Sort(emails)
+		dest.Emails = slices.Compact(emails)
+	}
+
+	dest.CreatedAt = src.CreatedAt
+	dest.UpdatedAt = src.UpdatedAt
+
+	dest.LastLookupAt = src.LastLookupAt
 }
