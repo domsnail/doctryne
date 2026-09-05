@@ -6,7 +6,7 @@ import (
 	"sync"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -24,9 +24,9 @@ func NewInMemoryRepo() *InMemoryRepoImpl {
 
 	impl.s["af6f4cbd-df32-4ae8-ae28-8df1f41d5ffd"] = []*entity.Inspection{
 		entity.NewInspection(&entity.InspectionOptions{
-			ScanType:                    types.ScanType_Binary,
-			ManifestType:                types.ManifestType_CycloneDX,
-			Mode:                        types.InspectionMode_Direct,
+			ScanType:                    types2.ScanType_Binary,
+			ManifestType:                types2.ManifestType_CycloneDX,
+			Mode:                        types2.InspectionMode_Direct,
 			ExtractFullOrganizationInfo: false,
 			ExtractFullContributorInfo:  false,
 			DeepRepositoryInspection:    false,

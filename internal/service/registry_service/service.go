@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/npm"
-	"github.com/domsnail/doctryne/pkg/types"
 )
 
 type RegistryServiceImpl struct {

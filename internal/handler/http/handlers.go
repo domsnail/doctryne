@@ -9,7 +9,7 @@ import (
 	"strconv"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/web/templates"
 	"github.com/google/uuid"
 )
@@ -203,8 +203,8 @@ func (h *Handler) handleInspectionsPage(w http.ResponseWriter, r *http.Request) 
 
 func parseInspectionOptionsForm(ctx context.Context, req *http.Request) (*entity.InspectionOptions, error) {
 	var opts = entity.InspectionOptions{
-		ScanType: types.ScanType_Binary,
-		Mode:     types.InspectionMode_Direct,
+		ScanType: types2.ScanType_Binary,
+		Mode:     types2.InspectionMode_Direct,
 	}
 
 	err := req.ParseMultipartForm(1024 * 1024)
@@ -225,7 +225,7 @@ func parseInspectionOptionsForm(ctx context.Context, req *http.Request) (*entity
 	)
 
 	opts.Manifest = file
-	opts.ManifestType = types.ManifestType(req.FormValue("manifest-type"))
+	opts.ManifestType = types2.ManifestType(req.FormValue("manifest-type"))
 	opts.ManifestName = header.Filename
 
 	opts.DeepRepositoryInspection = req.FormValue("deep-repository-inspection") == "on"

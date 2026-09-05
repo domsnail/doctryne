@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/internal/types"
 	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )

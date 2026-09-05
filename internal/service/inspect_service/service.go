@@ -21,8 +21,8 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
-	"github.com/domsnail/doctryne/pkg/types"
 	"github.com/domsnail/doctryne/pkg/utils"
 	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
@@ -81,7 +81,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 	)
 
 	switch ins.ScanType {
-	case types.ScanType_URL:
+	case types2.ScanType_URL:
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(ins.Target)
 		if err != nil {
@@ -116,7 +116,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 
 		ins.AddManifest(manifest)
 		break
-	case types.ScanType_FilePath:
+	case types2.ScanType_FilePath:
 		var buf bytes.Buffer
 		_, err := buf.ReadFrom(ins.Target)
 		if err != nil {
@@ -136,10 +136,10 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 
 		ins.AddManifest(manifest)
 		break
-	case types.ScanType_DirPath:
+	case types2.ScanType_DirPath:
 		// todo: search for files
 		return nil, errors.New("not implemented")
-	case types.ScanType_Binary:
+	case types2.ScanType_Binary:
 		var manifest = entity.
 			NewManifest().
 			WithType(ins.Options.ManifestType).
@@ -168,7 +168,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 		} else if n != 0 {
 
 			switch ins.ScanType {
-			case types.ScanType_URL:
+			case types2.ScanType_URL:
 				u, err := url.Parse(lbuf.String())
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse lockfile url: %w", err)
@@ -193,10 +193,10 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 				if err != nil {
 					return nil, fmt.Errorf("failed to read lockfile body contents: %w", err)
 				}
-			case types.ScanType_DirPath:
+			case types2.ScanType_DirPath:
 				// todo: search for files
 				return nil, errors.New("not implemented")
-			case types.ScanType_FilePath:
+			case types2.ScanType_FilePath:
 				file, err := os.ReadFile(lbuf.String())
 				if err != nil {
 					return nil, fmt.Errorf("failed to read from lockfile: %w", err)
@@ -218,7 +218,7 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 	maxDepth := cfg.GlobalConfig.Scan.FileSearchDepth
 
 	var searchFilenames = make(map[string]int)
-	for _, t := range types.ManifestTypes {
+	for _, t := range types2.ManifestTypes {
 		searchFilenames[string(t)] = 0
 	}
 
@@ -267,7 +267,7 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 
 		if _, ok := searchFilenames[d.Name()]; ok {
 			searchFilenames[d.Name()] = searchFilenames[d.Name()] + 1
-			manifestType := types.ManifestType(d.Name())
+			manifestType := types2.ManifestType(d.Name())
 
 			file, err := os.ReadFile(path)
 			if err != nil {
@@ -278,7 +278,7 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 				NewManifest().
 				WithFilename(filepath.Base(path)).
 				WithType(manifestType).
-				WithLanguage(types.ManifestType_Language[manifestType])
+				WithLanguage(types2.ManifestType_Language[manifestType])
 
 			err = manifest.SetFileContent(bytes.NewReader(file))
 			if err != nil {
@@ -291,7 +291,7 @@ func (service *InspectionService) searchManifestsInDir(ctx context.Context, targ
 					slog.String("uuid", manifest.UUID.String()),
 					slog.String("filename", manifest.Metadata.Filename),
 					slog.String("type", string(manifestType)),
-					slog.String("language", string(types.ManifestType_Language[manifestType])),
+					slog.String("language", string(types2.ManifestType_Language[manifestType])),
 				),
 			)
 

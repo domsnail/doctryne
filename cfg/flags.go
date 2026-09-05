@@ -7,7 +7,7 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {

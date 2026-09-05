@@ -12,8 +12,8 @@ import (
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/npm"
-	"github.com/domsnail/doctryne/pkg/types"
 )
 
 func (p *Parser) ParseManifest() (*entity.Package, error) {
@@ -51,8 +51,8 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 	}
 
 	var (
-		eco  = types.Ecosystem_NPM
-		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
+		eco  = types2.Ecosystem_NPM
+		lang = types2.Language_JavaScript // todo: how to check vs TypeScript?
 	)
 
 	var rootPkg = entity.Package{
@@ -64,7 +64,7 @@ func convert(ctx context.Context, p npm.Package) (*entity.Package, error) {
 		//Resolved:   nil, // todo: get from package-lock.json
 		//Registry:   "",
 		//Integrity:  "",
-		Labels: []types.Label{types.Label_Root},
+		Labels: []types2.Label{types2.Label_Root},
 		RegistryMetadata: &entity.RegistryMetadata{
 			RegistryID:   p.ID,
 			Description:  p.Description,
@@ -150,8 +150,8 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 	}
 
 	var (
-		eco  = types.Ecosystem_NPM
-		lang = types.Language_JavaScript // todo: how to check vs TypeScript?
+		eco  = types2.Ecosystem_NPM
+		lang = types2.Language_JavaScript // todo: how to check vs TypeScript?
 	)
 
 	// removing root package from dependency list
@@ -180,7 +180,7 @@ func convertWithLockfile(ctx context.Context, p npm.Package, l npm.PackageLock) 
 		Version:   p.Version,
 		Ecosystem: eco,
 		Language:  lang,
-		Labels:    []types.Label{types.Label_Root},
+		Labels:    []types2.Label{types2.Label_Root},
 		RegistryMetadata: &entity.RegistryMetadata{
 			RegistryID:  p.ID,
 			Description: p.Description,

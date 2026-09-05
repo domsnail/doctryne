@@ -12,9 +12,9 @@ import (
 	"strings"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/parsers/cyclonedx_parser"
 	"github.com/domsnail/doctryne/pkg/parsers/javascript_parsers"
-	"github.com/domsnail/doctryne/pkg/types"
 )
 
 type ManifestServiceImpl struct {
@@ -47,22 +47,22 @@ func (service ManifestServiceImpl) ProcessManifest(ctx context.Context, manifest
 	)
 
 	var t = manifest.Type
-	if manifest.Type == types.ManifestType_Unspecified || manifest.Type == "" {
-		t = types.ManifestType(strings.ToLower(filepath.Base(manifest.Metadata.Filename)))
+	if manifest.Type == types2.ManifestType_Unspecified || manifest.Type == "" {
+		t = types2.ManifestType(strings.ToLower(filepath.Base(manifest.Metadata.Filename)))
 	}
 
 	var pkg *entity.Package
 
 	switch t {
-	case types.ManifestType_CycloneDX:
+	case types2.ManifestType_CycloneDX:
 		parser := cyclonedx_parser.Parser{}
 		pkg, err = parser.
 			WithContext(ctx).
 			WithFile(bytes.NewReader(contents)).
 			ParseManifest()
 
-	case types.ManifestType_Package_Json:
-		manifest.WithLanguage(types.Language_JavaScript)
+	case types2.ManifestType_Package_Json:
+		manifest.WithLanguage(types2.Language_JavaScript)
 
 		parser := javascript_parsers.Parser{}
 		pkg, err = parser.

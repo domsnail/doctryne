@@ -4,7 +4,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -19,7 +19,7 @@ type Inspection struct {
 	Target         io.Reader `json:"-"`
 	TargetLockfile io.Reader `json:"-"`
 
-	ScanType types.ScanType `json:"scan_type"`
+	ScanType types2.ScanType `json:"scan_type"`
 
 	Manifests []*Manifest `json:"manifests,omitempty"`
 
@@ -37,17 +37,17 @@ type Inspection struct {
 }
 
 type InspectionOptions struct {
-	ScanType types.ScanType
+	ScanType types2.ScanType
 
 	Manifest     io.Reader `json:"-"`
 	ManifestName string
-	ManifestType types.ManifestType
+	ManifestType types2.ManifestType
 
 	Lockfile     io.Reader `json:"-"`
 	LockfileName string
-	LockfileType types.ManifestType
+	LockfileType types2.ManifestType
 
-	Mode types.InspectionMode
+	Mode types2.InspectionMode
 
 	ExtractFullOrganizationInfo bool
 	ExtractFullContributorInfo  bool
@@ -86,7 +86,7 @@ func (i *Inspection) AddManifest(m *Manifest) {
 }
 
 type InspectionsQueryFilter struct {
-	ScanType types.ScanType `json:"scan_type"`
+	ScanType types2.ScanType `json:"scan_type"`
 
 	QueryFilter
 	Sorting

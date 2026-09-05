@@ -10,7 +10,7 @@ import (
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/internal/types"
 	"github.com/stretchr/testify/require"
 )
 

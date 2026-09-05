@@ -5,15 +5,15 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/package-url/packageurl-go"
 )
 
 type Package struct {
 	Name      string
 	Version   string
-	Ecosystem types.Ecosystem
-	Language  types.Language
+	Ecosystem types2.Ecosystem
+	Language  types2.Language
 
 	// SBOM specific (identity)
 	PackageURL *packageurl.PackageURL
@@ -24,7 +24,7 @@ type Package struct {
 	Registry string
 
 	// Labels custom aggregation labels to ease indexing, filtering and description
-	Labels     []types.Label
+	Labels     []types2.Label
 	IsDev      bool
 	IsOptional bool
 

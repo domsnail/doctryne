@@ -10,7 +10,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/ilyakaznacheev/cleanenv"
 )
 
@@ -76,7 +76,7 @@ func NewConfigWithDefaultValues() *Config {
 		Insecure:          false,
 		Timeout:           time.Second * 30,
 		CacheMaxAge:       14 * 24 * time.Hour, // 2 weeks
-		Output:            Output{Format: types.ReportFormat_TextTable},
+		Output:            Output{Format: types2.ReportFormat_TextTable},
 		Concurrency:       int32(runtime.NumCPU()),
 		ProfileDataMaxAge: 90 * 24 * time.Hour,
 		Logging: Logging{
@@ -119,7 +119,7 @@ func NewConfigFromEnv() (*Config, error) {
 }
 
 func (c *Config) HasScan() bool {
-	return len(c.Scan.Targets) > 0 && c.Scan.Type != types.ScanType_Unspecified
+	return len(c.Scan.Targets) > 0 && c.Scan.Type != types2.ScanType_Unspecified
 }
 
 func (c *Config) HasDatabase() bool {
@@ -152,7 +152,7 @@ func (c *Config) IsValid() error {
 		return errors.New("invalid concurrency modifier: cannot be less than zero")
 	}
 
-	if !slices.Contains(types.ReportFormats, c.Output.Format) {
+	if !slices.Contains(types2.ReportFormats, c.Output.Format) {
 		return errors.New("invalid output format")
 	}
 
@@ -162,8 +162,8 @@ func (c *Config) IsValid() error {
 // ScanConfig defines default scanning properties for all setups,
 // will be overridden by user provided values
 type ScanConfig struct {
-	Targets []string       `json:"targets" yaml:"targets"`
-	Type    types.ScanType `json:"type" yaml:"type"`
+	Targets []string        `json:"targets" yaml:"targets"`
+	Type    types2.ScanType `json:"type" yaml:"type"`
 
 	// ExtractFullContributorInfo requests full contributor profile download (from NPM, GitHub or other sources,
 	// including other projects, companies etc., may be useful for cross-correlation analysis
@@ -183,7 +183,7 @@ type ScanConfig struct {
 }
 
 type Output struct {
-	Format types.ReportFormat `json:"format" yaml:"format"`
+	Format types2.ReportFormat `json:"format" yaml:"format"`
 }
 
 type Credentials struct {

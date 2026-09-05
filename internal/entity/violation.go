@@ -1,6 +1,8 @@
 package entity
 
-import "github.com/domsnail/doctryne/pkg/types"
+import (
+	"github.com/domsnail/doctryne/internal/types"
+)
 
 type Violation struct {
 	// Object describes what violates a rule

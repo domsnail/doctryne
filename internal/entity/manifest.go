@@ -5,7 +5,7 @@ import (
 	"io"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/google/uuid"
 )
 
@@ -15,8 +15,8 @@ type Manifest struct {
 	UUID     uuid.UUID        `json:"uuid"`
 	Metadata ManifestMetadata `json:"metadata"`
 
-	Language types.Language     `json:"language"`
-	Type     types.ManifestType `json:"type"`
+	Language types2.Language     `json:"language"`
+	Type     types2.ManifestType `json:"type"`
 
 	DiscoveredPackages []*Package `json:"discovered_packages"`
 
@@ -53,13 +53,13 @@ func (m *Manifest) WithChecksum(checksum string) *Manifest {
 	return m
 }
 
-func (m *Manifest) WithLanguage(lang types.Language) *Manifest {
+func (m *Manifest) WithLanguage(lang types2.Language) *Manifest {
 	m.Language = lang
 
 	return m
 }
 
-func (m *Manifest) WithType(tp types.ManifestType) *Manifest {
+func (m *Manifest) WithType(tp types2.ManifestType) *Manifest {
 	m.Type = tp
 
 	return m

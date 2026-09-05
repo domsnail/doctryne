@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 func NewScanFromArgs(ctx context.Context) (ScanConfig, error) {

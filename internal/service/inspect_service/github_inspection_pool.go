@@ -9,7 +9,7 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
-	"github.com/domsnail/doctryne/pkg/types"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type GitHubInspectionPool struct {

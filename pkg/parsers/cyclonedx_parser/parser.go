@@ -12,7 +12,7 @@ import (
 
 	cdx "github.com/CycloneDX/cyclonedx-go"
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/pkg/types"
+	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/package-url/packageurl-go"
 )
 
@@ -101,9 +101,9 @@ func rootComponent(bom *cdx.BOM) *entity.Package {
 		slog.Warn("unable to find root component, creating placeholder package...")
 		return &entity.Package{
 			Name: "placeholder-root-package",
-			Labels: []types.Label{
-				types.Label_Root,
-				types.Label_NonExistant,
+			Labels: []types2.Label{
+				types2.Label_Root,
+				types2.Label_NonExistant,
 			},
 			IsDev:      false,
 			IsOptional: false,
@@ -111,7 +111,7 @@ func rootComponent(bom *cdx.BOM) *entity.Package {
 	}
 
 	c := convertComponent(bom.Metadata.Component)
-	c.Labels = append(c.Labels, types.Label_Root)
+	c.Labels = append(c.Labels, types2.Label_Root)
 	return c
 }
 
@@ -123,14 +123,14 @@ func convertComponent(c *cdx.Component) *entity.Package {
 		Version:    c.Version,
 		Resolved:   nil, // todo: maybe check cdxgen evince mode
 		Registry:   "",
-		Labels:     []types.Label{},
+		Labels:     []types2.Label{},
 		IsOptional: c.Scope == cdx.ScopeOptional,
 		CPE:        c.CPE,
 	}
 
 	dev := isDevComponent(c.Properties)
 	if dev {
-		pkg.Labels = append(pkg.Labels, types.Label_Dev)
+		pkg.Labels = append(pkg.Labels, types2.Label_Dev)
 		pkg.IsDev = true
 	}
 
@@ -142,7 +142,7 @@ func convertComponent(c *cdx.Component) *entity.Package {
 			slog.String("error", err.Error()),
 		)
 	} else {
-		pkg.Ecosystem = types.Ecosystem(pkg.PackageURL.Type)
+		pkg.Ecosystem = types2.Ecosystem(pkg.PackageURL.Type)
 		pkg.PackageURL = &purl
 		// todo: ecosystem to language
 	}
@@ -167,20 +167,20 @@ func convertComponent(c *cdx.Component) *entity.Package {
 	return &pkg
 }
 
-var componentTypeLabel = map[cdx.ComponentType]types.Label{
-	cdx.ComponentTypeApplication:          types.Label_ComponentType_Application,
-	cdx.ComponentTypeContainer:            types.Label_ComponentType_Container,
-	cdx.ComponentTypeCryptographicAsset:   types.Label_ComponentType_CryptographicAsset,
-	cdx.ComponentTypeData:                 types.Label_ComponentType_Data,
-	cdx.ComponentTypeDevice:               types.Label_ComponentType_Device,
-	cdx.ComponentTypeDeviceDriver:         types.Label_ComponentType_DeviceDriver,
-	cdx.ComponentTypeFile:                 types.Label_ComponentType_File,
-	cdx.ComponentTypeFirmware:             types.Label_ComponentType_Firmware,
-	cdx.ComponentTypeFramework:            types.Label_ComponentType_Framework,
-	cdx.ComponentTypeLibrary:              types.Label_ComponentType_Library,
-	cdx.ComponentTypeMachineLearningModel: types.Label_ComponentType_MachineLearningModel,
-	cdx.ComponentTypeOS:                   types.Label_ComponentType_OS,
-	cdx.ComponentTypePlatform:             types.Label_ComponentType_Platform,
+var componentTypeLabel = map[cdx.ComponentType]types2.Label{
+	cdx.ComponentTypeApplication:          types2.Label_ComponentType_Application,
+	cdx.ComponentTypeContainer:            types2.Label_ComponentType_Container,
+	cdx.ComponentTypeCryptographicAsset:   types2.Label_ComponentType_CryptographicAsset,
+	cdx.ComponentTypeData:                 types2.Label_ComponentType_Data,
+	cdx.ComponentTypeDevice:               types2.Label_ComponentType_Device,
+	cdx.ComponentTypeDeviceDriver:         types2.Label_ComponentType_DeviceDriver,
+	cdx.ComponentTypeFile:                 types2.Label_ComponentType_File,
+	cdx.ComponentTypeFirmware:             types2.Label_ComponentType_Firmware,
+	cdx.ComponentTypeFramework:            types2.Label_ComponentType_Framework,
+	cdx.ComponentTypeLibrary:              types2.Label_ComponentType_Library,
+	cdx.ComponentTypeMachineLearningModel: types2.Label_ComponentType_MachineLearningModel,
+	cdx.ComponentTypeOS:                   types2.Label_ComponentType_OS,
+	cdx.ComponentTypePlatform:             types2.Label_ComponentType_Platform,
 }
 
 var devProperties = map[string]bool{
