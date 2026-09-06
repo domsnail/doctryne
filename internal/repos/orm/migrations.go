@@ -42,6 +42,15 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.VulnerabilityCanonicalModel{},
 	)
 
+	if err != nil {
+		return err
+	}
+
+	err = RunPrefills(db)
+	if err != nil {
+		return err
+	}
+
 	return err
 }
 
@@ -108,6 +117,39 @@ func MigrateTypes(db *gorm.DB) error {
 	}
 
 	slog.Info("data types migrated successfully")
+	return nil
+}
+
+func RunPrefills(db *gorm.DB) error {
+	scripts, err := prepareScripts("_embed/data")
+	if err != nil {
+		return err
+	}
+
+	slog.Info("running data prefills...",
+		slog.Int("total_files", len(scripts)),
+	)
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		for _, s := range scripts {
+			err = tx.Exec(s).Error
+			if err != nil {
+				return fmt.Errorf("failed to execute embedded file script: %w", err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		slog.Error("failed to prefill data",
+			slog.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	slog.Info("data prefilled successfully")
 	return nil
 }
 

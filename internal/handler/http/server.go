@@ -11,7 +11,7 @@ type Handler struct {
 	inspections service.IInspectionService
 	developers  service.IDeveloperService
 
-	config *cfg.Server
+	config *cfg.ServerConfig
 }
 
 const pathPrefix = "/api/v1"
@@ -20,7 +20,7 @@ type HandlerOptions struct {
 	InspectionService service.IInspectionService
 	DeveloperService  service.IDeveloperService
 
-	Config *cfg.Server
+	Config *cfg.ServerConfig
 }
 
 func NewHandler(opts *HandlerOptions) *Handler {

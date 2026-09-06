@@ -26,11 +26,11 @@ type Server struct {
 	mux *http.ServeMux
 	srv *http.Server
 
-	cfg *cfg.Server
+	cfg *cfg.ServerConfig
 }
 
 type ServerOptions struct {
-	Config *cfg.Server
+	Config *cfg.ServerConfig
 
 	InspectionService service.IInspectionService
 	DeveloperService  service.IDeveloperService

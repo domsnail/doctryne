@@ -34,13 +34,15 @@ type Config struct {
 
 	Output Output `json:"output" yaml:"output"`
 
-	Credentials       Credentials   `json:"credentials" yaml:"credentials"`
-	RateLimits        RateLimits    `json:"rate_limits" yaml:"rate_limits"`
-	ProfileDataMaxAge time.Duration `json:"profile_data_max_age" yaml:"profile_data_max_age" env:"PROFILE_DATA_MAX_AGE" env-default:"2160h"`
+	Credentials       CredentialsConfig `json:"credentials" yaml:"credentials"`
+	RateLimits        RateLimitsConfig  `json:"rate_limits" yaml:"rate_limits"`
+	ProfileDataMaxAge time.Duration     `json:"profile_data_max_age" yaml:"profile_data_max_age" env:"PROFILE_DATA_MAX_AGE" env-default:"2160h"`
 
-	Server   Server          `json:"server" yaml:"server" env-prefix:"SRV_"`
+	Server   ServerConfig    `json:"server" yaml:"server" env-prefix:"SRV_"`
 	Database *DatabaseConfig `json:"database" yaml:"database" env-prefix:"DB_"`
-	Logging  Logging         `json:"logs" yaml:"logs" env-prefix:"LOG_"`
+	Logging  LoggingConfig   `json:"logs" yaml:"logs" env-prefix:"LOG_"`
+
+	VulnerabilityDatabase VulnerabilityDatabaseConfig `json:"vuln_db" yaml:"vuln_db"`
 
 	FilePath string `json:"-" yaml:"-"`
 }
@@ -79,7 +81,7 @@ func NewConfigWithDefaultValues() *Config {
 		Output:            Output{Format: types2.ReportFormat_TextTable},
 		Concurrency:       int32(runtime.NumCPU()),
 		ProfileDataMaxAge: 90 * 24 * time.Hour,
-		Logging: Logging{
+		Logging: LoggingConfig{
 			Format: "text",
 		},
 		Languages: LanguagesConfig{
@@ -186,13 +188,13 @@ type Output struct {
 	Format types2.ReportFormat `json:"format" yaml:"format"`
 }
 
-type Credentials struct {
+type CredentialsConfig struct {
 	GithubApiKey        string `json:"github_api_key" yaml:"github_api_key" env:"GITHUB_API_KEY"`
 	NpmApiKey           string `json:"npm_api_key" yaml:"npm_api_key" env:"NPM_API_KEY"`
 	StackExchangeApiKey string `json:"stack_exchange_api_key" yaml:"stack_exchange_api_key" env:"STACK_EXCHANGE_API_KEY"`
 }
 
-type Server struct {
+type ServerConfig struct {
 	Enabled bool `json:"enabled" yaml:"enabled" env:"ENABLED"`
 
 	Host string `json:"host" yaml:"host" env:"HOST" env-default:"0.0.0.0"`
@@ -226,13 +228,13 @@ type DatabaseConfig struct {
 	File string `json:"file" yaml:"file" env:"FILE" env-default:"doctryne.db"`
 }
 
-type Logging struct {
+type LoggingConfig struct {
 	Level     int    `json:"level" yaml:"level" env:"LEVEL" env-default:"0"`
 	Format    string `json:"format" yaml:"format" env:"FORMAT" env-default:"text"`
 	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE" env-default:"false"`
 }
 
-type RateLimits struct {
+type RateLimitsConfig struct {
 	RefreshPeriod time.Duration `json:"refresh_period" yaml:"refresh_period" env-default:"1m"`
 
 	// Amount of requests that can be sent to GitHub API in 1m when authorized with PAT,
