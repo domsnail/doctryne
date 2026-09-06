@@ -15,6 +15,6 @@ type Violation struct {
 	Details string
 
 	CvssScore float32
-	Severity  types.Severity
+	Severity  types.CvssSeverity
 	CWEId     string
 }

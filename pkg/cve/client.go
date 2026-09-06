@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -71,6 +72,10 @@ func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offse
 
 	if opts.ModificationDateStart != nil {
 		q.Add("lastModEndDate", opts.ModificationDateStart.Format(time.RFC3339))
+	}
+
+	if len(opts.CveIDs) > 0 {
+		q.Add("cveIds", strings.Join(opts.CveIDs, ","))
 	}
 
 	q.Add("resultsPerPage", strconv.Itoa(limit))
