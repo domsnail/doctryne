@@ -17,6 +17,7 @@ import (
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
+	"github.com/domsnail/doctryne/internal/service/vulnerability_service"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"gorm.io/gorm"
 )
@@ -117,6 +118,11 @@ func main() {
 	slog.InfoContext(rootCtx, "database migrations completed successfully")
 
 	slog.DebugContext(rootCtx, "initializing services...")
+	databaseUpdater, err := vulnerability_service.NewVulnerabilityDatabaseUpdater(conn, config.VulnerabilityDatabase)
+	if err != nil {
+		panic(fmt.Sprintf("failed to initialize vulnerability database updater: %s", err.Error()))
+	}
+
 	developerService := developer_service.NewDeveloperServiceImpl(
 		repos.NewDevelopersRepoImpl(conn),
 	)
@@ -133,6 +139,11 @@ func main() {
 	)
 
 	if config.Server.Enabled {
+		err = databaseUpdater.Initialize(rootCtx)
+		if err != nil {
+			panic(fmt.Sprintf("failed to initialize database updater: %s", err.Error()))
+		}
+
 		srv, err := cmd.CreateServer(cmd.ServerOptions{
 			Config:            &config.Server,
 			InspectionService: inspectionService,

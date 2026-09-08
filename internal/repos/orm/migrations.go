@@ -40,6 +40,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.VulnerabilityReferenceModel{},
 		&models.VulnerabilityDescriptionModel{},
 		&models.VulnerabilityCanonicalModel{},
+		&models.VulnerabilityDatabaseUpdateModel{},
 	)
 
 	if err != nil {
