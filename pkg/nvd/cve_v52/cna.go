@@ -1,7 +1,7 @@
 package cve_v52
 
 import (
-	cve_v40 "github.com/domsnail/doctryne/pkg/cve/cve_v4"
+	cve_v40 "github.com/domsnail/doctryne/pkg/nvd/cve_v4"
 )
 
 type CNA struct {

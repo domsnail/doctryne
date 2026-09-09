@@ -1,4 +1,6 @@
-package cve
+package nvd
+
+import "time"
 
 type Cve struct {
 	ID               string `json:"id"`
@@ -14,20 +16,22 @@ type Cve struct {
 	Descriptions []Description `json:"descriptions"`
 	Affected     []Affected    `json:"affected"`
 
-	Metrics struct {
-		CVSSMetricV40 []CVSSMetricsV40 `json:"cvssMetricV40"`
-		CVSSMetricV31 []CVSSMetricsV31 `json:"cvssMetricV31"`
-		CvssMetricV30 []CVSSMetricsV30 `json:"cvssMetricV30"`
-		CVSSMetricV2  []CVSSMetricsV2  `json:"cvssMetricV2"`
-
-		SSVCV203 []SSVCv203 `json:"ssvcV203"`
-	} `json:"metrics"`
+	Metrics Metrics `json:"metrics"`
 
 	Weaknesses     []Weakness      `json:"weaknesses"`
 	Configurations []Configuration `json:"configurations"`
 	References     []Reference     `json:"references"`
 
 	CISA
+}
+
+type Metrics struct {
+	CvssMetricV40 []CVSSMetricsV40 `json:"cvssMetricV40"`
+	CvssMetricV31 []CVSSMetricsV31 `json:"cvssMetricV31"`
+	CvssMetricV30 []CVSSMetricsV30 `json:"cvssMetricV30"`
+	CvssMetricV20 []CVSSMetricsV2  `json:"cvssMetricV2"`
+
+	SsvcV203 []SSVCv203 `json:"ssvcV203"`
 }
 
 type Description struct {
@@ -227,10 +231,10 @@ type CPEMatch struct {
 }
 
 type CISA struct {
-	CISAExploitAdd        string `json:"cisaExploitAdd"`
-	CISAActionDue         string `json:"cisaActionDue"`
-	CISARequiredAction    string `json:"cisaRequiredAction"`
-	CISAVulnerabilityName string `json:"cisaVulnerabilityName"`
+	CISAExploitAdd        time.Time `json:"cisaExploitAdd"`
+	CISAActionDue         time.Time `json:"cisaActionDue"`
+	CISARequiredAction    string    `json:"cisaRequiredAction"`
+	CISAVulnerabilityName string    `json:"cisaVulnerabilityName"`
 }
 
 type Reference struct {

@@ -1,10 +1,10 @@
-package cve
+package nvd
 
 import (
 	"errors"
 	"time"
 
-	"github.com/domsnail/doctryne/pkg/cve/cve_v52"
+	"github.com/domsnail/doctryne/pkg/nvd/cve_v52"
 )
 
 type RecordsQueryOptions struct {

@@ -1,4 +1,4 @@
-package cve
+package nvd
 
 import (
 	"encoding/json"
