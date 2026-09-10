@@ -1,7 +1,5 @@
 package nvd
 
-import "time"
-
 type Cve struct {
 	ID               string `json:"id"`
 	SourceIdentifier string `json:"sourceIdentifier"`
@@ -48,14 +46,29 @@ type AffectedData struct {
 	Vendor  string `json:"vendor"`
 	Product string `json:"product"`
 
+	DefaultStatus AffectedStatus `json:"defaultStatus,omitempty"`
+
+	CollectionURL string `json:"collectionURL,omitempty"`
+	PackageName   string `json:"packageName,omitempty"`
+	PackageURL    string `json:"packageURL,omitempty"`
+	Repository    string `json:"repo,omitempty"`
+
+	Modules      []string `json:"modules,omitempty"`
+	Platforms    []string `json:"platforms,omitempty"`
+	ProgramFiles []string `json:"programFiles,omitempty"`
+
 	Versions []AffectedVersion `json:"versions"`
+	CPEs     []string          `json:"cpes,omitempty"`
 }
 
 type AffectedVersion struct {
 	Version     string `json:"version"`
-	LessThan    string `json:"lessThan"`
 	VersionType string `json:"versionType"`
-	Status      string `json:"status"`
+
+	LessThan        string `json:"lessThan,omitempty"`
+	LessThanOrEqual string `json:"lessThanOrEqual,omitempty"`
+
+	Status AffectedStatus `json:"status"`
 
 	Changes []struct {
 		At     string `json:"at"`
@@ -231,8 +244,8 @@ type CPEMatch struct {
 }
 
 type CISA struct {
-	CISAExploitAdd        time.Time `json:"cisaExploitAdd"`
-	CISAActionDue         time.Time `json:"cisaActionDue"`
+	CISAExploitAdd        Timestamp `json:"cisaExploitAdd"`
+	CISAActionDue         Timestamp `json:"cisaActionDue"`
 	CISARequiredAction    string    `json:"cisaRequiredAction"`
 	CISAVulnerabilityName string    `json:"cisaVulnerabilityName"`
 }
@@ -244,8 +257,9 @@ type Reference struct {
 }
 
 type (
-	VulnStatus string
-	CveTag     string
+	AffectedStatus string
+	VulnStatus     string
+	CveTag         string
 )
 
 const (
@@ -260,4 +274,8 @@ const (
 	CveTag_Disputed                 CveTag = "disputed"
 	CveTag_UnsupportedWhenAssigned  CveTag = "unsupported-when-assigned"
 	CveTag_ExclusivelyHostedService CveTag = "exclusively-hosted-service"
+
+	AffectedStatus_Affected   AffectedStatus = "affected"
+	AffectedStatus_Unaffected AffectedStatus = "unaffected"
+	AffectedStatus_Unknown    AffectedStatus = "unknown"
 )

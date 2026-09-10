@@ -19,6 +19,7 @@ func (ts *Timestamp) UnmarshalJSON(b []byte) error {
 	layouts := []string{
 		"2006-01-02T15:04:05",
 		time.RFC3339,
+		"2006-01-02",
 	}
 
 	for _, layout := range layouts {
