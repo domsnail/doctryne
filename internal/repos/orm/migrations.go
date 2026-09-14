@@ -38,9 +38,13 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.VulnerabilitySourceModel{},
 		&models.VulnerabilityScoreModel{},
 		&models.VulnerabilityReferenceModel{},
+		&models.VulnerabilityWeaknessModel{},
+		&models.VulnerabilityAffectedModel{},
+		&models.VulnerabilityConfigurationModel{},
 		&models.VulnerabilityDescriptionModel{},
 		&models.VulnerabilityCanonicalModel{},
 		&models.VulnerabilityDatabaseUpdateModel{},
+		&models.VulnerabilityDatabaseUpdateErrorModel{},
 	)
 
 	if err != nil {

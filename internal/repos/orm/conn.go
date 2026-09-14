@@ -19,14 +19,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func NewDatabaseConn(ctx context.Context, config cfg.DatabaseConfig) (*gorm.DB, error) {
+func NewDatabaseConn(ctx context.Context, config *cfg.DatabaseConfig) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
 	switch config.Driver {
 	case "postgres":
 		dialector = postgres.Open(newPostgresConnectionString(config))
 	case "sqlite3", "sqlite":
-		dialector = sqlite.Open(newSqliteConnectionString(config))
+		dialector = sqlite.Open(newSqliteConnectionString(*config))
 	default:
 		return nil, errors.New(fmt.Sprintf("unsupported database driver: %s", config.Driver))
 	}
@@ -69,7 +69,7 @@ func NewDatabaseConn(ctx context.Context, config cfg.DatabaseConfig) (*gorm.DB, 
 	return db, err
 }
 
-func newPostgresConnectionString(config cfg.DatabaseConfig) string {
+func newPostgresConnectionString(config *cfg.DatabaseConfig) string {
 	dsn := strings.Builder{}
 	dsn.WriteString(fmt.Sprintf("host=%s ", config.Host))
 	dsn.WriteString(fmt.Sprintf("port=%d ", config.Port))
@@ -100,7 +100,7 @@ func newSqliteConnectionString(config cfg.DatabaseConfig) string {
 	return strings.TrimSpace(config.File)
 }
 
-func newGormSlogger(config cfg.DatabaseConfig) logger.Interface {
+func newGormSlogger(config *cfg.DatabaseConfig) logger.Interface {
 	var options = []slogGorm.Option{
 		slogGorm.WithHandler(slog.Default().Handler()),
 	}

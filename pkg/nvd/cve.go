@@ -1,5 +1,11 @@
 package nvd
 
+import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
+)
+
 type Cve struct {
 	ID               string `json:"id"`
 	SourceIdentifier string `json:"sourceIdentifier"`
@@ -223,8 +229,7 @@ type Weakness struct {
 }
 
 type Configuration struct {
-	Operator string              `json:"operator,omitempty"`
-	Nodes    []ConfigurationNode `json:"nodes"`
+	Nodes []ConfigurationNode `json:"nodes"`
 }
 
 type ConfigurationNode struct {
@@ -235,10 +240,14 @@ type ConfigurationNode struct {
 }
 
 type CPEMatch struct {
-	Vulnerable            bool   `json:"vulnerable"`
-	Criteria              string `json:"criteria"`
+	MatchCriteriaId string `json:"matchCriteriaId"`
+
+	Vulnerable bool   `json:"vulnerable"`
+	Criteria   string `json:"criteria"`
+
+	VersionStartExcluding string `json:"versionStartExcluding,omitempty"`
 	VersionEndExcluding   string `json:"versionEndExcluding,omitempty"`
-	MatchCriteriaId       string `json:"matchCriteriaId"`
+
 	VersionStartIncluding string `json:"versionStartIncluding,omitempty"`
 	VersionEndIncluding   string `json:"versionEndIncluding,omitempty"`
 }
@@ -263,6 +272,7 @@ type (
 )
 
 const (
+	VulnStatus_Reserved           VulnStatus = "Reserved" // The CVE is not included into dataset
 	VulnStatus_Received           VulnStatus = "Received"
 	VulnStatus_AwaitingAnalysis   VulnStatus = "Awaiting Analysis"
 	VulnStatus_UndergoingAnalysis VulnStatus = "Undergoing Analysis"
@@ -279,3 +289,12 @@ const (
 	AffectedStatus_Unaffected AffectedStatus = "unaffected"
 	AffectedStatus_Unknown    AffectedStatus = "unknown"
 )
+
+func (cve *Cve) Fingerprint() (string, error) {
+	data, err := json.Marshal(cve)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal cve record: %w", err)
+	}
+
+	return fmt.Sprintf("%x", md5.Sum(data)), nil
+}

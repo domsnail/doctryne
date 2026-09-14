@@ -78,7 +78,7 @@ func main() {
 
 	if config.Database == nil {
 		slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
-		conn, err = orm.NewDatabaseConn(rootCtx, cfg.DatabaseConfig{
+		conn, err = orm.NewDatabaseConn(rootCtx, &cfg.DatabaseConfig{
 			Driver: "sqlite",
 			File:   "file::memory:?cache=shared",
 			Name:   "doctryne",
@@ -90,12 +90,12 @@ func main() {
 				panic(fmt.Sprintf("sqlite3 database file not set"))
 			}
 
-			conn, err = orm.NewDatabaseConn(rootCtx, *config.Database)
+			conn, err = orm.NewDatabaseConn(rootCtx, config.Database)
 		case "postgres", "mysql":
-			conn, err = orm.NewDatabaseConn(rootCtx, *config.Database)
+			conn, err = orm.NewDatabaseConn(rootCtx, config.Database)
 		case "local", "cache":
 			slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
-			conn, err = orm.NewDatabaseConn(rootCtx, cfg.DatabaseConfig{
+			conn, err = orm.NewDatabaseConn(rootCtx, &cfg.DatabaseConfig{
 				Driver: "sqlite",
 				File:   "file::memory:?cache=shared",
 				Name:   "doctryne",
