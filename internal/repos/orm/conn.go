@@ -42,7 +42,7 @@ func NewDatabaseConn(ctx context.Context, config *cfg.DatabaseConfig) (*gorm.DB,
 		Logger:                    newGormSlogger(config),
 		DefaultTransactionTimeout: time.Second * 120,
 		DefaultContextTimeout:     time.Second * 30,
-		FullSaveAssociations:      true,
+		FullSaveAssociations:      false,
 	})
 
 	if err != nil {
