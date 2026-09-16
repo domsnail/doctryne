@@ -15,7 +15,7 @@ type Cve struct {
 
 	VulnStatus VulnStatus `json:"vulnStatus"` // https://nvd.nist.gov/vuln/vulnerability-status
 
-	CveTags []CveTag `json:"cveTags"`
+	CveTags []Tag `json:"cveTags"`
 
 	Descriptions []Description `json:"descriptions"`
 	Affected     []Affected    `json:"affected"`
@@ -27,6 +27,10 @@ type Cve struct {
 	References     []Reference     `json:"references"`
 
 	CISA
+}
+
+func (cve *Cve) String() string {
+	return cve.ID
 }
 
 type Metrics struct {
@@ -80,11 +84,6 @@ type AffectedVersion struct {
 		At     string `json:"at"`
 		Status string `json:"status"`
 	} `json:"changes"`
-}
-
-type Tag struct {
-	SourceIdentifier string   `json:"sourceIdentifier"`
-	Tags             []string `json:"tags"`
 }
 
 type SSVCv203 struct {
@@ -263,6 +262,11 @@ type Reference struct {
 	Url    string   `json:"url"`
 	Source string   `json:"source"`
 	Tags   []string `json:"tags"`
+}
+
+type Tag struct {
+	SourceIdentifier string   `json:"sourceIdentifier"`
+	Tags             []CveTag `json:"tags"`
 }
 
 type (
