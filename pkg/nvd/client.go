@@ -1,9 +1,11 @@
 package nvd
 
 import (
+	"compress/gzip"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -55,6 +57,10 @@ func NewClient(opts ...Option) *Client {
 // GetRecords implements
 // info: https://nvd.nist.gov/developers/vulnerabilities
 func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offset, limit int) (*RecordsQueryResponse, error) {
+	if limit > 2000 {
+		return nil, fmt.Errorf("limit exceeds 2000 records")
+	}
+
 	err := opts.Validate()
 	if err != nil {
 		return nil, fmt.Errorf("invalid options: %w", err)
@@ -94,8 +100,21 @@ func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offse
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
+	var reader io.ReadCloser
+	switch resp.Header.Get("Content-Encoding") {
+	case "gzip":
+		reader, err = gzip.NewReader(resp.Body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read gzipped response body: %w", err)
+		}
+
+		defer reader.Close()
+	default:
+		reader = resp.Body
+	}
+
 	var records RecordsQueryResponse
-	err = json.NewDecoder(resp.Body).Decode(&records)
+	err = json.NewDecoder(reader).Decode(&records)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
 	}

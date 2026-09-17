@@ -2,7 +2,10 @@ package nvd
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -33,5 +36,20 @@ func TestClient_GetRecords(t *testing.T) {
 		require.EqualValues(t, 1, records.TotalResults)
 
 		require.Len(t, records.Vulnerabilities, 1)
+	})
+
+	t.Run("test multiple cve records query", func(t *testing.T) {
+		c := NewClient()
+
+		startedAt := time.Now()
+		records, err := c.GetRecords(context.Background(), RecordsQueryOptions{}, 0, 4000)
+		slog.Info(fmt.Sprintf("request time: %s", time.Since(startedAt).String()))
+
+		require.NoError(t, err)
+		require.EqualValues(t, 0, records.StartIndex)
+		require.EqualValues(t, uint32(2000), records.ResultsPerPage)
+		require.EqualValues(t, uint32(2000), records.TotalResults)
+
+		require.Len(t, records.Vulnerabilities, 2000)
 	})
 }
