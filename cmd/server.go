@@ -32,8 +32,9 @@ type Server struct {
 type ServerOptions struct {
 	Config *cfg.ServerConfig
 
-	InspectionService service.IInspectionService
-	DeveloperService  service.IDeveloperService
+	InspectionService    service.IInspectionService
+	DeveloperService     service.IDeveloperService
+	VulnerabilityService service.IVulnerabilityService
 }
 
 func CreateServer(opts ServerOptions) (*Server, error) {
@@ -68,13 +69,14 @@ func CreateServer(opts ServerOptions) (*Server, error) {
 	if !opts.Config.DisableWebUI {
 		slog.Warn("server web user interface enabled")
 
-		httpHandler := http_handler.NewHandler(&http_handler.HandlerOptions{
-			InspectionService: opts.InspectionService,
-			DeveloperService:  opts.DeveloperService,
-			Config:            opts.Config,
+		httpHandler := http_handler.NewAcceptMux(&http_handler.HandlerOptions{
+			VulnerabilityService: opts.VulnerabilityService,
+			InspectionService:    opts.InspectionService,
+			DeveloperService:     opts.DeveloperService,
+			Config:               opts.Config,
 		})
 
-		httpHandler.HandleMux(httpServer)
+		httpServer.Handle("/", httpHandler)
 	}
 
 	server.mux.Handle("/", grpcHandlerFunc(grpcServer, httpServer))
@@ -140,8 +142,9 @@ func defaultSlogMiddleware() func(http.Handler) http.Handler {
 				slog.String("proto", r.Proto),
 				slog.String("path", r.URL.Path),
 				slog.Duration("latency", time.Since(start)),
-				slog.String("ip", r.RemoteAddr),
-				slog.String("user_agent", r.UserAgent()),
+				slog.String("remote_ip", r.RemoteAddr),
+				slog.Any("user_agent", r.UserAgent()),
+				slog.Any("accept", r.Header.Get("Accept")),
 			)
 
 			next.ServeHTTP(w, r)

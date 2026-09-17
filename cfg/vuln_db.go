@@ -3,6 +3,8 @@ package cfg
 import "time"
 
 type VulnerabilityDatabaseConfig struct {
+	DisableAutoUpdates bool `json:"disable_auto_updates" yaml:"disable_auto_updates"`
+
 	UpdatesRefresh  time.Duration         `json:"updates_refresh" yaml:"updates_refresh" env-default:"30s"`
 	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"30m"`
 	UpdateSchedules UpdateSchedulesConfig `json:"update_schedules" yaml:"update_schedules"`

@@ -9,7 +9,7 @@ import (
 	"golang.org/x/text/language"
 )
 
-func (h *Handler) static() http.HandlerFunc {
+func (h *HtmlHandler) static() http.HandlerFunc {
 	distFS, err := fs.Sub(web.StaticEmbed, "static")
 	if err != nil {
 		panic(err)

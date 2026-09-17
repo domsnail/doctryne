@@ -35,8 +35,8 @@ func (repo *InspectionsRepoImpl) CreateInspection(ctx context.Context, inspectio
 }
 
 func (repo *InspectionsRepoImpl) SelectInspectionByUUID(ctx context.Context, uid uuid.UUID) (*entity.Inspection, error) {
-	if uid.String() == "" {
-		return nil, errors.New("uuid is empty")
+	if uid == uuid.Nil {
+		return nil, errors.New("uid is nil")
 	}
 
 	var model models.InspectionModel

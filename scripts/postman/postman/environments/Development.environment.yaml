@@ -1,0 +1,6 @@
+name: Development
+values:
+  - key: HOST
+    value: 0.0.0.0
+  - key: PORT
+    value: '8080'

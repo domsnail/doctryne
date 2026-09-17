@@ -123,6 +123,10 @@ func main() {
 		panic(fmt.Sprintf("failed to initialize vulnerability database updater: %s", err.Error()))
 	}
 
+	vulnerabilityService := vulnerability_service.NewVulnerabilityServiceImpl(
+		repos.NewVulnerabilityRepoImpl(conn),
+	)
+
 	developerService := developer_service.NewDeveloperServiceImpl(
 		repos.NewDevelopersRepoImpl(conn),
 	)
@@ -145,9 +149,10 @@ func main() {
 		}
 
 		srv, err := cmd.CreateServer(cmd.ServerOptions{
-			Config:            &config.Server,
-			InspectionService: inspectionService,
-			DeveloperService:  developerService,
+			VulnerabilityService: vulnerabilityService,
+			InspectionService:    inspectionService,
+			DeveloperService:     developerService,
+			Config:               &config.Server,
 		})
 
 		if err != nil {

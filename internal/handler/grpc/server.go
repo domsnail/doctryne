@@ -10,7 +10,7 @@ import (
 	utils_v1 "github.com/domsnail/doctryne/api/gen/go/utils"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
-	types2 "github.com/domsnail/doctryne/internal/types"
+	"github.com/domsnail/doctryne/internal/types"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -38,13 +38,13 @@ func (handler *Handler) Inspect(ctx context.Context, opts *inspection_v1.Inspect
 	}
 
 	inspection, err := handler.service.InitInspection(ctx, &entity.InspectionOptions{
-		ScanType: types2.ScanTypes_Enums[int32(opts.GetScanType())],
-		Mode:     types2.InspectionModes_Enums[int32(opts.GetMode())],
+		ScanType: types.ScanTypes_Enums[int32(opts.GetScanType())],
+		Mode:     types.InspectionModes_Enums[int32(opts.GetMode())],
 		//
 		Manifest:     bytes.NewReader(opts.GetManifest()),
-		ManifestType: types2.ManifestType(opts.GetManifestType()),
+		ManifestType: types.ManifestType(opts.GetManifestType()),
 		Lockfile:     bytes.NewReader(opts.GetLockfile()),
-		LockfileType: types2.ManifestType(opts.GetLockfileType()),
+		LockfileType: types.ManifestType(opts.GetLockfileType()),
 		//
 		ExtractFullContributorInfo: opts.GetLoadUserProfile(),
 		// todo: add DeepRepositoryInspection
