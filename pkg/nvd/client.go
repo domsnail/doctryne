@@ -8,6 +8,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 	"time"
@@ -43,6 +44,11 @@ func NewClient(opts ...Option) *Client {
 
 	for _, opt := range opts {
 		opt(c)
+	}
+
+	_, err := url.Parse(defaultBaseURL)
+	if err != nil {
+		panic(fmt.Errorf("invalid base url: %s", err))
 	}
 
 	if c.token == "" {
@@ -120,4 +126,9 @@ func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offse
 	}
 
 	return &records, nil
+}
+
+func (c *Client) GetRemoteURL() url.URL {
+	u, _ := url.Parse(defaultBaseURL)
+	return *u
 }

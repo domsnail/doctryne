@@ -10,3 +10,5 @@
 /cfg/config.dev.yaml
 
 /tmp/
+
+/internal/service/vulnerability_service/vuln_catalog/

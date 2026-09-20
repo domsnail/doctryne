@@ -1,6 +1,9 @@
 package cfg
 
-import "time"
+import (
+	"net/url"
+	"time"
+)
 
 type VulnerabilityDatabaseConfig struct {
 	DisableAutoUpdates bool `json:"disable_auto_updates" yaml:"disable_auto_updates"`
@@ -8,6 +11,20 @@ type VulnerabilityDatabaseConfig struct {
 	UpdatesRefresh  time.Duration         `json:"updates_refresh" yaml:"updates_refresh" env-default:"30s"`
 	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"30m"`
 	UpdateSchedules UpdateSchedulesConfig `json:"update_schedules" yaml:"update_schedules"`
+
+	Catalog         string                               `json:"catalog" yaml:"catalog" env-default:"vuln_catalog"`
+	GitRemotes      VulnerabilityDatabaseGitRemotes      `json:"git_remotes" yaml:"git_remotes"`
+	DownloadRemotes VulnerabilityDatabaseDownloadRemotes `json:"download_remotes" yaml:"download_remotes"`
+}
+
+type VulnerabilityDatabaseGitRemotes struct {
+	NVD  url.URL `json:"nvd" yaml:"nvd" env-default:"https://github.com/CVEProject/cvelistV5"`
+	GHSA url.URL `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database"`
+}
+
+type VulnerabilityDatabaseDownloadRemotes struct {
+	NVD  url.URL `json:"nvd" yaml:"nvd" env-default:"https//github.com/CVEProject/cvelistV5/archive/refs/heads/main.zip"`
+	GHSA url.URL `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database/archive/refs/heads/main.zip"`
 }
 
 type UpdateSchedulesConfig struct {
