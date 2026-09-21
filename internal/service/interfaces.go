@@ -3,9 +3,9 @@ package service
 import (
 	"context"
 	"net/url"
+	"uuid"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/google/uuid"
 )
 
 type IInspectionService interface {

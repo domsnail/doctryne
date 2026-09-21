@@ -58,7 +58,7 @@ type InspectionOptions struct {
 
 func NewInspection(opts *InspectionOptions) *Inspection {
 	ins := Inspection{
-		UUID:           uuid.Must(uuid.NewV7()),
+		UUID:           uuid.NewV7(),
 		Target:         opts.Manifest,
 		TargetLockfile: opts.Lockfile,
 		ScanType:       opts.ScanType,

@@ -27,7 +27,7 @@ type Manifest struct {
 
 func NewManifest() *Manifest {
 	return &Manifest{
-		UUID: uuid.Must(uuid.NewV7()),
+		UUID: uuid.NewV7(),
 		Metadata: ManifestMetadata{
 			UploadedAt: time.Now(),
 			UpdatedAt:  time.Now(),

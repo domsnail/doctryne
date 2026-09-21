@@ -42,7 +42,7 @@ func (repo *DevelopersRepoImpl) CreateDevelopers(ctx context.Context, developers
 
 	var model = make([]*models.DeveloperModel, len(developers))
 	for i, d := range developers {
-		d.UUID = uuid.Must(uuid.NewV7())
+		d.UUID = uuid.NewV7()
 		model[i] = models.NewDeveloperModel(d)
 	}
 
@@ -211,7 +211,7 @@ func (repo *DevelopersRepoImpl) FindOrCreateDevelopers(ctx context.Context, deve
 
 	var developersToCreate []*entity.Developer
 	for _, d := range developers {
-		if d.UUID != uuid.Nil {
+		if d.UUID != uuid.Nil() {
 			continue
 		}
 
