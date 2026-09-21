@@ -8,12 +8,13 @@ import (
 	"net/http"
 	"strconv"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
 	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/web/templates"
-	"github.com/google/uuid"
 )
 
 type HtmlHandler struct {

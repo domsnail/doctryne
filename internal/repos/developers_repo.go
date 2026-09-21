@@ -6,9 +6,10 @@ import (
 	"slices"
 	"strings"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/models"
-	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 

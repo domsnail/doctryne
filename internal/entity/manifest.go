@@ -5,8 +5,9 @@ import (
 	"io"
 	"time"
 
+	"uuid"
+
 	types2 "github.com/domsnail/doctryne/internal/types"
-	"github.com/google/uuid"
 )
 
 // Manifest contains information about incoming application packages. Represents package.json, go.mod and other

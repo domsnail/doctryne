@@ -1,6 +1,11 @@
 package github
 
-import "time"
+import (
+	"crypto/md5"
+	"encoding/json"
+	"fmt"
+	"time"
+)
 
 type AdvisoriesQueryOptions struct {
 	ModifiedAfter  *time.Time
@@ -11,6 +16,8 @@ type AdvisoriesQueryOptions struct {
 
 	Sort      string
 	Direction string
+
+	Link Link
 }
 
 type AdvisoryRecord struct {
@@ -134,3 +141,12 @@ const (
 	CreditType_Sponsor              CreditType = "sponsor"
 	CreditType_Other                CreditType = "other"
 )
+
+func (record *AdvisoryRecord) Fingerprint() (string, error) {
+	data, err := json.Marshal(record)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal ghsa record: %w", err)
+	}
+
+	return fmt.Sprintf("%x", md5.Sum(data)), nil
+}

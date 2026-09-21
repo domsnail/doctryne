@@ -3,9 +3,10 @@ package developer_service
 import (
 	"context"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
-	"github.com/google/uuid"
 )
 
 type DeveloperServiceImpl struct {

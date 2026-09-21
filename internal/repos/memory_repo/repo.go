@@ -5,9 +5,10 @@ import (
 	"errors"
 	"sync"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/internal/entity"
 	types2 "github.com/domsnail/doctryne/internal/types"
-	"github.com/google/uuid"
 )
 
 type InMemoryRepoImpl struct {

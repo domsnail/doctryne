@@ -18,13 +18,14 @@ import (
 	"sync"
 	"time"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
 	types2 "github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"github.com/domsnail/doctryne/pkg/utils"
-	"github.com/google/uuid"
 	"golang.org/x/sync/errgroup"
 )
 

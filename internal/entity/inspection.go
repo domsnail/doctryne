@@ -4,8 +4,9 @@ import (
 	"io"
 	"time"
 
+	"uuid"
+
 	types2 "github.com/domsnail/doctryne/internal/types"
-	"github.com/google/uuid"
 )
 
 // Inspection is a resulting entity for a scan of a target (one inspection = multiple manifests) from API or CLI.

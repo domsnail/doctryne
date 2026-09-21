@@ -1,7 +1,7 @@
 package cve_v52
 
 import (
-	"github.com/google/uuid"
+	"uuid"
 )
 
 type Metadata struct {

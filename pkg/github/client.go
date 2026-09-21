@@ -52,14 +52,14 @@ func NewClient(opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions, perPage, page int) ([]AdvisoryRecord, error) {
+func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions, perPage, page int) ([]AdvisoryRecord, Link, error) {
 	if perPage > 100 {
-		return nil, fmt.Errorf("per_page exceeds 100 records")
+		return nil, Link{}, fmt.Errorf("per_page exceeds 100 records")
 	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.baseURL+defaultAdvisoriesPath, nil)
 	if err != nil {
-		return nil, fmt.Errorf("failed to prepare request: %w", err)
+		return nil, Link{}, fmt.Errorf("failed to prepare request: %w", err)
 	}
 
 	q := req.URL.Query()
@@ -90,12 +90,16 @@ func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions,
 	q.Add("per_page", strconv.Itoa(perPage))
 	q.Add("page", strconv.Itoa(page))
 
+	if opts.Link.Next != "" {
+		q.Add("after", opts.Link.Next)
+	}
+
 	req.URL.RawQuery = q.Encode()
 	c.setHeaders(req)
 
 	resp, err := c.h.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
+		return nil, Link{}, fmt.Errorf("failed to send request: %w", err)
 	}
 
 	defer resp.Body.Close()
@@ -108,7 +112,7 @@ func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions,
 			slog.Any("details", apiError),
 		)
 
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return nil, Link{}, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
 
 	var reader io.ReadCloser
@@ -116,7 +120,7 @@ func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions,
 	case "gzip":
 		reader, err = gzip.NewReader(resp.Body)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read gzipped response body: %w", err)
+			return nil, Link{}, fmt.Errorf("failed to read gzipped response body: %w", err)
 		}
 
 		defer reader.Close()
@@ -127,8 +131,8 @@ func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions,
 	var records []AdvisoryRecord
 	err = json.NewDecoder(reader).Decode(&records)
 	if err != nil {
-		return nil, fmt.Errorf("failed to unmarshal response: %w", err)
+		return nil, Link{}, fmt.Errorf("failed to unmarshal response: %w", err)
 	}
 
-	return records, nil
+	return records, newLinkFromHeader(resp.Header), nil
 }

@@ -5,9 +5,11 @@ import (
 	"strings"
 	"time"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/google/uuid"
 	"gorm.io/datatypes"
+	"gorm.io/gorm"
 )
 
 type DeveloperModel struct {
@@ -86,7 +88,7 @@ func (model *DeveloperModel) TableName() string {
 	return "developers"
 }
 
-func (model *DeveloperModel) BeforeSave() error {
+func (model *DeveloperModel) BeforeSave(*gorm.DB) error {
 	if model.Username.Valid {
 		model.Username.String = strings.ToLower(strings.TrimSpace(model.Username.String))
 	}

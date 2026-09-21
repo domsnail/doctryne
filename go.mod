@@ -5,6 +5,7 @@ go 1.26.2
 require (
 	github.com/CycloneDX/cyclonedx-go v0.11.0
 	github.com/a-h/templ v0.3.1020
+	github.com/adhocore/gronx v1.20.3
 	github.com/go-git/go-git/v6 v6.0.0-alpha.5
 	github.com/google/go-github/v87 v87.0.0
 	github.com/google/uuid v1.6.0
@@ -30,7 +31,6 @@ require (
 	github.com/BurntSushi/toml v1.6.0 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
 	github.com/ProtonMail/go-crypto v1.4.1 // indirect
-	github.com/adhocore/gronx v1.20.3 // indirect
 	github.com/air-verse/air v1.67.4 // indirect
 	github.com/andybalholm/brotli v1.2.0 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect

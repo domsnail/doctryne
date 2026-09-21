@@ -35,6 +35,7 @@ func AutoMigrate(db *gorm.DB) error {
 
 	err = db.AutoMigrate(
 		&models.VulnerabilityModel{},
+		&models.VulnerabilityAliasModel{},
 		&models.VulnerabilitySourceModel{},
 		&models.VulnerabilityScoreModel{},
 		&models.VulnerabilityReferenceModel{},

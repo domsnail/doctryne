@@ -3,9 +3,10 @@ package models
 import (
 	"time"
 
+	"uuid"
+
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/types"
-	"github.com/google/uuid"
 	"gorm.io/datatypes"
 )
 
