@@ -217,7 +217,7 @@
             ],
             "description": "The package version that resolves the vulnerability."
           },
-          "vulnerable_functions": {
+          "у": {
             "type": [
               "array",
               "null"

@@ -52,7 +52,7 @@ func NewClient(opts ...Option) *Client {
 	return c
 }
 
-func (c *Client) GetAdvisories(ctx context.Context, opts *AdvisoriesQueryOptions, perPage, page int) ([]AdvisoryRecord, error) {
+func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions, perPage, page int) ([]AdvisoryRecord, error) {
 	if perPage > 100 {
 		return nil, fmt.Errorf("per_page exceeds 100 records")
 	}

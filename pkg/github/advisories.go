@@ -106,6 +106,7 @@ type User struct {
 	Id           int    `json:"id"`
 	Login        string `json:"login"`
 	Email        string `json:"email"`
+	HtmlUrl      string `json:"html_url"`
 	NodeId       string `json:"node_id"`
 	Type         string `json:"type"`
 	UserViewType string `json:"user_view_type"`
