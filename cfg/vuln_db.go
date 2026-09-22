@@ -1,7 +1,6 @@
 package cfg
 
 import (
-	"net/url"
 	"time"
 )
 
@@ -18,13 +17,15 @@ type VulnerabilityDatabaseConfig struct {
 }
 
 type VulnerabilityDatabaseGitRemotes struct {
-	NVD  url.URL `json:"nvd" yaml:"nvd" env-default:"https://github.com/CVEProject/cvelistV5"`
-	GHSA url.URL `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database"`
+	NVD  string `json:"nvd" yaml:"nvd" env-default:"https://github.com/CVEProject/cvelistV5"`
+	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database"`
 }
 
 type VulnerabilityDatabaseDownloadRemotes struct {
-	NVD  url.URL `json:"nvd" yaml:"nvd" env-default:"https//github.com/CVEProject/cvelistV5/archive/refs/heads/main.zip"`
-	GHSA url.URL `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database/archive/refs/heads/main.zip"`
+	NVD  string `json:"nvd" yaml:"nvd" env-default:"https//github.com/CVEProject/cvelistV5/archive/refs/heads/main.zip"`
+	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database/archive/refs/heads/main.zip"`
+
+	Epss string `json:"epss" yaml:"epss" env-default:"https://epss.empiricalsecurity.com/epss_scores-current.csv.gz"`
 }
 
 type UpdateSchedulesConfig struct {
@@ -33,4 +34,5 @@ type UpdateSchedulesConfig struct {
 	OSV  string `json:"osv" yaml:"osv" env-default:"0 2 * * *"`
 	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"0 */12 * * *"`
 	KEV  string `json:"kev" yaml:"kev" env-default:"0 4 * * *"`
+	Epss string `json:"epss" yaml:"epss" env-default:"0 6 * * *"`
 }

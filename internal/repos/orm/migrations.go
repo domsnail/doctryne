@@ -44,6 +44,7 @@ func AutoMigrate(db *gorm.DB) error {
 		&models.VulnerabilityConfigurationModel{},
 		&models.VulnerabilityDescriptionModel{},
 		&models.VulnerabilityCanonicalModel{},
+		&models.EpssVulnerabilityEnrichmentModel{},
 		&models.KnownExploitedVulnerabilityEnrichmentModel{},
 		&models.VulnerabilityDatabaseUpdateModel{},
 		&models.VulnerabilityDatabaseUpdateErrorModel{},
