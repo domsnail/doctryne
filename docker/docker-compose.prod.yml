@@ -1,0 +1,57 @@
+name: doctryne
+
+services:
+  database:
+    image: gitlab.domsnail.ru/domsnail/dependency_proxy/containers/postgres:18.1-alpine
+    # Alternative from Docker Hub: postgres:18-alpine
+    environment:
+      POSTGRES_DB: doctryne
+      POSTGRES_USER: doctryne
+      POSTGRES_PASSWORD: doctryne
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doctryne -d doctryne"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  doctryne:
+    build:
+      context: ..
+      dockerfile: ../build/docker/Dockerfile
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      # Server (SRV_* maps to cfg.ServerConfig)
+      SRV_HOST: 0.0.0.0
+      SRV_PORT: "8080"
+      DB_DRIVER: postgres
+      DB_HOST: database
+      DB_PORT: "5432"
+      DB_NAME: doctryne
+      DB_USER: doctryne
+      DB_PASS: doctryne
+      DB_TZ: Europe/Moscow
+      DB_SSL: "false"
+      # External API credentials — read from .env (see .env.example)
+      GITHUB_API_KEY: ${GITHUB_API_KEY:-}
+      NPM_API_KEY: ${NPM_API_KEY:-}
+      NVD_API_KEY: ${NVD_API_KEY:-}
+      STACK_EXCHANGE_API_KEY: ${STACK_EXCHANGE_API_KEY:-}
+      # Optional: when set, the HTTP API requires this key (SRV_ACCESS_KEY)
+      SRV_ACCESS_KEY: ${SRV_ACCESS_KEY:-}
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "nc", "-z", "127.0.0.1", "8080"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  pgdata:

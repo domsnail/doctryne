@@ -6,9 +6,10 @@ import (
 )
 
 type HandlerOptions struct {
-	InspectionService    service.IInspectionService
-	DeveloperService     service.IDeveloperService
-	VulnerabilityService service.IVulnerabilityService
+	InspectionService            service.IInspectionService
+	DeveloperService             service.IDeveloperService
+	VulnerabilityService         service.IVulnerabilityService
+	VulnerabilityDatabaseService service.IVulnerabilityDatabaseService
 
 	Config *cfg.ServerConfig
 }

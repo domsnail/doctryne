@@ -32,9 +32,10 @@ type Server struct {
 type ServerOptions struct {
 	Config *cfg.ServerConfig
 
-	InspectionService    service.IInspectionService
-	DeveloperService     service.IDeveloperService
-	VulnerabilityService service.IVulnerabilityService
+	InspectionService            service.IInspectionService
+	DeveloperService             service.IDeveloperService
+	VulnerabilityService         service.IVulnerabilityService
+	VulnerabilityDatabaseService service.IVulnerabilityDatabaseService
 }
 
 func CreateServer(opts ServerOptions) (*Server, error) {
@@ -70,10 +71,11 @@ func CreateServer(opts ServerOptions) (*Server, error) {
 		slog.Warn("server web user interface enabled")
 
 		httpHandler := http_handler.NewAcceptMux(&http_handler.HandlerOptions{
-			VulnerabilityService: opts.VulnerabilityService,
-			InspectionService:    opts.InspectionService,
-			DeveloperService:     opts.DeveloperService,
-			Config:               opts.Config,
+			VulnerabilityService:         opts.VulnerabilityService,
+			VulnerabilityDatabaseService: opts.VulnerabilityDatabaseService,
+			InspectionService:            opts.InspectionService,
+			DeveloperService:             opts.DeveloperService,
+			Config:                       opts.Config,
 		})
 
 		httpServer.Handle("/", httpHandler)
