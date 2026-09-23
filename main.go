@@ -149,10 +149,11 @@ func main() {
 		}
 
 		srv, err := cmd.CreateServer(cmd.ServerOptions{
-			VulnerabilityService: vulnerabilityService,
-			InspectionService:    inspectionService,
-			DeveloperService:     developerService,
-			Config:               &config.Server,
+			VulnerabilityService:         vulnerabilityService,
+			VulnerabilityDatabaseService: databaseUpdater,
+			InspectionService:            inspectionService,
+			DeveloperService:             developerService,
+			Config:                       &config.Server,
 		})
 
 		if err != nil {

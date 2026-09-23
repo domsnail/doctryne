@@ -1,26 +1,26 @@
-LABEL authors="lysak.yaroslav00@yandex.ru"
+FROM golang:1.27-alpine AS build
 
-FROM golang:1.24.3-alpine3.21 as modules
+RUN apk add --no-cache git gcc musl-dev
 
-COPY ../go.mod go.sum /modules/
+WORKDIR /src
 
-WORKDIR /modules
-
+COPY ../../go.mod go.sum ./
 RUN go mod download
 
-FROM golang:1.24.3-alpine3.21 as builder
+COPY ../.. .
 
-COPY --from=modules /go/pkg /go/pkg
-COPY .. /app
+RUN go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
 
-WORKDIR /app
+RUN CGO_ENABLED=1 GOOS=linux \
+    go build -trimpath -ldflags="-s -w" -o /out/doctryne .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -tags migrate -o /bin/app ./cmd/app
+FROM alpine:3.21
 
-FROM scratch
+RUN apk add --no-cache ca-certificates tzdata
 
-COPY --from=builder /app/cfg /cfg
-COPY --from=builder /bin/app /app
+COPY --from=build /out/doctryne /usr/local/bin/doctryne
 
-CMD ["/app"]
+EXPOSE 8080
+
+ENTRYPOINT ["doctryne"]
+CMD ["--server", "--host", "0.0.0.0", "--port", "8080"]

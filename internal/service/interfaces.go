@@ -6,6 +6,7 @@ import (
 	"uuid"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type IInspectionService interface {
@@ -86,7 +87,7 @@ type IVulnerabilityRepository interface {
 type IVulnerabilityDatabaseService interface {
 	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
 
-	RunVulnerabilityDatabaseUpdate(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
+	RunVulnerabilityDatabaseUpdateBySource(ctx context.Context, source types.VulnerabilitySource) (entity.VulnerabilitiesDatabaseUpdate, error)
 }
 
 // ---

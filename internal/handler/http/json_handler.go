@@ -2,14 +2,18 @@ package http
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type JsonHandler struct {
-	vulnerabilities service.IVulnerabilityService
+	vulnerabilities       service.IVulnerabilityService
+	vulnerabilityDatabase service.IVulnerabilityDatabaseService
 
 	config *cfg.ServerConfig
 }
@@ -19,11 +23,18 @@ func newJSONHandler(opts *HandlerOptions) JsonHandler {
 		panic("service is nil")
 	}
 
-	return JsonHandler{vulnerabilities: opts.VulnerabilityService, config: opts.Config}
+	return JsonHandler{
+		vulnerabilities:       opts.VulnerabilityService,
+		vulnerabilityDatabase: opts.VulnerabilityDatabaseService,
+		config:                opts.Config,
+	}
 }
 
 func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/{canonical_id}", h.handleVulnerabilityByCanonicalID)
+
+	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
+	mux.HandleFunc("/vulnerabilities/databases/update/{source_code}", h.handleRunVulnerabilityDatabaseUpdateBySource)
 }
 
 func (h *JsonHandler) handleVulnerabilityByCanonicalID(w http.ResponseWriter, r *http.Request) {
@@ -52,5 +63,80 @@ func (h *JsonHandler) handleVulnerabilityByCanonicalID(w http.ResponseWriter, r 
 
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) handleRunVulnerabilityDatabaseUpdateBySource(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodPost {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	source := types.VulnerabilitySource(r.PathValue("source_code"))
+	if !source.IsValid() {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	update, err := h.vulnerabilityDatabase.RunVulnerabilityDatabaseUpdateBySource(ctx, source)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	payload, err := json.Marshal(update)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) handleGetVulnerabilityDatabaseUpdatesByQueryFilter(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	filter := entity.VulnerabilitiesDatabaseUpdateQueryFilter{}
+	err := filter.FromQuery(r.URL.Query())
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	updates, err := h.vulnerabilityDatabase.GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx, filter)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	payload, err := json.Marshal(updates)
+	if err != nil {
+		h.error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) error(w http.ResponseWriter, err error, code int) {
+	customError := entity.Error{
+		StatusCode: code,
+		Message:    err.Error(),
+		Details:    "",
+	}
+
+	w.WriteHeader(code)
+	_ = json.NewEncoder(w).Encode(customError)
 	return
 }
