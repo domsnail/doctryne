@@ -11,7 +11,7 @@ type QueryFilter struct {
 	Offset int `json:"offset"`
 }
 
-func (q QueryFilter) FromQuery(params url.Values) error {
+func (q *QueryFilter) FromQuery(params url.Values) error {
 	var err error
 	if params.Has("limit") {
 		q.Limit, err = strconv.Atoi(params.Get("limit"))

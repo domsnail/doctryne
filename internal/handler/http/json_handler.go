@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"uuid"
 
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
@@ -34,6 +35,7 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/{canonical_id}", h.handleVulnerabilityByCanonicalID)
 
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
+	mux.HandleFunc("/vulnerabilities/databases/updates/{uuid}", h.handleGetVulnerabilityDatabaseUpdateByUUID)
 	mux.HandleFunc("/vulnerabilities/databases/update/{source_code}", h.handleRunVulnerabilityDatabaseUpdateBySource)
 }
 
@@ -70,25 +72,57 @@ func (h *JsonHandler) handleRunVulnerabilityDatabaseUpdateBySource(w http.Respon
 	ctx := r.Context()
 
 	if r.Method != http.MethodPost {
-		w.WriteHeader(http.StatusMethodNotAllowed)
+		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
 		return
 	}
 
 	source := types.VulnerabilitySource(r.PathValue("source_code"))
 	if !source.IsValid() {
-		w.WriteHeader(http.StatusBadRequest)
+		h.error(w, errors.New("invalid source type"), http.StatusBadRequest)
 		return
 	}
 
 	update, err := h.vulnerabilityDatabase.RunVulnerabilityDatabaseUpdateBySource(ctx, source)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		h.error(w, err, http.StatusBadRequest)
 		return
 	}
 
 	payload, err := json.Marshal(update)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		h.error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) handleGetVulnerabilityDatabaseUpdateByUUID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	uuidPathValue := r.PathValue("uuid")
+	uid, err := uuid.Parse(uuidPathValue)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	update, err := h.vulnerabilityDatabase.GetVulnerabilityDatabaseUpdateByUUID(ctx, uid)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	payload, err := json.Marshal(update)
+	if err != nil {
+		h.error(w, err, http.StatusInternalServerError)
 		return
 	}
 

@@ -5,7 +5,8 @@ import (
 )
 
 type VulnerabilityDatabaseConfig struct {
-	DisableAutoUpdates bool `json:"disable_auto_updates" yaml:"disable_auto_updates"`
+	DisableAutoUpdates    bool `json:"disable_auto_updates" yaml:"disable_auto_updates"`
+	DisableStartupUpdates bool `json:"disable_startup_updates" yaml:"disable_startup_updates"`
 
 	UpdatesRefresh  time.Duration         `json:"updates_refresh" yaml:"updates_refresh" env-default:"30s"`
 	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"30m"`

@@ -86,6 +86,7 @@ type IVulnerabilityRepository interface {
 
 type IVulnerabilityDatabaseService interface {
 	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
+	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
 
 	RunVulnerabilityDatabaseUpdateBySource(ctx context.Context, source types.VulnerabilitySource) (entity.VulnerabilitiesDatabaseUpdate, error)
 }
