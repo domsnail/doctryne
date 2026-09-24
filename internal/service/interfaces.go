@@ -6,7 +6,6 @@ import (
 	"uuid"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/internal/types"
 )
 
 type IInspectionService interface {
@@ -76,19 +75,25 @@ type IVulnerabilityService interface {
 	GetVulnerabilityByUUID(ctx context.Context, uid uuid.UUID) (*entity.Vulnerability, error)
 
 	FindVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]entity.Vulnerability, error)
+
+	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
+	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
+	GetLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
 }
 
 type IVulnerabilityRepository interface {
 	SelectVulnerabilityByCanonicalID(ctx context.Context, id string) (*entity.Vulnerability, error)
 	SelectVulnerabilityByUUID(ctx context.Context, uid uuid.UUID) (*entity.Vulnerability, error)
 	SelectVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]entity.Vulnerability, error)
+
+	SelectVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
+	SelectVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
+
+	SelectLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
 }
 
 type IVulnerabilityDatabaseService interface {
-	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
-	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
-
-	RunVulnerabilityDatabaseUpdateBySource(ctx context.Context, source types.VulnerabilitySource) (entity.VulnerabilitiesDatabaseUpdate, error)
+	RunVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
 }
 
 // ---
