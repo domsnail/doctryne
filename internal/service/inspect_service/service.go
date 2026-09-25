@@ -75,7 +75,7 @@ func (service *InspectionService) InitInspection(ctx context.Context, opts *enti
 	ins := entity.NewInspection(opts).WithAuthor(utils.GetClientDataFromIncomingMetadata(ctx))
 
 	slog.InfoContext(ctx, "initializing new inspection...",
-		slog.String("uuid", ins.UUID.String()),
+		slog.String("inspection_uuid", ins.UUID.String()),
 		slog.String("scan_type", string(ins.ScanType)),
 		slog.String("scan_mode", string(opts.Mode)),
 		slog.String("uploaded_by", ins.UploadedBy),
@@ -757,7 +757,7 @@ func extractAndDedupeAllDevelopers(ctx context.Context, inspection *entity.Inspe
 				err := last.Merge(devs[i])
 				if err != nil {
 					slog.WarnContext(ctx, "conflict on developers dedupe",
-						slog.String("fullname", last.Name),
+						slog.String("full_name", last.Name),
 						slog.String("error", err.Error()),
 					)
 

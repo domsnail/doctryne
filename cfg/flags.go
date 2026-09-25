@@ -37,7 +37,7 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 	flag.Parse()
 
 	if configFile != nil && *configFile != "" {
-		slog.InfoContext(ctx, "loading configuration from file, cli flags will be ignored", slog.String("file_path", *configFile))
+		slog.InfoContext(ctx, "loading configuration from file, cli flags will be ignored", slog.String("config_file_path", *configFile))
 		return NewConfigFromFile(*configFile)
 	}
 
