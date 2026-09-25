@@ -124,7 +124,7 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 		repo.Languages, err = pool.github.GetRepositoryLanguages(pool.ctx, repo.Owner.Username, repo.Name)
 		if err != nil {
 			slog.WarnContext(pool.ctx, "failed to fetch github repository languages",
-				slog.String("repository_name", repo.Owner.Username+"/"+repo.Name),
+				slog.String("repository_path", repo.Owner.Username+"/"+repo.Name),
 				slog.String("error", err.Error()),
 			)
 		}
@@ -132,7 +132,7 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 		repo.Contributors, err = pool.github.GetRepositoryContributors(pool.ctx, repo.Owner.Username, repo.Name)
 		if err != nil {
 			slog.WarnContext(pool.ctx, "failed to fetch github repository contributors",
-				slog.String("repository_name", repo.Owner.Username+"/"+repo.Name),
+				slog.String("repository_path", repo.Owner.Username+"/"+repo.Name),
 				slog.String("error", err.Error()),
 			)
 		}
@@ -141,7 +141,7 @@ func (pool *GitHubInspectionPool) Inspect(pkg *entity.Package) {
 			repo.Issues, err = pool.github.GetRepositoryIssues(pool.ctx, repo.Owner.Username, repo.Name)
 			if err != nil {
 				slog.WarnContext(pool.ctx, "failed to fetch github repository issues",
-					slog.String("repository_name", repo.Owner.Username+"/"+repo.Name),
+					slog.String("repository_path", repo.Owner.Username+"/"+repo.Name),
 					slog.String("error", err.Error()),
 				)
 			}
