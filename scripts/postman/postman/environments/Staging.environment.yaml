@@ -1,0 +1,4 @@
+name: Staging
+values:
+  - key: HOST
+    value: ''

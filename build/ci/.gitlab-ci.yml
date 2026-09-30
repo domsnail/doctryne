@@ -56,7 +56,7 @@ deploy to staging:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: staging
-    url: "https://doctyne-staging-01.domsnail.ru"
+    url: "https://doctryne-staging-01.domsnail.ru"
     action: start
     on_stop: stop staging
   rules:
@@ -78,7 +78,7 @@ deploy to production:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: production
-    url: "https://doctyne.domsnail.ru"
+    url: "https://doctryne.domsnail.ru"
     action: start
     on_stop: stop production
   rules:
@@ -99,7 +99,7 @@ stop staging:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: staging
-    url: "https://doctyne-staging-01.domsnail.ru"
+    url: "https://doctryne-staging-01.domsnail.ru"
     action: stop
   when: manual
   script:
@@ -113,7 +113,7 @@ stop production:
   image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: production
-    url: "https://doctyne.domsnail.ru"
+    url: "https://doctryne.domsnail.ru"
     action: stop
   when: manual
   script:

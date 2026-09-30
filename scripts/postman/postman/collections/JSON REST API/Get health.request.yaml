@@ -1,0 +1,9 @@
+$kind: http-request
+url: "{{HOST}}/health"
+method: GET
+auth:
+  type: basic
+  credentials:
+    username: "{{vault:Basic User}}"
+    password: "{{vault:Basic Password}}"
+order: 105104555378593
