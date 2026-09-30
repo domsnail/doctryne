@@ -25,6 +25,7 @@ stages:
 
 build docker image:
   stage: build
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH || $CI_COMMIT_TAG
       changes:
@@ -52,6 +53,7 @@ build docker image:
 
 deploy to staging:
   stage: deploy
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: staging
     url: "https://doctyne-staging-01.domsnail.ru"
@@ -71,6 +73,7 @@ deploy to staging:
 
 deploy to production:
   stage: deploy
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: production
     url: "https://doctyne.domsnail.ru"
@@ -82,34 +85,36 @@ deploy to production:
   before_script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
   script:
-    - docker compose -f build/compose/docker-compose.prod.yml pull
-    - docker compose -f build/compose/docker-compose.prod.yml up -d --wait --remove-orphans
+    - docker compose -f docker/docker-compose.prod.yml pull
+    - docker compose -f docker/docker-compose.prod.yml up -d --wait --remove-orphans
   tags:
     - shell-bf16
 
 
 stop staging:
   stage: operate
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: staging
     url: "https://doctyne-staging-01.domsnail.ru"
     action: stop
   when: manual
   script:
-    - docker compose -f build/compose/docker-compose.stage.yml stop
+    - docker compose -f docker/docker-compose.stage.yml stop
   tags:
     - shell-bf16
 
 
 stop production:
   stage: operate
+  image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/docker:27.3.1-dind
   environment:
     name: production
     url: "https://doctyne.domsnail.ru"
     action: stop
   when: manual
   script:
-    - docker compose -f build/compose/docker-compose.prod.yml stop
+    - docker compose -f docker/docker-compose.prod.yml stop
   tags:
     - shell-bf16
 
