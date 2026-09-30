@@ -3,6 +3,11 @@ FROM golang:1.27 AS build
 ARG GITLAB_HOST
 ARG GITLAB_PROJECT_ID
 
+RUN apk add --no-cache \
+    build-base \
+    musl-dev \
+    && rm -rf /var/cache/* /tmp/*
+
 RUN go env -w GOPRIVATE="${CI_SERVER_HOST}/*" && \
     go env -w GONOSUMDB="${CI_SERVER_HOST}/*" && \
     go env -w GOPROXY="https://${GITLAB_HOST}/api/v4/projects/${GITLAB_PROJECT_ID}/packages/go,https://proxy.golang.org,direct"
@@ -22,8 +27,8 @@ COPY ../.. .
 
 RUN go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -tags="netgo,osusergo" -ldflags="-s -w" -o /out/doctryne .
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=gcc \
+    go build -trimpath -tags="netgo,osusergo" -ldflags="-s -w -linkmode external -extldflags '-static'"" -o /out/doctryne .
 
 FROM alpine:3.21
 
