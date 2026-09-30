@@ -31,7 +31,6 @@ type VulnerabilityDatabaseDownloadRemotes struct {
 
 type UpdateSchedulesConfig struct {
 	NVD  string `json:"nvd" yaml:"nvd" env-default:"0 */8 * * *"`
-	CVE  string `json:"cve" yaml:"cve" env-default:"30 */8 * * *"`
 	OSV  string `json:"osv" yaml:"osv" env-default:"0 2 * * *"`
 	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"0 */12 * * *"`
 	KEV  string `json:"kev" yaml:"kev" env-default:"0 4 * * *"`
