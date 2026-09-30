@@ -79,7 +79,7 @@ deploy to production:
     name: production
     url: "https://doctyne.domsnail.ru"
     action: start
-    on_stop: stop prod
+    on_stop: stop production
   rules:
     - if: $CI_COMMIT_TAG
       when: manual
