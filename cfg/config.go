@@ -38,9 +38,9 @@ type Config struct {
 	RateLimits        RateLimitsConfig  `json:"rate_limits" yaml:"rate_limits"`
 	ProfileDataMaxAge time.Duration     `json:"profile_data_max_age" yaml:"profile_data_max_age" env:"PROFILE_DATA_MAX_AGE" env-default:"2160h"`
 
-	Server   ServerConfig    `json:"server" yaml:"server" env-prefix:"SRV_"`
-	Database *DatabaseConfig `json:"database" yaml:"database" env-prefix:"DB_"`
-	Logging  LoggingConfig   `json:"logs" yaml:"logs" env-prefix:"LOG_"`
+	Server   ServerConfig   `json:"server" yaml:"server" env-prefix:"SRV_"`
+	Database DatabaseConfig `json:"database" yaml:"database" env-prefix:"DB_"`
+	Logging  LoggingConfig  `json:"logs" yaml:"logs" env-prefix:"LOG_"`
 
 	VulnerabilityDatabase VulnerabilityDatabaseConfig `json:"vuln_db" yaml:"vuln_db"`
 
@@ -125,7 +125,7 @@ func (c *Config) HasScan() bool {
 }
 
 func (c *Config) HasDatabase() bool {
-	return c.Database != nil && len(c.Database.Host) > 0 && c.Database.Port > 0
+	return len(c.Database.Host) > 0 && c.Database.Port > 0
 }
 
 func (c *Config) IsValid() error {

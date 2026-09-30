@@ -82,7 +82,7 @@ func main() {
 		conn *gorm.DB
 	)
 
-	if config.Database == nil {
+	if !config.HasDatabase() {
 		slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
 		conn, err = orm.NewDatabaseConn(rootCtx, &cfg.DatabaseConfig{
 			Driver: "sqlite",
@@ -96,9 +96,9 @@ func main() {
 				panic(fmt.Sprintf("sqlite3 database file not set"))
 			}
 
-			conn, err = orm.NewDatabaseConn(rootCtx, config.Database)
+			conn, err = orm.NewDatabaseConn(rootCtx, &config.Database)
 		case "postgres", "mysql":
-			conn, err = orm.NewDatabaseConn(rootCtx, config.Database)
+			conn, err = orm.NewDatabaseConn(rootCtx, &config.Database)
 		case "local", "cache":
 			slog.WarnContext(rootCtx, "database not configured, using cached sqlite")
 			conn, err = orm.NewDatabaseConn(rootCtx, &cfg.DatabaseConfig{
