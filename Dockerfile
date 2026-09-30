@@ -36,7 +36,7 @@ COPY --from=build /out/doctryne /usr/local/bin/doctryne
 
 # защищенные переменные среды
 ENV GODEBUG="netdns=go http2server=0"
-ENV PATH="/app:${PATH}"
+ENV PATH="/usr/local/bin:${PATH}"
 
 EXPOSE 8080
 

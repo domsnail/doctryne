@@ -49,6 +49,9 @@ services:
         delay: 10s
     stop_grace_period: 30s
     environment:
+      # server configuration
+      - SRV_ENABLED=true
+
       # database connection
       - DB_DRIVER=postgres
       - DB_HOST=database
