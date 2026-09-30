@@ -1,4 +1,4 @@
-FROM golang:1.27-alpine AS build
+FROM golang:1.27 AS build
 
 ARG GITLAB_TOKEN
 ARG GITLAB_HOST
