@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net"
 	"os"
 	"os/signal"
 	"syscall"
@@ -66,6 +67,11 @@ func main() {
 			slog.Int("level", config.Logging.Level),
 			slog.String("format", config.Logging.Format),
 			slog.Bool("add_source", config.Logging.AddSource),
+		),
+		slog.Group("database",
+			slog.String("driver", config.Database.Driver),
+			slog.String("address", net.JoinHostPort(config.Database.Host, fmt.Sprint(config.Database.Port))),
+			slog.String("timezone", config.Database.Timezone),
 		),
 	)
 

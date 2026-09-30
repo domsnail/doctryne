@@ -22,6 +22,10 @@ import (
 func NewDatabaseConn(ctx context.Context, config *cfg.DatabaseConfig) (*gorm.DB, error) {
 	var dialector gorm.Dialector
 
+	slog.DebugContext(ctx, "preparing database dialector...",
+		slog.String("driver", config.Driver),
+	)
+
 	switch config.Driver {
 	case "postgres":
 		dialector = postgres.Open(newPostgresConnectionString(config))
