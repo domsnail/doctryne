@@ -1,12 +1,10 @@
-FROM golang:1.27 AS build
+FROM golang:1.27-alpine3.24 AS build
 
 ARG GITLAB_HOST
 ARG GITLAB_PROJECT_ID
 
-RUN apk add --no-cache \
-    build-base \
-    musl-dev \
-    && rm -rf /var/cache/* /tmp/*
+RUN apk add --no-cache git build-base musl-dev && \
+    rm -rf /var/cache/* /tmp/*
 
 RUN go env -w GOPRIVATE="${CI_SERVER_HOST}/*" && \
     go env -w GONOSUMDB="${CI_SERVER_HOST}/*" && \
@@ -30,7 +28,7 @@ RUN go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=gcc \
     go build -trimpath -tags="netgo,osusergo" -ldflags="-s -w -linkmode external -extldflags '-static'"" -o /out/doctryne .
 
-FROM alpine:3.21
+FROM alpine:3.24
 
 RUN apk add --no-cache ca-certificates tzdata && rm -rf /var/cache/* /tmp/*
 
