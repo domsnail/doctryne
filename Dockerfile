@@ -22,15 +22,12 @@ COPY ../.. .
 
 RUN go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
 
-RUN CGO_ENABLED=1 GOOS=linux \
-    go build -trimpath -ldflags="-s -w" -o /out/doctryne .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -trimpath -tags="netgo,osusergo" -ldflags="-s -w" -o /out/doctryne .
 
 FROM alpine:3.21
 
-RUN apk add --no-cache ca-certificates tzdata
-
-# удаление лишних файлов
-RUN rm -rf /var/cache/* /tmp/*
+RUN apk add --no-cache ca-certificates tzdata && rm -rf /var/cache/* /tmp/*
 
 COPY --from=build /out/doctryne /usr/local/bin/doctryne
 
