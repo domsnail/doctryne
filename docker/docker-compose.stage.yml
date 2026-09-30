@@ -86,7 +86,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.doctryne-stage.service=doctryne-stage"
-      - "traefik.http.routers.doctryne-stage.rule=Host(`doctyne-staging-01.domsnail.ru`)"
+      - "traefik.http.routers.doctryne-stage.rule=Host(`doctryne-staging-01.domsnail.ru`)"
       - "traefik.http.routers.doctryne-stage.tls=true"
       - "traefik.http.routers.doctryne-stage.entrypoints=websec"
       - "traefik.http.services.doctryne-stage.loadbalancer.server.port=8080"
