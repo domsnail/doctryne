@@ -14,17 +14,10 @@ RUN --mount=type=secret,id=ci-job-token \
     git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}".insteadOf "https://${CI_SERVER_HOST}" && \
     git config --global --unset-all url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}".insteadOf
 
-COPY .. /apps
-
-WORKDIR /apps/pom2sbom
-RUN go mod download && go mod verify
-
-RUN apk add --no-cache git gcc musl-dev
-
 WORKDIR /src
 
 COPY go.mod go.sum ./
-RUN go mod download
+RUN go mod download && go mod verify
 
 COPY ../.. .
 
