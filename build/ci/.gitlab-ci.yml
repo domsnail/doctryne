@@ -35,19 +35,17 @@ build docker image:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
   script:
     - |
-      docker build --cache-from ${CI_REGISTRY_IMAGE} . \
+      docker build --progress=plain \
+      --cache-from ${CI_REGISTRY_IMAGE} . \
       --build-arg GITLAB_TOKEN="${CI_JOB_TOKEN}" \
       --build-arg GITLAB_HOST="${CI_SERVER_HOST}" \
-      --build-arg GITLAB_PROJECT_ID="${CI_PROJECT_ID}" \
+      --secret id=ci-job-token,env=CI_JOB_TOKEN \
+      --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG} \
       --tag ${CI_REGISTRY_IMAGE}:latest \
       --file ./Dockerfile
 
+    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
     - docker push ${CI_REGISTRY_IMAGE}:latest
-    - |
-      if [ -n "$CI_COMMIT_REF_SLUG" ]; then
-        docker tag ${CI_REGISTRY_IMAGE}:latest ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
-        docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
-      fi
   tags:
     - docker
 
