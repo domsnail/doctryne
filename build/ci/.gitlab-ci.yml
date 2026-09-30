@@ -64,6 +64,7 @@ deploy to staging:
       when: on_success
   before_script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker login -u ${CI_DEPENDENCY_PROXY_USER} -p ${CI_DEPENDENCY_PROXY_PASSWORD} ${CI_DEPENDENCY_PROXY_SERVER}
   script:
     - docker compose -f docker/docker-compose.stage.yml pull
     - docker compose -f docker/docker-compose.stage.yml up -d --wait --remove-orphans
@@ -84,6 +85,7 @@ deploy to production:
       when: manual
   before_script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker login -u ${CI_DEPENDENCY_PROXY_USER} -p ${CI_DEPENDENCY_PROXY_PASSWORD} ${CI_DEPENDENCY_PROXY_SERVER}
   script:
     - docker compose -f docker/docker-compose.prod.yml pull
     - docker compose -f docker/docker-compose.prod.yml up -d --wait --remove-orphans
