@@ -66,7 +66,7 @@ services:
       - LOG_FORMAT=json
 
       # vulnerability database updates
-      - DISABLE_AUTO_UPDATES=true
+      - DISABLE_AUTO_UPDATES=false
       - DISABLE_STARTUP_UPDATES=true
 
       # remote credentials
@@ -80,7 +80,7 @@ services:
       - /opt/doctryne/staging/postgres:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider --timeout=5 http://localhost:8080/health || exit 1" ]
-      interval: 60s
+      interval: 300s
       timeout: 5s
       retries: 3
     labels:
