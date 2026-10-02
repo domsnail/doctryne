@@ -41,4 +41,4 @@ ENV PATH="/usr/local/bin:${PATH}"
 EXPOSE 8080
 
 ENTRYPOINT ["doctryne"]
-CMD ["--server", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["--server", "--use-secrets", "--host", "0.0.0.0", "--port", "8080"]
