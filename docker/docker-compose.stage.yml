@@ -1,5 +1,15 @@
 name: doctryne-staging
 
+secrets:
+  github-api-key:
+    environment: GITHUB_API_KEY
+  npm-api-key:
+    environment: NPM_API_KEY
+  stack-exchange-api-key:
+    environment: STACK_EXCHANGE_API_KEY
+  nvd-api-key:
+    environment: NVD_API_KEY
+
 services:
   database:
     image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/postgres:18.1-alpine
@@ -48,6 +58,11 @@ services:
         window: 30s
         delay: 10s
     stop_grace_period: 30s
+    secrets:
+      - ghsa-api-key
+      - npm-api-key
+      - nvd-api-key
+      - stack-exchange-api-key
     environment:
       # server configuration
       - SRV_ENABLED=true

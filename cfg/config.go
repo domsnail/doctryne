@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -112,6 +113,7 @@ func NewConfigFromFile(filepath string) (*Config, error) {
 func NewConfigFromEnv() (*Config, error) {
 	var cfg Config
 
+	slog.Debug("reading config from environment...")
 	err := cleanenv.ReadEnv(&cfg)
 	if err != nil {
 		return nil, err
@@ -186,14 +188,6 @@ type ScanConfig struct {
 
 type Output struct {
 	Format types.ReportFormat `json:"format" yaml:"format"`
-}
-
-type CredentialsConfig struct {
-	GithubApiKey        string `json:"github_api_key" yaml:"github_api_key" env:"GITHUB_API_KEY"`
-	NpmApiKey           string `json:"npm_api_key" yaml:"npm_api_key" env:"NPM_API_KEY"`
-	StackExchangeApiKey string `json:"stack_exchange_api_key" yaml:"stack_exchange_api_key" env:"STACK_EXCHANGE_API_KEY"`
-
-	NVDApiKey string `json:"nvd_api_key" yaml:"nvd_api_key" env:"NVD_API_KEY"`
 }
 
 type ServerConfig struct {

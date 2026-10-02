@@ -34,16 +34,31 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 	insecure := flag.Bool("insecure", false, "use insecure http")
 	timeout := flag.Duration("timeout", time.Second*30, "operation timeout")
 
+	// === Docker secrets
+	useSecrets := flag.Bool("use-secrets", false, "use docker secrets")
+
 	flag.Parse()
 
 	if configFile != nil && *configFile != "" {
-		slog.InfoContext(ctx, "loading configuration from file, cli flags will be ignored", slog.String("config_file_path", *configFile))
-		return NewConfigFromFile(*configFile)
+		slog.InfoContext(ctx, "loading configuration from file...", slog.String("config_file_path", *configFile))
+		config, err = NewConfigFromFile(*configFile)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		slog.InfoContext(ctx, "loading configuration from env...")
+		config, err = NewConfigFromEnv()
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	config, err = NewConfigFromEnv()
-	if err != nil {
-		return nil, err
+	if useSecrets != nil && *useSecrets {
+		secrets, err := LoadCredentialsFromSecrets()
+		if err == nil && secrets != nil {
+			slog.Info("successfully loaded credentials from secrets, env variables will be overridden")
+			config.Credentials = *secrets
+		}
 	}
 
 	if format != nil && *format != "" {
