@@ -9,7 +9,7 @@ type VulnerabilityDatabaseConfig struct {
 	DisableStartupUpdates bool `json:"disable_startup_updates" yaml:"disable_startup_updates" env:"DISABLE_STARTUP_UPDATES"`
 
 	UpdatesRefresh  time.Duration         `json:"updates_refresh" yaml:"updates_refresh" env-default:"30s"`
-	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"30m"`
+	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"8h"`
 	UpdateSchedules UpdateSchedulesConfig `json:"update_schedules" yaml:"update_schedules"`
 
 	Catalog         string                               `json:"catalog" yaml:"catalog" env-default:"vuln_catalog"`
