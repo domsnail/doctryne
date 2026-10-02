@@ -1,6 +1,7 @@
 .idea
 .run
 .env
+.claude
 
 /internal/service/git_service/test/
 /web/node_modules/

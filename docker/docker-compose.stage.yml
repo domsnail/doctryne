@@ -59,7 +59,7 @@ services:
         delay: 10s
     stop_grace_period: 30s
     secrets:
-      - ghsa-api-key
+      - github-api-key
       - npm-api-key
       - nvd-api-key
       - stack-exchange-api-key
