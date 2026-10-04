@@ -64,5 +64,5 @@ func LoadCredentialsFromSecrets() (*CredentialsConfig, error) {
 		}
 	}
 
-	return nil, nil
+	return &c, nil
 }

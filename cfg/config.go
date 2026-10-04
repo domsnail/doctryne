@@ -224,12 +224,6 @@ type DatabaseConfig struct {
 	File string `json:"file" yaml:"file" env:"FILE" env-default:"doctryne.db"`
 }
 
-type LoggingConfig struct {
-	Level     int    `json:"level" yaml:"level" env:"LEVEL" env-default:"0"`
-	Format    string `json:"format" yaml:"format" env:"FORMAT" env-default:"text"`
-	AddSource bool   `json:"add_source" yaml:"add_source" env:"ADD_SOURCE" env-default:"false"`
-}
-
 type RateLimitsConfig struct {
 	RefreshPeriod time.Duration `json:"refresh_period" yaml:"refresh_period" env-default:"1m"`
 

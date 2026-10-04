@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -19,6 +20,7 @@ import (
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
 	"github.com/domsnail/doctryne/internal/service/vulnerability_service"
+	"github.com/domsnail/doctryne/pkg/alerts"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
 	"gorm.io/gorm"
 )
@@ -48,7 +50,37 @@ func main() {
 		panic(fmt.Sprintf("invalid logging format: '%s'", config.Logging.Format))
 	}
 
-	slog.SetDefault(slog.New(handler))
+	if config.Logging.Alerts.Enabled {
+		alertConfig := config.Logging.Alerts
+		var alertsHandler slog.Handler
+
+		slog.Info("enabling alerting service...",
+			slog.String("system", string(alertConfig.System)),
+			slog.String("environment", string(alertConfig.Environment)),
+		)
+
+		switch alertConfig.System {
+		case cfg.AlertsSystem_GitLab:
+			hostname, _ := os.Hostname()
+
+			alertsHandler = alerts.NewGitlabAlertClient(
+				alerts.WithHTTPClient(http.DefaultClient),
+				alerts.WithHost(hostname),
+				alerts.WithEndpoint(alertConfig.Endpoint),
+				alerts.WithEnvironment(alertConfig.Environment),
+				alerts.WithToken(alertConfig.Key),
+				alerts.WithMinLevel(slog.Level(alertConfig.MinLevel)),
+			)
+
+		default:
+			panic(fmt.Sprintf("invalid alerting system provided: %s", alertConfig.System))
+		}
+
+		slog.SetDefault(slog.New(slog.NewMultiHandler(handler, alertsHandler)))
+		slog.Log(rootCtx, slog.Level(alertConfig.MinLevel), "server has been restarted")
+	} else {
+		slog.SetDefault(slog.New(handler))
+	}
 
 	slog.DebugContext(rootCtx, "loaded configuration variables",
 		slog.String("config_file_path", config.FilePath),
