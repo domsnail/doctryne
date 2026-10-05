@@ -13,7 +13,7 @@ type AlertsConfig struct {
 
 	System AlertsSystem `json:"system" yaml:"system" env:"SYSTEM" env-default:"gitlab"`
 
-	Environment string `json:"environment" yaml:"environment" env:"ENVIRONMENT" env-default:"development"`
+	Environment string `json:"environment" yaml:"environment" env:"ENV" env-default:"development"`
 	Endpoint    string `json:"endpoint" yaml:"endpoint" env:"ENDPOINT"`
 	Key         string `json:"key" yaml:"key" env:"KEY"`
 	MinLevel    int    `json:"min_level" yaml:"min_level" env:"MIN_LEVEL" env-default:"6"`
