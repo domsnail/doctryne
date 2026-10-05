@@ -65,37 +65,37 @@ services:
       - stack-exchange-api-key
     environment:
       # server configuration
-      - SRV_ENABLED=true
+      SRV_ENABLED: true
 
       # database connection
-      - DB_DRIVER=postgres
-      - DB_HOST=database
-      - DB_PORT=5432
-      - DB_NAME=staging
-      - DB_USER=${DB_USER}
-      - DB_PASS=${DB_PASS}
-      - DB_TZ=Europe/Moscow
+      DB_DRIVER: "postgres"
+      DB_HOST: "database"
+      DB_PORT: 5432
+      DB_NAME: "staging"
+      DB_USER: "${DB_USER}"
+      DB_PASS: "${DB_PASS}"
+      DB_TZ: "Europe/Moscow"
 
       # logging
-      - LOG_LEVEL=-4
-      - LOG_FORMAT=json
+      LOG_LEVEL: -4
+      LOG_FORMAT: "json"
+
+      # alerting
+      LOG_ALERTS_ENABLED: true
+      LOG_ALERTS_ENV: "staging"
+      LOG_ALERTS_ENDPOINT: "${ALERTS_WEBHOOK_URL}"
+      LOG_ALERTS_KEY: "${ALERTS_WEBHOOK_KEY}"
 
       # vulnerability database updates
-      - DISABLE_AUTO_UPDATES=false
-      - DISABLE_STARTUP_UPDATES=true
-
-      # remote credentials
-      - GITHUB_API_KEY=${GITHUB_API_KEY}
-      - NPM_API_KEY=${NPM_API_KEY}
-      - STACK_EXCHANGE_API_KEY=${STACK_EXCHANGE_API_KEY}
-      - NVD_API_KEY=${NVD_API_KEY}
+      DISABLE_AUTO_UPDATES: false
+      DISABLE_STARTUP_UPDATES: true
     expose:
       - 8080
     volumes:
       - /opt/doctryne/staging/postgres:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider --timeout=5 http://localhost:8080/health || exit 1" ]
-      interval: 300s
+      interval: 120s
       timeout: 5s
       retries: 3
     labels:

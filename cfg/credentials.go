@@ -44,9 +44,11 @@ func LoadCredentialsFromSecrets() (*CredentialsConfig, error) {
 
 		buf, err = os.ReadFile(entry.Name())
 		if err != nil {
-			return nil, fmt.Errorf("failed to read secret file '%s': %w", entry.Name(), err)
+			slog.Warn(fmt.Sprintf("failed to read secret file '%s': %s, skipping file...", entry.Name(), err.Error()))
+			continue
 		} else if len(buf) == 0 {
-			return nil, fmt.Errorf("secret file '%s' is empty", entry.Name())
+			slog.Warn(fmt.Sprintf("secret file '%s' is empty, skipping file...", entry.Name()))
+			continue
 		}
 
 		switch filepath.Base(entry.Name()) {
@@ -62,6 +64,10 @@ func LoadCredentialsFromSecrets() (*CredentialsConfig, error) {
 			slog.Warn("unknown secret type", slog.String("secret_name", entry.Name()))
 			continue
 		}
+
+		slog.Info("successfully loaded key from secret file",
+			slog.String("secret_name", entry.Name()),
+		)
 	}
 
 	return &c, nil
