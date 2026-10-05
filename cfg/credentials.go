@@ -42,12 +42,19 @@ func LoadCredentialsFromSecrets() (*CredentialsConfig, error) {
 		var buf []byte
 		var err error
 
-		buf, err = os.ReadFile(entry.Name())
+		path := filepath.Join(secretsDir, entry.Name())
+		buf, err = os.ReadFile(path)
 		if err != nil {
-			slog.Warn(fmt.Sprintf("failed to read secret file '%s': %s, skipping file...", entry.Name(), err.Error()))
+			slog.Warn(fmt.Sprintf("failed to read secret file '%s': %s, skipping file...", path, err.Error()),
+				slog.String("full_path", path),
+			)
+
 			continue
 		} else if len(buf) == 0 {
-			slog.Warn(fmt.Sprintf("secret file '%s' is empty, skipping file...", entry.Name()))
+			slog.Warn(fmt.Sprintf("secret file '%s' is empty, skipping file...", path),
+				slog.String("full_path", path),
+			)
+
 			continue
 		}
 
@@ -61,7 +68,10 @@ func LoadCredentialsFromSecrets() (*CredentialsConfig, error) {
 		case "nvd-api-key":
 			c.NVDApiKey = string(buf)
 		default:
-			slog.Warn("unknown secret type", slog.String("secret_name", entry.Name()))
+			slog.Warn("unknown secret type",
+				slog.String("secret_name", entry.Name()),
+			)
+
 			continue
 		}
 
