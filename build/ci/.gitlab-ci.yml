@@ -62,7 +62,6 @@ deploy to staging:
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: on_success
-    - when: manual
   before_script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
     - docker login -u ${CI_DEPENDENCY_PROXY_USER} -p ${CI_DEPENDENCY_PROXY_PASSWORD} ${CI_DEPENDENCY_PROXY_SERVER}
@@ -101,8 +100,12 @@ stop staging:
     name: staging
     url: "https://doctryne-staging-01.domsnail.ru"
     action: stop
+  needs:
+    - job: deploy to staging
   manual_confirmation: "This action will disable staging instance of the application!"
-  when: manual
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
   script:
     - docker compose -f docker/docker-compose.stage.yml stop
   tags:
@@ -116,10 +119,12 @@ stop production:
     name: production
     url: "https://doctryne.domsnail.ru"
     action: stop
-  needs:
-    - deploy to production
   manual_confirmation: "This action will disable production instance of the application!"
-  when: manual
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: manual
+  needs:
+    - job: deploy to production
   script:
     - docker compose -f docker/docker-compose.prod.yml stop
   tags:
