@@ -101,6 +101,7 @@ stop staging:
     name: staging
     url: "https://doctryne-staging-01.domsnail.ru"
     action: stop
+  manual_confirmation: "This action will disable staging instance of the application!"
   when: manual
   script:
     - docker compose -f docker/docker-compose.stage.yml stop
@@ -115,6 +116,9 @@ stop production:
     name: production
     url: "https://doctryne.domsnail.ru"
     action: stop
+  needs:
+    - deploy to production
+  manual_confirmation: "This action will disable production instance of the application!"
   when: manual
   script:
     - docker compose -f docker/docker-compose.prod.yml stop
