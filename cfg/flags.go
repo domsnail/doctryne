@@ -58,13 +58,6 @@ func NewConfigFromFlags(ctx context.Context) (config *Config, err error) {
 		if err == nil && secrets != nil {
 			slog.Info("successfully loaded credentials from secrets, env variables will be overridden")
 			config.Credentials = *secrets
-
-			slog.Debug("validating loaded credentials...",
-				slog.Bool("has_nvd_access_key", len(config.Credentials.NVDApiKey) > 0),
-				slog.Bool("has_github_access_key", len(config.Credentials.GithubApiKey) > 0),
-				slog.Bool("has_npm_bearer_token", len(config.Credentials.NpmApiKey) > 0),
-				slog.Bool("has_stack_exchange_access_key", len(config.Credentials.StackExchangeApiKey) > 0),
-			)
 		}
 	}
 

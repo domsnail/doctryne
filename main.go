@@ -105,6 +105,12 @@ func main() {
 			slog.String("address", net.JoinHostPort(config.Database.Host, fmt.Sprint(config.Database.Port))),
 			slog.String("timezone", config.Database.Timezone),
 		),
+		slog.Group("credentials",
+			slog.Bool("has_nvd_access_key", len(config.Credentials.NVDApiKey) > 0),
+			slog.Bool("has_github_access_key", len(config.Credentials.GithubApiKey) > 0),
+			slog.Bool("has_npm_bearer_token", len(config.Credentials.NpmApiKey) > 0),
+			slog.Bool("has_stack_exchange_access_key", len(config.Credentials.StackExchangeApiKey) > 0),
+		),
 	)
 
 	slog.DebugContext(rootCtx, "setting global config...")
