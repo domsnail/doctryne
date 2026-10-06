@@ -77,7 +77,7 @@ services:
       DB_TZ: "Europe/Moscow"
 
       # logging
-      LOG_LEVEL: -4
+      LOG_LEVEL: 0
       LOG_FORMAT: "json"
 
       # alerting

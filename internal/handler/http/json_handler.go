@@ -34,6 +34,7 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/health", h.handleHealth)
 
 	mux.HandleFunc("/vulnerabilities/{canonical_id}", h.handleVulnerabilityByCanonicalID)
+	mux.HandleFunc("/vulnerabilities", h.handleVulnerabilitiesByQueryFilter)
 
 	mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
@@ -95,6 +96,38 @@ func (h *JsonHandler) handleVulnerabilityByCanonicalID(w http.ResponseWriter, r 
 	}
 
 	payload, err := json.Marshal(vulnerability)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) handleVulnerabilitiesByQueryFilter(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	filter := entity.VulnerabilitiesQueryFilter{}
+	err := filter.FromQuery(r.URL.Query())
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	vulnerabilities, err := h.vulnerabilities.FindVulnerabilitiesByQueryFilter(ctx, filter)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	payload, err := json.Marshal(vulnerabilities)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

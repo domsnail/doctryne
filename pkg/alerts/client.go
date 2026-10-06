@@ -68,6 +68,22 @@ func (h *GitlabAlertHandler) Handle(ctx context.Context, record slog.Record) err
 		StartedAt:   new(time.Now().Local()),
 	}
 
+	service := ctx.Value("service")
+	if service != nil {
+		alert.Service = new(service.(string))
+	}
+
+	if record.NumAttrs() > 0 {
+		record.Attrs(func(attr slog.Attr) bool {
+			if attr.Key == "error" {
+				alert.Description = attr.Value.String()
+				return false
+			}
+
+			return true
+		})
+	}
+
 	payload, err := json.Marshal(alert)
 	if err != nil {
 		return err

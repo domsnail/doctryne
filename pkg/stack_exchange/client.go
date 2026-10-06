@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/domsnail/doctryne/cfg"
 	http_smart_transport "github.com/domsnail/doctryne/pkg/http"
 )
 
@@ -66,11 +67,24 @@ func NewClient(opts Options) *Client {
 		},
 	})
 
-	var client http.Client
+	var token string
 	if opts.AccessToken != "" {
+		slog.Debug("stack exchange bearer token is set, requests rate limit increased")
+		token = opts.AccessToken
+	} else if cfg.GlobalConfig.Credentials.StackExchangeApiKey != "" {
+		slog.Debug("stack exchange bearer token is not set, setting from global config")
+		token = cfg.GlobalConfig.Credentials.StackExchangeApiKey
+	} else {
+		slog.Warn("stack exchange bearer token is not set",
+			slog.String("details", "please consider using stack exchange bearer token"),
+		)
+	}
+
+	var client http.Client
+	if token != "" {
 		client = http.Client{
 			Transport: &bearerTransport{
-				token: opts.AccessToken,
+				token: token,
 				base:  transport,
 			},
 			Timeout: http.DefaultClient.Timeout,
@@ -108,7 +122,7 @@ func NewClient(opts Options) *Client {
 
 	slog.Info("initialized stack exchange client",
 		slog.String("api_url", api.Redacted()),
-		slog.Bool("using_access_token", opts.AccessToken != ""),
+		slog.Bool("using_access_token", token != ""),
 		slog.Duration("cache_ttl", opts.CacheTTL),
 		slog.Group("rate_limiting",
 			slog.Duration("period", defaultRateLimit_Period),

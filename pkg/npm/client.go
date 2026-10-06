@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/domsnail/doctryne/cfg"
 	http_smart_transport "github.com/domsnail/doctryne/pkg/http"
 )
 
@@ -70,8 +71,21 @@ func NewClient(opts Options) (*Client, error) {
 		},
 	})
 
-	var client http.Client
+	var token string
 	if opts.BearerToken != "" {
+		slog.Debug("npm bearer token is set, requests rate limit increased")
+		token = opts.BearerToken
+	} else if cfg.GlobalConfig.Credentials.NpmApiKey != "" {
+		slog.Debug("npm bearer token is not set, setting from global config")
+		token = cfg.GlobalConfig.Credentials.NpmApiKey
+	} else {
+		slog.Warn("npm bearer token is not set",
+			slog.String("details", "please consider using stack exchange bearer token"),
+		)
+	}
+
+	var client http.Client
+	if token != "" {
 		client = http.Client{
 			Transport: &bearerTransport{
 				token: opts.BearerToken,
@@ -130,7 +144,7 @@ func NewClient(opts Options) (*Client, error) {
 	slog.Info("initialized npm client",
 		slog.String("registry_url", registry.Redacted()),
 		slog.String("api_url", api.Redacted()),
-		slog.Bool("using_bearer_token", opts.BearerToken != ""),
+		slog.Bool("using_bearer_token", token != ""),
 		slog.Duration("cache_ttl", opts.CacheTTL),
 		slog.Group("rate_limiting",
 			slog.Duration("period", defaultRateLimit_Period),

@@ -74,7 +74,7 @@ type IVulnerabilityService interface {
 	GetVulnerabilityByCanonicalID(ctx context.Context, id string) (*entity.Vulnerability, error)
 	GetVulnerabilityByUUID(ctx context.Context, uid uuid.UUID) (*entity.Vulnerability, error)
 
-	FindVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]entity.Vulnerability, error)
+	FindVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]*entity.Vulnerability, error)
 
 	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
 	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
@@ -84,7 +84,7 @@ type IVulnerabilityService interface {
 type IVulnerabilityRepository interface {
 	SelectVulnerabilityByCanonicalID(ctx context.Context, id string) (*entity.Vulnerability, error)
 	SelectVulnerabilityByUUID(ctx context.Context, uid uuid.UUID) (*entity.Vulnerability, error)
-	SelectVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]entity.Vulnerability, error)
+	SelectVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]*entity.Vulnerability, error)
 
 	SelectVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
 	SelectVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)

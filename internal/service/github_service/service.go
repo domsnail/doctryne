@@ -79,7 +79,7 @@ func NewGithubServiceImpl(opts GithubServiceOpts) *GithubServiceImpl {
 		slog.Debug("github access token is set, requests rate limit increased")
 		transportOpts.ThrottleOptions.MaxRequests = patRateLimit_MaxRequests
 	} else if cfg.GlobalConfig.Credentials.GithubApiKey != "" {
-		slog.Debug("access token is not set, setting from global config")
+		slog.Debug("github access token is not set, setting from global config")
 		opts.AccessToken = cfg.GlobalConfig.Credentials.GithubApiKey
 	} else {
 		slog.Warn("github access token is not set",
