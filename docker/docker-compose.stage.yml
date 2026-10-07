@@ -42,7 +42,7 @@ services:
       DB_DRIVER: "postgres"
       DB_HOST: "${DB_HOST}"
       DB_PORT: 5432
-      DB_NAME: "doctryne-staging"
+      DB_NAME: "doctryne_db_staging"
       DB_USER: "${DB_USER}"
       DB_PASS: "${DB_PASS}"
       DB_TZ: "Europe/Moscow"
