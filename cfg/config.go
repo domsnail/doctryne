@@ -196,10 +196,11 @@ type ServerConfig struct {
 	Host string `json:"host" yaml:"host" env:"HOST" env-default:"0.0.0.0"`
 	Port uint32 `json:"port" yaml:"port" env:"PORT" env-default:"8080"`
 
-	DisableWebUI   bool `json:"disable_webui" yaml:"disable_webui"`
-	DisableHealth  bool `json:"disable_health" yaml:"disable_health"`
-	DisableMetrics bool `json:"disable_metrics" yaml:"disable_metrics"`
-	DisableReflect bool `json:"disable_reflect" yaml:"disable_reflect"`
+	DisableWebUI   bool `json:"disable_webui" yaml:"disable_webui" env:"DISABLE_WEB_UI"`
+	DisableHealth  bool `json:"disable_health" yaml:"disable_health" env:"DISABLE_HEALTH"`
+	DisableMetrics bool `json:"disable_metrics" yaml:"disable_metrics" env:"DISABLE_METRICS"`
+	DisableReflect bool `json:"disable_reflect" yaml:"disable_reflect" env:"DISABLE_REFLECT"`
+	DisableLogging bool `json:"disable_logging" yaml:"disable_logging" env:"DISABLE_LOGGING"`
 
 	AccessKey string `json:"api_key" yaml:"api_key" env:"ACCESS_KEY"`
 }

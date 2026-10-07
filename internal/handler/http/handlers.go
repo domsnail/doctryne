@@ -41,7 +41,6 @@ func NewAcceptMux(opts *HandlerOptions) *AcceptMux {
 }
 
 func (mux AcceptMux) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// A request may carry several Accept header lines, which are equivalent to one comma-separated list.
 	accept := strings.Join(r.Header.Values("Accept"), ",")
 
 	w.Header().Add("Vary", "Accept")

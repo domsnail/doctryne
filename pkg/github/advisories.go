@@ -17,6 +17,8 @@ type AdvisoriesQueryOptions struct {
 	Sort      string
 	Direction string
 
+	Type AdvisoryType
+
 	Link Link
 }
 

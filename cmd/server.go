@@ -92,11 +92,18 @@ func (server *Server) Start(ctx context.Context) error {
 	var protocols = http.Protocols{}
 	protocols.SetHTTP1(true)
 	protocols.SetHTTP2(true)
-	protocols.SetUnencryptedHTTP2(true)
+	protocols.SetUnencryptedHTTP2(true) // todo: remove in production
+
+	var handler http.Handler
+	if server.cfg.DisableLogging {
+		handler = server.mux
+	} else {
+		handler = defaultSlogMiddleware()(server.mux)
+	}
 
 	server.srv = &http.Server{
 		Addr:      net.JoinHostPort(server.cfg.Host, strconv.Itoa(int(server.cfg.Port))),
-		Handler:   defaultSlogMiddleware()(server.mux),
+		Handler:   handler,
 		Protocols: &protocols,
 	}
 
