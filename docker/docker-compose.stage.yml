@@ -1,5 +1,9 @@
 name: doctryne-staging
 
+networks:
+  dwh:
+    external: true
+
 secrets:
   github-api-key:
     environment: GITHUB_API_KEY
@@ -11,41 +15,6 @@ secrets:
     environment: NVD_API_KEY
 
 services:
-  database:
-    image: ${CI_DEPENDENCY_PROXY_GROUP_IMAGE_PREFIX}/postgres:18.1-alpine
-    hostname: database
-    deploy:
-      replicas: 1
-      resources:
-        reservations:
-          memory: 32mb
-          cpus: 2
-        limits:
-          memory: 512mb
-          cpus: 4
-      restart_policy:
-        condition: on-failure
-        max_attempts: 3
-        window: 30s
-        delay: 10s
-    stop_grace_period: 30s
-    shm_size: 64mb
-    environment:
-      - POSTGRES_DB=staging
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASS}
-    expose:
-      - 5432
-    ports:
-      - "10921:5432"
-    volumes:
-      - /opt/doctryne/staging/postgres:/var/lib/postgresql
-    healthcheck:
-      test: [ "CMD", "pg_isready", "-q", "-d", "staging", "-U", "${DB_USER}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
   server:
     image: ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
     deploy:
@@ -53,7 +22,7 @@ services:
       resources:
         limits:
           memory: 512mb
-          cpus: 2
+          cpus: 4
       restart_policy:
         condition: on-failure
         max_attempts: 3
@@ -71,9 +40,9 @@ services:
 
       # database connection
       DB_DRIVER: "postgres"
-      DB_HOST: "database"
+      DB_HOST: "${DB_HOST}"
       DB_PORT: 5432
-      DB_NAME: "staging"
+      DB_NAME: "doctryne-staging"
       DB_USER: "${DB_USER}"
       DB_PASS: "${DB_PASS}"
       DB_TZ: "Europe/Moscow"
@@ -91,10 +60,10 @@ services:
       # vulnerability database updates
       DISABLE_AUTO_UPDATES: false
       DISABLE_STARTUP_UPDATES: true
+    networks:
+      - dwh
     expose:
       - 8080
-    volumes:
-      - /opt/doctryne/staging/postgres:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "wget -q --spider --timeout=5 http://localhost:8080/health || exit 1" ]
       interval: 30s
