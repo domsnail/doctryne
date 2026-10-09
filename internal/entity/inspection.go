@@ -6,7 +6,7 @@ import (
 
 	"uuid"
 
-	types2 "github.com/domsnail/doctryne/internal/types"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 // Inspection is a resulting entity for a scan of a target (one inspection = multiple manifests) from API or CLI.
@@ -20,7 +20,7 @@ type Inspection struct {
 	Target         io.Reader `json:"-"`
 	TargetLockfile io.Reader `json:"-"`
 
-	ScanType types2.ScanType `json:"scan_type"`
+	ScanType types.ScanType `json:"scan_type"`
 
 	Manifests []*Manifest `json:"manifests,omitempty"`
 
@@ -38,17 +38,17 @@ type Inspection struct {
 }
 
 type InspectionOptions struct {
-	ScanType types2.ScanType
+	ScanType types.ScanType
 
 	Manifest     io.Reader `json:"-"`
 	ManifestName string
-	ManifestType types2.ManifestType
+	ManifestType types.ManifestType
 
 	Lockfile     io.Reader `json:"-"`
 	LockfileName string
-	LockfileType types2.ManifestType
+	LockfileType types.ManifestType
 
-	Mode types2.InspectionMode
+	Mode types.InspectionMode
 
 	ExtractFullOrganizationInfo bool
 	ExtractFullContributorInfo  bool
@@ -87,7 +87,7 @@ func (i *Inspection) AddManifest(m *Manifest) {
 }
 
 type InspectionsQueryFilter struct {
-	ScanType types2.ScanType `json:"scan_type"`
+	ScanType types.ScanType `json:"scan_type"`
 
 	QueryFilter
 	Sorting

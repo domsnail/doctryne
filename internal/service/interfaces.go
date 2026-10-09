@@ -92,6 +92,10 @@ type IVulnerabilityRepository interface {
 	SelectLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
 }
 
+type IVulnerabilityMatcherService interface {
+	FindPackageVulnerabilitiesByPurl(ctx context.Context, purl string, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
+}
+
 type IVulnerabilityDatabaseService interface {
 	RunVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
 }

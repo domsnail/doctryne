@@ -35,6 +35,7 @@ type ServerOptions struct {
 	InspectionService            service.IInspectionService
 	DeveloperService             service.IDeveloperService
 	VulnerabilityService         service.IVulnerabilityService
+	VulnerabilityMatcherService  service.IVulnerabilityMatcherService
 	VulnerabilityDatabaseService service.IVulnerabilityDatabaseService
 }
 
@@ -72,6 +73,7 @@ func CreateServer(opts ServerOptions) (*Server, error) {
 
 		httpHandler := http_handler.NewAcceptMux(&http_handler.HandlerOptions{
 			VulnerabilityService:         opts.VulnerabilityService,
+			VulnerabilityMatcherService:  opts.VulnerabilityMatcherService,
 			VulnerabilityDatabaseService: opts.VulnerabilityDatabaseService,
 			InspectionService:            opts.InspectionService,
 			DeveloperService:             opts.DeveloperService,

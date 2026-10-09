@@ -14,6 +14,7 @@ import (
 type JsonHandler struct {
 	vulnerabilities       service.IVulnerabilityService
 	vulnerabilityDatabase service.IVulnerabilityDatabaseService
+	vulnerabilityMatcher  service.IVulnerabilityMatcherService
 
 	config *cfg.ServerConfig
 }
@@ -26,6 +27,7 @@ func newJSONHandler(opts *HandlerOptions) JsonHandler {
 	return JsonHandler{
 		vulnerabilities:       opts.VulnerabilityService,
 		vulnerabilityDatabase: opts.VulnerabilityDatabaseService,
+		vulnerabilityMatcher:  opts.VulnerabilityMatcherService,
 		config:                opts.Config,
 	}
 }
@@ -39,6 +41,8 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
 	mux.HandleFunc("/vulnerabilities/databases/updates/{uuid}", h.handleVulnerabilityDatabaseUpdateByUUID)
+
+	mux.HandleFunc("/vulnerabilities/find", h.findVulnerabilities)
 }
 
 func (h *JsonHandler) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -197,6 +201,45 @@ func (h *JsonHandler) handleGetVulnerabilityDatabaseUpdatesByQueryFilter(w http.
 	}
 
 	payload, err := json.Marshal(updates)
+	if err != nil {
+		h.error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodGet {
+		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	var (
+		findings entity.VulnerabilityFindings
+		err      error
+
+		opts = entity.VulnerabilityFindingOptions{
+			ValidatedOnly: r.URL.Query().Get("validated_only") == "true",
+		}
+
+		purl = r.URL.Query().Get("purl")
+	)
+
+	switch {
+	case purl != "":
+		findings, err = h.vulnerabilityMatcher.FindPackageVulnerabilitiesByPurl(ctx, purl, opts)
+		if err != nil {
+			h.error(w, err, http.StatusBadRequest)
+			return
+		}
+	}
+
+	payload, err := json.Marshal(findings)
 	if err != nil {
 		h.error(w, err, http.StatusInternalServerError)
 		return

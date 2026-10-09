@@ -12,9 +12,15 @@ type VulnerabilityDatabaseConfig struct {
 	UpdateTimeout   time.Duration         `json:"update_timeout" yaml:"update_timeout" env-default:"8h"`
 	UpdateSchedules UpdateSchedulesConfig `json:"update_schedules" yaml:"update_schedules"`
 
-	Catalog         string                               `json:"catalog" yaml:"catalog" env-default:"vuln_catalog"`
-	GitRemotes      VulnerabilityDatabaseGitRemotes      `json:"git_remotes" yaml:"git_remotes"`
-	DownloadRemotes VulnerabilityDatabaseDownloadRemotes `json:"download_remotes" yaml:"download_remotes"`
+	DisableNVD  bool `json:"disable_nvd" yaml:"disable_nvd" env:"DISABLE_NVD"`
+	DisableGhsa bool `json:"disable_ghsa" yaml:"disable_ghsa" env:"DISABLE_GHSA"`
+	DisableKev  bool `json:"disable_kev" yaml:"disable_kev" env:"DISABLE_KEV"`
+	DisableEpss bool `json:"disable_epss" yaml:"disable_epss" env:"DISABLE_EPSS"`
+	DisableOSV  bool `json:"disable_osv" yaml:"disable_osv" env:"DISABLE_OSV"`
+
+	Catalog    string                          `json:"catalog" yaml:"catalog" env-default:"vuln_catalog"`
+	GitRemotes VulnerabilityDatabaseGitRemotes `json:"git_remotes" yaml:"git_remotes"`
+	Remotes    VulnerabilityDatabaseRemotes    `json:"remotes" yaml:"remotes"`
 }
 
 type VulnerabilityDatabaseGitRemotes struct {
@@ -22,11 +28,12 @@ type VulnerabilityDatabaseGitRemotes struct {
 	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database"`
 }
 
-type VulnerabilityDatabaseDownloadRemotes struct {
-	NVD  string `json:"nvd" yaml:"nvd" env-default:"https//github.com/CVEProject/cvelistV5/archive/refs/heads/main.zip"`
-	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"https://github.com/github/advisory-database/archive/refs/heads/main.zip"`
+type VulnerabilityDatabaseRemotes struct {
+	// todo: use these remotes in download clients
+	NVD  string `json:"nvd" yaml:"nvd" env-default:"https://services.nvd.nist.gov/rest/json"`
+	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"https://api.github.com/advisories"`
 
-	Epss string `json:"epss" yaml:"epss" env-default:"https://epss.empiricalsecurity.com/epss_scores-current.csv.gz"`
+	Epss string `json:"epss" yaml:"epss" env-default:"https://api.first.org/epss"`
 }
 
 type UpdateSchedulesConfig struct {

@@ -60,6 +60,9 @@ services:
       # vulnerability database updates
       DISABLE_AUTO_UPDATES: false
       DISABLE_STARTUP_UPDATES: true
+      DISABLE_EPSS: true
+      DISABLE_KEV: true
+      DISABLE_OSV: true
     networks:
       - dwh
     expose:

@@ -171,6 +171,8 @@ func main() {
 		repos.NewVulnerabilityRepoImpl(conn),
 	)
 
+	vulnerabilityMatcherService := vulnerability_service.NewVulnerabilityMatcher(conn)
+
 	developerService := developer_service.NewDeveloperServiceImpl(
 		repos.NewDevelopersRepoImpl(conn),
 	)
@@ -194,6 +196,7 @@ func main() {
 
 		srv, err := cmd.CreateServer(cmd.ServerOptions{
 			VulnerabilityService:         vulnerabilityService,
+			VulnerabilityMatcherService:  vulnerabilityMatcherService,
 			VulnerabilityDatabaseService: databaseUpdater,
 			InspectionService:            inspectionService,
 			DeveloperService:             developerService,
