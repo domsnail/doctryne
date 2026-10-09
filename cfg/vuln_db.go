@@ -40,6 +40,6 @@ type UpdateSchedulesConfig struct {
 	NVD  string `json:"nvd" yaml:"nvd" env-default:"0 */8 * * *"`
 	OSV  string `json:"osv" yaml:"osv" env-default:"0 2 * * *"`
 	GHSA string `json:"ghsa" yaml:"ghsa" env-default:"0 */12 * * *"`
-	KEV  string `json:"kev" yaml:"kev" env-default:"0 4 * * *"`
+	Kev  string `json:"kev" yaml:"kev" env-default:"0 4 * * *"`
 	Epss string `json:"epss" yaml:"epss" env-default:"0 6 * * *"`
 }
