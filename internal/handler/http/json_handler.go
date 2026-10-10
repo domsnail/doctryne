@@ -226,6 +226,7 @@ func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request
 
 		opts = entity.VulnerabilityFindingOptions{
 			ValidatedOnly: r.URL.Query().Get("validated_only") == "true",
+			Withdrawn:     r.URL.Query().Get("withdrawn") == "true",
 		}
 
 		purl = r.URL.Query().Get("purl")

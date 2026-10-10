@@ -5,8 +5,8 @@ import "github.com/domsnail/doctryne/internal/types"
 type VulnerabilityFindings []*VulnerabilityFinding
 
 type VulnerabilityFinding struct {
-	Vulnerability *VulnerabilityMatch           `json:"vulnerability,omitempty"`
-	Evidence      *VulnerabilityFindingEvidence `json:"evidence,omitempty"`
+	Match    *VulnerabilityMatch           `json:"match,omitempty"`
+	Evidence *VulnerabilityFindingEvidence `json:"evidence,omitempty"`
 }
 
 type VulnerabilityFindingEvidence struct {
@@ -15,6 +15,14 @@ type VulnerabilityFindingEvidence struct {
 }
 
 type VulnerabilityFindingOptions struct {
-	ValidatedOnly bool    // show only ValidatedOnly vulnerabilities, in statuses: analyzed, modified
+	Purl string
+
+	Ecosystem types.Ecosystem
+	Name      string
+	Version   string
+
+	ValidatedOnly bool // show only ValidatedOnly vulnerabilities, in statuses: analyzed, modified
+	Withdrawn     bool // also show Withdrawn vulnerabilities
+
 	MinConfidence float32 `json:"min_confidence"`
 }

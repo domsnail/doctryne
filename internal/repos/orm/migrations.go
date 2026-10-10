@@ -54,12 +54,50 @@ func AutoMigrate(db *gorm.DB) error {
 		return err
 	}
 
+	err = CreateIndexes(db)
+	if err != nil {
+		return err
+	}
+
 	err = RunPrefills(db)
 	if err != nil {
 		return err
 	}
 
 	return err
+}
+
+func CreateIndexes(db *gorm.DB) error {
+	scripts, err := prepareScripts("_embed/indexes")
+	if err != nil {
+		return err
+	}
+
+	slog.Info("updating indexes...",
+		slog.Int("total_files", len(scripts)),
+	)
+
+	err = db.Transaction(func(tx *gorm.DB) error {
+		for _, s := range scripts {
+			err = tx.Exec(s).Error
+			if err != nil {
+				return fmt.Errorf("failed to execute embedded file script: %w", err)
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		slog.Error("failed to update indexes",
+			slog.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	slog.Info("indexes updated successfully")
+	return nil
 }
 
 func CreateExtensions(db *gorm.DB) error {
