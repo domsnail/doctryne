@@ -6,7 +6,6 @@ import (
 	"uuid"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	"github.com/domsnail/doctryne/internal/types"
 )
 
 type IInspectionService interface {
@@ -94,8 +93,7 @@ type IVulnerabilityRepository interface {
 }
 
 type IVulnerabilityMatcherService interface {
-	FindPackageVulnerabilitiesByPurl(ctx context.Context, purl string, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
-	FindPackageVulnerabilitiesByName(ctx context.Context, ecosystem types.Ecosystem, name, version string, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
+	FindPackageVulnerabilities(ctx context.Context, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
 }
 
 type IVulnerabilityDatabaseService interface {

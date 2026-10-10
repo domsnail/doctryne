@@ -15,14 +15,18 @@ type VulnerabilityFindingEvidence struct {
 }
 
 type VulnerabilityFindingOptions struct {
-	Purl string
+	Purl string `json:"purl,omitempty"`
 
-	Ecosystem types.Ecosystem
-	Name      string
-	Version   string
+	Ecosystem types.Ecosystem `json:"ecosystem,omitempty"`
+	Name      string          `json:"name,omitempty"`
+	Version   string          `json:"version,omitempty"`
 
-	ValidatedOnly bool // show only ValidatedOnly vulnerabilities, in statuses: analyzed, modified
-	Withdrawn     bool // also show Withdrawn vulnerabilities
+	// show only ValidatedOnly vulnerabilities, in statuses: analyzed, modified
+	ValidatedOnly bool `json:"validated_only,omitempty"`
+
+	// also show Withdrawn vulnerabilities
+	Withdrawn bool `json:"withdrawn,omitempty"`
 
 	MinConfidence float32 `json:"min_confidence"`
+	ShowEvidence  bool    `json:"show_evidence"`
 }
