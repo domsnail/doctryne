@@ -71,7 +71,7 @@ func (service RegistryServiceImpl) GetPackageInfo(ctx context.Context, pkg *enti
 	}
 
 	switch pkg.Ecosystem {
-	case types.Ecosystem_NPM:
+	case types.Ecosystem_Npm:
 		err := service.queryNPM(ctx, pkg)
 		if err != nil {
 			return err

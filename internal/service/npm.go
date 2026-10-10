@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/domsnail/doctryne/internal/entity"
-	types2 "github.com/domsnail/doctryne/internal/types"
+	"github.com/domsnail/doctryne/internal/types"
 	"github.com/domsnail/doctryne/pkg/npm"
 )
 
@@ -48,8 +48,8 @@ func (service *NodePackageManagerServiceImpl) GetPackage(ctx context.Context, na
 func getPackage(n *npm.Package) *entity.Package {
 	pkg := entity.Package{
 		Name:      n.Name,
-		Ecosystem: types2.Ecosystem_NPM,
-		Language:  types2.Language_JavaScript,
+		Ecosystem: types.Ecosystem_Npm,
+		Language:  types.Language_JavaScript,
 		RegistryMetadata: &entity.RegistryMetadata{
 			RegistryID: n.ID,
 			//Git:        n.GetGitURL(),

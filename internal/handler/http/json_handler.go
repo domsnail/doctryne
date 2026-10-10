@@ -9,6 +9,7 @@ import (
 	"github.com/domsnail/doctryne/cfg"
 	"github.com/domsnail/doctryne/internal/entity"
 	"github.com/domsnail/doctryne/internal/service"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type JsonHandler struct {
@@ -228,11 +229,22 @@ func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request
 		}
 
 		purl = r.URL.Query().Get("purl")
+
+		name      = r.URL.Query().Get("name")
+		ecosystem = r.URL.Query().Get("ecosystem")
+
+		version = r.URL.Query().Get("version")
 	)
 
 	switch {
 	case purl != "":
 		findings, err = h.vulnerabilityMatcher.FindPackageVulnerabilitiesByPurl(ctx, purl, opts)
+		if err != nil {
+			h.error(w, err, http.StatusBadRequest)
+			return
+		}
+	case name != "":
+		findings, err = h.vulnerabilityMatcher.FindPackageVulnerabilitiesByName(ctx, types.Ecosystem(ecosystem), name, version, opts)
 		if err != nil {
 			h.error(w, err, http.StatusBadRequest)
 			return
