@@ -1,17 +1,27 @@
 package entity
 
-import "github.com/domsnail/doctryne/internal/types"
+import (
+	"time"
+
+	"github.com/domsnail/doctryne/internal/types"
+)
 
 type VulnerabilityFindings []*VulnerabilityFinding
 
 type VulnerabilityFinding struct {
-	Match    *VulnerabilityMatch           `json:"match,omitempty"`
-	Evidence *VulnerabilityFindingEvidence `json:"evidence,omitempty"`
+	Match    *VulnerabilityMatch             `json:"match,omitempty"`
+	Evidence *VulnerabilityFindingConfidence `json:"evidence,omitempty"`
 }
 
-type VulnerabilityFindingEvidence struct {
+type VulnerabilityFindingConfidence struct {
 	Method     types.MatcherMethod `json:"method"`
-	Confidence float32             `json:"confidence"`
+	Confidence float64             `json:"confidence"`
+
+	Evidence []*Evidence `json:"evidence,omitempty"`
+}
+
+func NewFindingConfidenceFromEvidence(method types.MatcherMethod, evidence []*Evidence, override types.EvidenceOverride) *VulnerabilityFindingConfidence {
+	return nil
 }
 
 type VulnerabilityFindingOptions struct {
@@ -20,6 +30,9 @@ type VulnerabilityFindingOptions struct {
 	Ecosystem types.Ecosystem `json:"ecosystem,omitempty"`
 	Name      string          `json:"name,omitempty"`
 	Version   string          `json:"version,omitempty"`
+
+	// show only vulnerabilities that exist on a specified Date
+	Date *time.Time `json:"date,omitempty"`
 
 	// show only ValidatedOnly vulnerabilities, in statuses: analyzed, modified
 	ValidatedOnly bool `json:"validated_only,omitempty"`

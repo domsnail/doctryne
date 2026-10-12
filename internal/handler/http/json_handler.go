@@ -231,6 +231,7 @@ func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request
 			Version:       r.URL.Query().Get("version"),
 			ValidatedOnly: r.URL.Query().Get("validated_only") == "true",
 			Withdrawn:     r.URL.Query().Get("withdrawn") == "true",
+			ShowEvidence:  r.URL.Query().Get("show_evidence") == "true",
 			MinConfidence: 0,
 		}
 	)
