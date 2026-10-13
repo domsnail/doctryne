@@ -101,8 +101,10 @@ func Test_Semver(t *testing.T) {
 			{version: "6.2.0-beta.1", must: 1},
 			{version: "6.2.0-beta.7", must: 1},
 			{version: "6.2.0-beta.10", must: 1},
-			{version: "6.2.0-beta.12.alpha", must: 1},
-			{version: "6.2.0-beta.12.alpha.2", must: 1},
+			{version: "6.2.0-beta.12.alpha", must: -1},
+			{version: "6.2.0-beta.12.alpha.2", must: -1},
+			{version: "6.2.0-beta.12a", must: -1},
+			{version: "6.2.0-beta.-x", must: -1},
 			{version: "6.2.0-beta.15", must: -1},
 			{version: "6.2.0-beta.21", must: -1},
 			{version: "9.1.0", must: -1},
@@ -116,6 +118,29 @@ func Test_Semver(t *testing.T) {
 			res := cv.Compare(v)
 			t.Logf("compare %s to %s, result: %d (must be: %d)", cv.raw, v.raw, res, c.must)
 			require.EqualValues(t, c.must, res)
+		}
+	})
+
+	t.Run("test semver spec precedence", func(t *testing.T) {
+		// https://semver.org/#spec-item-11
+		var chain = []string{
+			"1.0.0-alpha",
+			"1.0.0-alpha.1",
+			"1.0.0-alpha.beta",
+			"1.0.0-beta",
+			"1.0.0-beta.2",
+			"1.0.0-beta.11",
+			"1.0.0-rc.1",
+			"1.0.0",
+		}
+
+		for i := 0; i+1 < len(chain); i++ {
+			lower, higher := Semver{}, Semver{}
+			require.NoError(t, lower.Parse(chain[i]))
+			require.NoError(t, higher.Parse(chain[i+1]))
+
+			require.EqualValues(t, -1, lower.Compare(higher), "%s must be lower than %s", chain[i], chain[i+1])
+			require.EqualValues(t, 1, higher.Compare(lower), "%s must be higher than %s", chain[i+1], chain[i])
 		}
 	})
 }
