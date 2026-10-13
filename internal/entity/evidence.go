@@ -46,6 +46,13 @@ func (v VersionMatchEvidenceSet) Combine() VersionMatchEvidence {
 	}
 
 	if len(inRange) > 0 {
+		// first, check if any status in range is Unaffected --> return it first
+		for _, e := range inRange {
+			if e.Status == types.AffectedStatus_Unaffected {
+				return e
+			}
+		}
+
 		return inRange.combineInRange()
 	}
 

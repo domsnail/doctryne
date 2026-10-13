@@ -82,12 +82,33 @@ func (semver *Semver) Compare(to Semver) int {
 	}
 
 	for i := 0; i < len(semver.PrereleaseIdentifiers) && i < len(to.PrereleaseIdentifiers); i++ {
-		if r := cmp.Compare(semver.PrereleaseIdentifiers[i], to.PrereleaseIdentifiers[i]); r != 0 {
+		// try to compare as numbers: https://semver.org/
+		r, err := compareAsNumbers(semver.PrereleaseIdentifiers[i], to.PrereleaseIdentifiers[i])
+		if err == nil && r != 0 {
+			return r
+		}
+
+		// cmp compares as strings
+		if r = cmp.Compare(semver.PrereleaseIdentifiers[i], to.PrereleaseIdentifiers[i]); r != 0 {
 			return r
 		}
 	}
 
-	return cmp.Compare(len(semver.PrereleaseIdentifiers), len(to.PrereleaseIdentifiers))
+	return cmp.Compare(len(to.PrereleaseIdentifiers), len(semver.PrereleaseIdentifiers))
+}
+
+func compareAsNumbers(a, b string) (int, error) {
+	ident1, err := strconv.ParseUint(a, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	ident2, err := strconv.ParseUint(b, 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return cmp.Compare(ident1, ident2), nil
 }
 
 func (semver *Semver) String() string {
