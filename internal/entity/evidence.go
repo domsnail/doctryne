@@ -24,7 +24,7 @@ type VersionMatchEvidence struct {
 type VersionMatchEvidenceSet []VersionMatchEvidence
 
 // Combine merges evidences into a single verdict. In-range evidences take precedence over
-// out-of-range ones; conflicting in-range statuses reduce the resulting confidence.
+// out-of-range ones; an in-range unaffected evidence overrides any other in-range status.
 func (v VersionMatchEvidenceSet) Combine() VersionMatchEvidence {
 	var inRange, outOfRange VersionMatchEvidenceSet
 
@@ -49,7 +49,7 @@ func (v VersionMatchEvidenceSet) Combine() VersionMatchEvidence {
 		// first, check if any status in range is Unaffected --> return it first
 		for _, e := range inRange {
 			if e.Status == types.AffectedStatus_Unaffected {
-				return e
+				return inRange.overriddenBy(e)
 			}
 		}
 
@@ -133,6 +133,21 @@ func (v VersionMatchEvidenceSet) combineOutOfRange() VersionMatchEvidence {
 		Confidence: confidence,
 		Message:    v.messages(best),
 	}
+}
+
+func (v VersionMatchEvidenceSet) overriddenBy(winner VersionMatchEvidence) VersionMatchEvidence {
+	var overridden []string
+	for _, e := range v {
+		if e.Status != winner.Status && e.Message != "" {
+			overridden = append(overridden, e.Message)
+		}
+	}
+
+	if len(overridden) > 0 {
+		winner.Message += "; overrides: " + strings.Join(overridden, "; ")
+	}
+
+	return winner
 }
 
 func (v VersionMatchEvidenceSet) messages(status types.AffectedStatus) string {
