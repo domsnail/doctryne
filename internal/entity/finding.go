@@ -9,19 +9,7 @@ import (
 type VulnerabilityFindings []*VulnerabilityFinding
 
 type VulnerabilityFinding struct {
-	Match    *VulnerabilityMatch             `json:"match,omitempty"`
-	Evidence *VulnerabilityFindingConfidence `json:"evidence,omitempty"`
-}
-
-type VulnerabilityFindingConfidence struct {
-	Method     types.MatcherMethod `json:"method"`
-	Confidence float64             `json:"confidence"`
-
-	Evidence []*Evidence `json:"evidence,omitempty"`
-}
-
-func NewFindingConfidenceFromEvidence(method types.MatcherMethod, evidence []*Evidence, override types.EvidenceOverride) *VulnerabilityFindingConfidence {
-	return nil
+	Match *VulnerabilityMatch `json:"match,omitempty"`
 }
 
 type VulnerabilityFindingOptions struct {
@@ -40,6 +28,7 @@ type VulnerabilityFindingOptions struct {
 	// also show Withdrawn vulnerabilities
 	Withdrawn bool `json:"withdrawn,omitempty"`
 
-	MinConfidence float32 `json:"min_confidence"`
-	ShowEvidence  bool    `json:"show_evidence"`
+	MinConfidence  float64 `json:"min_confidence"`
+	ShowEvidence   bool    `json:"show_evidence"`
+	ShowUnaffected bool    `json:"show_unaffected"`
 }

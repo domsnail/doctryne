@@ -225,14 +225,15 @@ func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request
 		err      error
 
 		opts = entity.VulnerabilityFindingOptions{
-			Purl:          r.URL.Query().Get("purl"),
-			Ecosystem:     types.Ecosystem(r.URL.Query().Get("ecosystem")),
-			Name:          r.URL.Query().Get("name"),
-			Version:       r.URL.Query().Get("version"),
-			ValidatedOnly: r.URL.Query().Get("validated_only") == "true",
-			Withdrawn:     r.URL.Query().Get("withdrawn") == "true",
-			ShowEvidence:  r.URL.Query().Get("show_evidence") == "true",
-			MinConfidence: 0,
+			Purl:           r.URL.Query().Get("purl"),
+			Ecosystem:      types.Ecosystem(r.URL.Query().Get("ecosystem")),
+			Name:           r.URL.Query().Get("name"),
+			Version:        r.URL.Query().Get("version"),
+			ValidatedOnly:  r.URL.Query().Get("validated_only") == "true",
+			Withdrawn:      r.URL.Query().Get("withdrawn") == "true",
+			ShowEvidence:   r.URL.Query().Get("show_evidence") == "true",
+			ShowUnaffected: r.URL.Query().Get("show_unaffected") == "true",
+			MinConfidence:  0,
 		}
 	)
 
