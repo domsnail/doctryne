@@ -89,3 +89,7 @@ func (semver *Semver) Compare(to Semver) int {
 
 	return cmp.Compare(len(semver.PrereleaseIdentifiers), len(to.PrereleaseIdentifiers))
 }
+
+func (semver *Semver) String() string {
+	return semver.raw
+}
