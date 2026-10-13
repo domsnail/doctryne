@@ -105,7 +105,7 @@ func (c *Client) downloadDatabase(ctx context.Context, date *time.Time) (*EpssDa
 		return nil, fmt.Errorf("failed to read epss file header: %w", err)
 	}
 
-	db.Version, db.Date, err = parseFirstLine(header)
+	db.Version, db.Date, err = ParseMetadataLine(header)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse epss file header: %w", err)
 	}
@@ -146,9 +146,9 @@ func (c *Client) downloadDatabase(ctx context.Context, date *time.Time) (*EpssDa
 	return &db, nil
 }
 
-// parseFirstLine
+// ParseMetadataLine
 // for example: #model_version:v2026.06.15,score_date:2026-09-21T12:03:23Z
-func parseFirstLine(line []string) (version string, date time.Time, err error) {
+func ParseMetadataLine(line []string) (version string, date time.Time, err error) {
 	if len(line) != 2 {
 		return "", time.Time{}, fmt.Errorf("invalid header line: %s", line)
 	}

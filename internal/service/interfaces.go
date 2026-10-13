@@ -2,10 +2,12 @@ package service
 
 import (
 	"context"
+	"io"
 	"net/url"
 	"uuid"
 
 	"github.com/domsnail/doctryne/internal/entity"
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type IInspectionService interface {
@@ -98,6 +100,7 @@ type IVulnerabilityMatcherService interface {
 
 type IVulnerabilityDatabaseService interface {
 	RunVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
+	UploadVulnerabilityDatabaseUpdateFromFile(ctx context.Context, reader io.ReadCloser, source types.VulnerabilitySource) (entity.VulnerabilitiesDatabaseUpdate, error)
 }
 
 // ---

@@ -42,6 +42,7 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
 	mux.HandleFunc("/vulnerabilities/databases/updates/{uuid}", h.handleVulnerabilityDatabaseUpdateByUUID)
+	// todo: mux.HandleFunc("/vulnerabilities/databases/upload", h.handleVulnerabilityDatabaseUpload)
 
 	mux.HandleFunc("/vulnerabilities/find", h.findVulnerabilities)
 }
