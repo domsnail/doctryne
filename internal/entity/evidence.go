@@ -123,6 +123,7 @@ func (v VersionMatchEvidenceSet) combineOutOfRange() VersionMatchEvidence {
 			confidence = e.Confidence
 		}
 	}
+
 	if len(counts) > 1 {
 		confidence *= float64(counts[best]) / float64(len(v))
 	}
