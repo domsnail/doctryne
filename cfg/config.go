@@ -203,6 +203,9 @@ type ServerConfig struct {
 	DisableLogging bool `json:"disable_logging" yaml:"disable_logging" env:"DISABLE_LOGGING"`
 
 	AccessKey string `json:"api_key" yaml:"api_key" env:"ACCESS_KEY"`
+
+	// MaxRequestSizeMb in megabytes
+	MaxRequestSizeMb int64 `json:"max_request_size_mb" yaml:"max_request_size_mb" env:"MAX_REQUEST_SIZE_MB" env-default:"512"`
 }
 
 type DatabaseConfig struct {

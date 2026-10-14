@@ -3,6 +3,8 @@ package http
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
+	"log/slog"
 	"net/http"
 	"uuid"
 
@@ -42,7 +44,7 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
 	mux.HandleFunc("/vulnerabilities/databases/updates/{uuid}", h.handleVulnerabilityDatabaseUpdateByUUID)
-	// todo: mux.HandleFunc("/vulnerabilities/databases/upload", h.handleVulnerabilityDatabaseUpload)
+	mux.HandleFunc("/vulnerabilities/databases/upload", h.handleVulnerabilityDatabaseUpload)
 
 	mux.HandleFunc("/vulnerabilities/find", h.findVulnerabilities)
 }
@@ -165,6 +167,60 @@ func (h *JsonHandler) handleVulnerabilityDatabaseUpdateByUUID(w http.ResponseWri
 		return
 	}
 
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	payload, err := json.Marshal(update)
+	if err != nil {
+		h.error(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(payload)
+	return
+}
+
+func (h *JsonHandler) handleVulnerabilityDatabaseUpload(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	if r.Method != http.MethodPost {
+		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
+		return
+	}
+
+	err := r.ParseMultipartForm(h.config.MaxRequestSizeMb << 20)
+	if err != nil {
+		h.error(w, err, http.StatusBadRequest)
+		return
+	}
+
+	formSource := r.FormValue("source")
+	source := types.VulnerabilitySource(formSource)
+	if !source.IsValid() {
+		h.error(w, errors.New("invalid source type: "+source.String()), http.StatusBadRequest)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("file")
+	if err != nil {
+		h.error(w, errors.New("failed to read form file: "+err.Error()), http.StatusBadRequest)
+		return
+	} else if fileHeader.Size == 0 {
+		h.error(w, errors.New("file is empty"), http.StatusBadRequest)
+		return
+	}
+
+	slog.Debug("received form file",
+		slog.String("name", fileHeader.Filename),
+		slog.String("content_type", fileHeader.Header.Get("Content-Type")),
+		slog.String("size", fmt.Sprintf("%dmb", fileHeader.Size/1024/1024)),
+	)
+
+	defer func() { _ = file.Close() }()
+	update, err := h.vulnerabilityDatabase.UploadVulnerabilityDatabaseUpdateFromFile(ctx, file, source)
 	if err != nil {
 		h.error(w, err, http.StatusBadRequest)
 		return
