@@ -3,6 +3,7 @@ package types
 import (
 	"cmp"
 	"fmt"
+	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -17,8 +18,15 @@ type Semver struct {
 }
 
 func (semver *Semver) Parse(s string) error {
-	semver.raw = s
+	if s == "" || s == "n/a" {
+		slog.Debug("empty semver value provided", slog.String("value", s))
+		semver.Major, semver.Minor, semver.Patch = 0, 0, 0
+		semver.raw = "0"
 
+		return nil
+	}
+
+	semver.raw = s
 	s = strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(s), "v"))
 	if i := strings.IndexByte(s, '+'); i >= 0 {
 		s = s[:i]

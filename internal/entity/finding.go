@@ -13,11 +13,13 @@ type VulnerabilityFinding struct {
 }
 
 type VulnerabilityFindingOptions struct {
-	// if Purl provided, it will override all fields (Ecosystem, Name, Version etc.)
+	// if Purl provided, it will override all fields (Ecosystem, Product, Version etc.)
 	Purl string `json:"purl,omitempty"`
 
 	Ecosystem types.Ecosystem `json:"ecosystem,omitempty"`
-	Name      string          `json:"name,omitempty"`
+	Product   string          `json:"product,omitempty"`
+	Package   string          `json:"package,omitempty"`
+	Vendor    string          `json:"vendor,omitempty"`
 	Version   string          `json:"version,omitempty"`
 
 	// show only vulnerabilities that exist on a specified Date

@@ -82,8 +82,8 @@ func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offse
 		q.Add("lastModStartDate", opts.ModificationDateStart.Format(time.RFC3339))
 	}
 
-	if opts.ModificationDateStart != nil {
-		q.Add("lastModEndDate", opts.ModificationDateStart.Format(time.RFC3339))
+	if opts.ModificationDateEnd != nil {
+		q.Add("lastModEndDate", opts.ModificationDateEnd.Format(time.RFC3339))
 	}
 
 	if len(opts.CveIDs) > 0 {
