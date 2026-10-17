@@ -56,7 +56,7 @@ func main() {
 
 		slog.Info("enabling alerting service...",
 			slog.String("system", string(alertConfig.System)),
-			slog.String("environment", string(alertConfig.Environment)),
+			slog.String("environment", alertConfig.Environment),
 		)
 
 		switch alertConfig.System {
@@ -69,6 +69,7 @@ func main() {
 				alerts.WithEndpoint(alertConfig.Endpoint),
 				alerts.WithEnvironment(alertConfig.Environment),
 				alerts.WithToken(alertConfig.Key),
+				alerts.WithAddSource(config.Logging.AddSource),
 				alerts.WithMinLevel(slog.Level(alertConfig.MinLevel)),
 			)
 

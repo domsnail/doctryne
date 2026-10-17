@@ -16,15 +16,31 @@ type Alert struct {
 	ClientUUID any `json:"client_uuid,omitempty"`
 	MessageID  any `json:"message_id,omitempty"`
 
-	Title       string   `json:"title"`
-	Description string   `json:"description,omitempty"`
-	Severity    Severity `json:"severity"`
+	Severity    Severity         `json:"severity"`
+	Description AlertDescription `json:"description"`
+	Title       string           `json:"title"`
 
 	StartedAt *time.Time `json:"started_at,omitempty"`
 	EndedAt   *time.Time `json:"ended_at,omitempty"`
 }
 
+type AlertDescription struct {
+	Description string `json:"description,omitempty"`
+	Details     string `json:"details,omitempty"`
+
+	Filepath     string `json:"file_path,omitempty"`
+	FunctionName string `json:"function_name,omitempty"`
+}
+
 type Severity string
+
+func (s Severity) MaxLevel() Severity {
+	return SeverityCritical
+}
+
+func (s Severity) MinLevel() Severity {
+	return SeverityInfo
+}
 
 const (
 	SeverityCritical Severity = "critical"

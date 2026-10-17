@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"path/filepath"
+	"runtime"
 	"time"
 	"uuid"
 )
@@ -20,7 +22,8 @@ type GitlabAlertHandler struct {
 	token       string
 	host        string
 
-	minLevel slog.Level
+	addSource bool
+	minLevel  slog.Level
 }
 
 func NewGitlabAlertClient(opts ...Option) *GitlabAlertHandler {
@@ -68,6 +71,14 @@ func (h *GitlabAlertHandler) Handle(ctx context.Context, record slog.Record) err
 		StartedAt:   new(time.Now().Local()),
 	}
 
+	if h.addSource && record.PC != 0 {
+		fs := runtime.CallersFrames([]uintptr{record.PC})
+		f, _ := fs.Next()
+
+		alert.Description.Filepath = fmt.Sprintf("%s:%d", filepath.Clean(f.File), f.Line)
+		alert.Description.FunctionName = f.Function
+	}
+
 	service := ctx.Value("service")
 	if service != nil {
 		alert.Service = new(service.(string))
@@ -75,8 +86,12 @@ func (h *GitlabAlertHandler) Handle(ctx context.Context, record slog.Record) err
 
 	if record.NumAttrs() > 0 {
 		record.Attrs(func(attr slog.Attr) bool {
-			if attr.Key == "error" {
-				alert.Description = attr.Value.String()
+			switch attr.Key {
+			case "error":
+				alert.Description.Description = attr.Value.String()
+				return false
+			case "details":
+				alert.Description.Details = attr.Value.String()
 				return false
 			}
 

@@ -25,6 +25,12 @@ func WithHost(host string) Option {
 	}
 }
 
+func WithAddSource(enable bool) Option {
+	return func(s *GitlabAlertHandler) {
+		s.addSource = enable
+	}
+}
+
 func WithEnvironment(env string) Option {
 	return func(s *GitlabAlertHandler) {
 		s.environment = env
