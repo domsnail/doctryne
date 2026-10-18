@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 type Cve struct {
@@ -71,19 +72,81 @@ type AffectedData struct {
 	CPEs     []string          `json:"cpes,omitempty"`
 }
 
+func (d *AffectedData) IsEmpty() bool {
+	if d == nil {
+		return true
+	}
+
+	if !isCveValueEmpty(d.Vendor) {
+		return false
+	}
+
+	if !isCveValueEmpty(d.Product) {
+		return false
+	}
+
+	if len(d.Versions) > 1 {
+		return false
+	} else if len(d.Versions) == 1 && !d.Versions[0].IsEmpty() {
+		return false
+	}
+
+	if !isCveValueEmpty(d.PackageName) {
+		return false
+	}
+
+	if !isCveValueEmpty(d.PackageURL) {
+		return false
+	}
+
+	if !isCveValueEmpty(d.CollectionURL) {
+		return false
+	}
+
+	if !isCveValueEmpty(d.Repository) {
+		return false
+	}
+
+	if !isCveValueEmpty(d.Repository) {
+		return false
+	}
+
+	if len(d.Modules) != 0 || len(d.Platforms) != 0 || len(d.ProgramFiles) != 0 {
+		return false
+	}
+
+	if len(d.CPEs) != 0 {
+		return false
+	}
+
+	return true
+}
+
 type AffectedVersion struct {
-	Version     string `json:"version"`
-	VersionType string `json:"versionType"`
+	Version     string `json:"version,omitempty"`
+	VersionType string `json:"versionType,omitempty"`
 
 	LessThan        string `json:"lessThan,omitempty"`
 	LessThanOrEqual string `json:"lessThanOrEqual,omitempty"`
 
-	Status AffectedStatus `json:"status"`
+	Status AffectedStatus `json:"status,omitempty"`
 
 	Changes []struct {
 		At     string `json:"at"`
 		Status string `json:"status"`
 	} `json:"changes"`
+}
+
+func (v *AffectedVersion) IsEmpty() bool {
+	if v == nil {
+		return true
+	}
+
+	if !isCveValueEmpty(v.Version) || !isCveValueEmpty(v.LessThan) || !isCveValueEmpty(v.LessThanOrEqual) {
+		return false
+	}
+
+	return true
 }
 
 type SSVCv203 struct {
@@ -292,6 +355,7 @@ const (
 	AffectedStatus_Affected   AffectedStatus = "affected"
 	AffectedStatus_Unaffected AffectedStatus = "unaffected"
 	AffectedStatus_Unknown    AffectedStatus = "unknown"
+	AffectedStatus_None       AffectedStatus = ""
 )
 
 func (cve *Cve) Fingerprint() (string, error) {
@@ -301,4 +365,8 @@ func (cve *Cve) Fingerprint() (string, error) {
 	}
 
 	return fmt.Sprintf("%x", md5.Sum(data)), nil
+}
+
+func isCveValueEmpty(s string) bool {
+	return s == "" || strings.ToLower(s) == "n/a"
 }

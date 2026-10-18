@@ -8,6 +8,7 @@ const (
 	AffectedStatus_Affected   AffectedStatus = "affected"
 	AffectedStatus_Unaffected AffectedStatus = "unaffected"
 	AffectedStatus_Unknown    AffectedStatus = "unknown"
+	AffectedStatus_None       AffectedStatus = ""
 
 	// AffectedStatus_WillNotFix status means that a fix for an affected product version is not planned or not possible due to complexity, which may create additional risk.
 	// ref: https://access.redhat.com/security/glossary#:~:text=Will%20not%20fix
