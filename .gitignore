@@ -9,6 +9,7 @@
 
 /docker/*.dev.*
 /cfg/config.dev.yaml
+/cfg/config.stage.yaml
 
 /tmp/
 
