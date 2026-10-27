@@ -78,9 +78,7 @@ type IVulnerabilityService interface {
 
 	FindVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]*entity.Vulnerability, error)
 
-	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
-	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
-	GetLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
+	FindPackageVulnerabilities(ctx context.Context, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
 }
 
 type IVulnerabilityRepository interface {
@@ -88,19 +86,16 @@ type IVulnerabilityRepository interface {
 	SelectVulnerabilityByUUID(ctx context.Context, uid uuid.UUID) (*entity.Vulnerability, error)
 	SelectVulnerabilitiesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesQueryFilter) ([]*entity.Vulnerability, error)
 
-	SelectVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
-	SelectVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
-
-	SelectLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
-}
-
-type IVulnerabilityMatcherService interface {
-	FindPackageVulnerabilities(ctx context.Context, opts entity.VulnerabilityFindingOptions) (entity.VulnerabilityFindings, error)
+	FindPackageVulnerabilities(ctx context.Context, opts entity.VulnerabilityFindingOptions) ([]*entity.VulnerabilityMatch, error)
 }
 
 type IVulnerabilityDatabaseService interface {
 	RunVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
 	UploadVulnerabilityDatabaseUpdateFromFile(ctx context.Context, reader io.ReadCloser, source types.VulnerabilitySource) (entity.VulnerabilitiesDatabaseUpdate, error)
+
+	GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx context.Context, filter entity.VulnerabilitiesDatabaseUpdateQueryFilter) ([]entity.VulnerabilitiesDatabaseUpdate, error)
+	GetVulnerabilityDatabaseUpdateByUUID(ctx context.Context, uid uuid.UUID) (entity.VulnerabilitiesDatabaseUpdate, error)
+	//GetLatestVulnerabilityDatabaseUpdates(ctx context.Context) (entity.LatestVulnerabilityDatabaseUpdates, error)
 }
 
 // ---

@@ -19,6 +19,7 @@ import (
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
 	"github.com/domsnail/doctryne/internal/service/registry_service"
+	"github.com/domsnail/doctryne/internal/service/vulnerability_database_service"
 	"github.com/domsnail/doctryne/internal/service/vulnerability_service"
 	"github.com/domsnail/doctryne/pkg/alerts"
 	"github.com/domsnail/doctryne/pkg/stack_exchange"
@@ -163,7 +164,7 @@ func main() {
 	slog.InfoContext(rootCtx, "database migrations completed successfully")
 
 	slog.DebugContext(rootCtx, "initializing services...")
-	databaseUpdater, err := vulnerability_service.NewVulnerabilityDatabaseUpdater(conn, config.VulnerabilityDatabase)
+	databaseUpdater, err := vulnerability_database_service.NewVulnerabilityDatabaseServiceImpl(conn, config.VulnerabilityDatabase)
 	if err != nil {
 		panic(fmt.Sprintf("failed to initialize vulnerability database updater: %s", err.Error()))
 	}
@@ -171,8 +172,6 @@ func main() {
 	vulnerabilityService := vulnerability_service.NewVulnerabilityServiceImpl(
 		repos.NewVulnerabilityRepoImpl(conn),
 	)
-
-	vulnerabilityMatcherService := vulnerability_service.NewVulnerabilityMatcher(conn)
 
 	developerService := developer_service.NewDeveloperServiceImpl(
 		repos.NewDevelopersRepoImpl(conn),
@@ -197,7 +196,6 @@ func main() {
 
 		srv, err := cmd.CreateServer(cmd.ServerOptions{
 			VulnerabilityService:         vulnerabilityService,
-			VulnerabilityMatcherService:  vulnerabilityMatcherService,
 			VulnerabilityDatabaseService: databaseUpdater,
 			InspectionService:            inspectionService,
 			DeveloperService:             developerService,

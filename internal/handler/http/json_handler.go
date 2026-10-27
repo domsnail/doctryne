@@ -15,9 +15,8 @@ import (
 )
 
 type JsonHandler struct {
-	vulnerabilities       service.IVulnerabilityService
-	vulnerabilityDatabase service.IVulnerabilityDatabaseService
-	vulnerabilityMatcher  service.IVulnerabilityMatcherService
+	service  service.IVulnerabilityService
+	database service.IVulnerabilityDatabaseService
 
 	config *cfg.ServerConfig
 }
@@ -28,10 +27,9 @@ func newJSONHandler(opts *HandlerOptions) JsonHandler {
 	}
 
 	return JsonHandler{
-		vulnerabilities:       opts.VulnerabilityService,
-		vulnerabilityDatabase: opts.VulnerabilityDatabaseService,
-		vulnerabilityMatcher:  opts.VulnerabilityMatcherService,
-		config:                opts.Config,
+		service:  opts.VulnerabilityService,
+		database: opts.VulnerabilityDatabaseService,
+		config:   opts.Config,
 	}
 }
 
@@ -41,7 +39,7 @@ func (h *JsonHandler) HandleMux(mux *http.ServeMux) {
 	mux.HandleFunc("/vulnerabilities/{canonical_id}", h.handleVulnerabilityByCanonicalID)
 	mux.HandleFunc("/vulnerabilities", h.handleVulnerabilitiesByQueryFilter)
 
-	mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
+	//mux.HandleFunc("/vulnerabilities/databases/latest", h.handleLatestVulnerabilityDatabaseUpdates)
 	mux.HandleFunc("/vulnerabilities/databases/updates", h.handleGetVulnerabilityDatabaseUpdatesByQueryFilter)
 	mux.HandleFunc("/vulnerabilities/databases/updates/{uuid}", h.handleVulnerabilityDatabaseUpdateByUUID)
 	mux.HandleFunc("/vulnerabilities/databases/upload", h.handleVulnerabilityDatabaseUpload)
@@ -60,30 +58,30 @@ func (h *JsonHandler) handleHealth(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-func (h *JsonHandler) handleLatestVulnerabilityDatabaseUpdates(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-
-	if r.Method != http.MethodGet {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
-
-	latest, err := h.vulnerabilities.GetLatestVulnerabilityDatabaseUpdates(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	payload, err := json.Marshal(latest)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(payload)
-	return
-}
+//func (h *JsonHandler) handleLatestVulnerabilityDatabaseUpdates(w http.ResponseWriter, r *http.Request) {
+//	ctx := r.Context()
+//
+//	if r.Method != http.MethodGet {
+//		w.WriteHeader(http.StatusMethodNotAllowed)
+//		return
+//	}
+//
+//	latest, err := h.database.GetLatestVulnerabilityDatabaseUpdates(ctx)
+//	if err != nil {
+//		w.WriteHeader(http.StatusBadRequest)
+//		return
+//	}
+//
+//	payload, err := json.Marshal(latest)
+//	if err != nil {
+//		w.WriteHeader(http.StatusInternalServerError)
+//		return
+//	}
+//
+//	w.WriteHeader(http.StatusOK)
+//	_, _ = w.Write(payload)
+//	return
+//}
 
 func (h *JsonHandler) handleVulnerabilityByCanonicalID(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -94,7 +92,7 @@ func (h *JsonHandler) handleVulnerabilityByCanonicalID(w http.ResponseWriter, r 
 	}
 
 	canonicalID := r.PathValue("canonical_id")
-	vulnerability, err := h.vulnerabilities.GetVulnerabilityByCanonicalID(ctx, canonicalID)
+	vulnerability, err := h.service.GetVulnerabilityByCanonicalID(ctx, canonicalID)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -129,7 +127,7 @@ func (h *JsonHandler) handleVulnerabilitiesByQueryFilter(w http.ResponseWriter, 
 		return
 	}
 
-	vulnerabilities, err := h.vulnerabilities.FindVulnerabilitiesByQueryFilter(ctx, filter)
+	vulnerabilities, err := h.service.FindVulnerabilitiesByQueryFilter(ctx, filter)
 	if err != nil {
 		h.error(w, err, http.StatusBadRequest)
 		return
@@ -159,9 +157,9 @@ func (h *JsonHandler) handleVulnerabilityDatabaseUpdateByUUID(w http.ResponseWri
 	var update entity.VulnerabilitiesDatabaseUpdate
 	switch r.Method {
 	case http.MethodGet:
-		update, err = h.vulnerabilities.GetVulnerabilityDatabaseUpdateByUUID(ctx, uid)
+		update, err = h.database.GetVulnerabilityDatabaseUpdateByUUID(ctx, uid)
 	case http.MethodPost:
-		update, err = h.vulnerabilityDatabase.RunVulnerabilityDatabaseUpdateByUUID(ctx, uid)
+		update, err = h.database.RunVulnerabilityDatabaseUpdateByUUID(ctx, uid)
 	default:
 		h.error(w, errors.New("method not allowed"), http.StatusMethodNotAllowed)
 		return
@@ -220,7 +218,7 @@ func (h *JsonHandler) handleVulnerabilityDatabaseUpload(w http.ResponseWriter, r
 	)
 
 	defer func() { _ = file.Close() }()
-	update, err := h.vulnerabilityDatabase.UploadVulnerabilityDatabaseUpdateFromFile(ctx, file, source)
+	update, err := h.database.UploadVulnerabilityDatabaseUpdateFromFile(ctx, file, source)
 	if err != nil {
 		h.error(w, err, http.StatusBadRequest)
 		return
@@ -252,7 +250,7 @@ func (h *JsonHandler) handleGetVulnerabilityDatabaseUpdatesByQueryFilter(w http.
 		return
 	}
 
-	updates, err := h.vulnerabilities.GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx, filter)
+	updates, err := h.database.GetVulnerabilityDatabaseUpdatesByQueryFilter(ctx, filter)
 	if err != nil {
 		h.error(w, err, http.StatusBadRequest)
 		return
@@ -299,7 +297,7 @@ func (h *JsonHandler) findVulnerabilities(w http.ResponseWriter, r *http.Request
 		}
 	)
 
-	findings, err = h.vulnerabilityMatcher.FindPackageVulnerabilities(ctx, opts)
+	findings, err = h.service.FindPackageVulnerabilities(ctx, opts)
 	if err != nil {
 		h.error(w, err, http.StatusBadRequest)
 		return

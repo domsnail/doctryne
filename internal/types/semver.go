@@ -36,18 +36,18 @@ func (semver *Semver) Parse(s string) error {
 	if i := strings.IndexByte(s, '-'); i >= 0 {
 		s, pre = s[:i], s[i+1:]
 		if pre == "" {
-			return fmt.Errorf("empty prerelease identifier provided for version: %s", s)
+			return fmt.Errorf("empty prerelease identifier provided for version: '%s'", s)
 		}
 	}
 
 	parts := strings.Split(s, ".")
 	if len(parts) == 0 || len(parts) > 3 {
-		return fmt.Errorf("expected 3 parts (major.minor.patch) for version: %s", s)
+		return fmt.Errorf("expected 3 parts (major.minor.patch) for version: '%s'", s)
 	}
 
 	var nums [3]semverPart
 	for i, p := range parts {
-		if p == "*" {
+		if p == "*" || p == "x" {
 			// missing parts after a wildcard are wildcards too: 8.* == 8.*.*
 			for j := i; j < len(nums); j++ {
 				nums[j] = semverPart{wildcard: true}
