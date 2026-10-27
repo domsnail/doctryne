@@ -1,6 +1,6 @@
 ARG IMAGE_PREFIX=docker.io/library
 
-FROM ${IMAGE_PREFIX}/golang:1.27-alpine3.24 AS build
+FROM ${IMAGE_PREFIX}/golang:1.27.3-alpine3.24 AS build
 
 ARG GOPROXY="https://proxy.golang.org,direct"
 ENV GOPROXY="${GOPROXY}"
