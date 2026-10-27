@@ -13,7 +13,7 @@ RUN go mod download && go mod verify
 
 COPY ../.. .
 
-RUN go run github.com/a-h/templ/cmd/templ@v0.3.1020 generate
+RUN go tool templ generate
 
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 CC=gcc \
     go build -trimpath -tags="netgo,osusergo" -ldflags="-s -w -linkmode external -extldflags '-static'" -o /out/doctryne .
