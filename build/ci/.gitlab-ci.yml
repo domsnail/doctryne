@@ -34,16 +34,18 @@ build docker image:
         - "**/*.go"
   before_script:
     - docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}
+    - docker buildx create --name "builder-${CI_JOB_ID}" --driver docker-container --use --bootstrap
   script:
     - |
-      docker build --progress=plain \
-      --cache-from ${CI_REGISTRY_IMAGE} . \
+      docker buildx build --progress=plain \
+      --cache-from type=registry,ref=${CI_REGISTRY_IMAGE}:cache \
+      --cache-to type=registry,ref=${CI_REGISTRY_IMAGE}:cache,mode=max,ignore-error=true \
       --tag ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG} \
       --tag ${CI_REGISTRY_IMAGE}:latest \
-      --file ./Dockerfile
-
-    - docker push ${CI_REGISTRY_IMAGE}:${CI_COMMIT_REF_SLUG}
-    - docker push ${CI_REGISTRY_IMAGE}:latest
+      --file ./Dockerfile \
+      --push .
+  after_script:
+    - docker buildx rm "builder-${CI_JOB_ID}" || true
   tags:
     - docker
 
