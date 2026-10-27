@@ -11,7 +11,7 @@ import (
 
 // Semver implements https://semver.org/
 type Semver struct {
-	Major, Minor, Patch   uint64
+	Major, Minor, Patch   semverPart
 	PrereleaseIdentifiers []string
 
 	raw string
@@ -20,7 +20,7 @@ type Semver struct {
 func (semver *Semver) Parse(s string) error {
 	if s == "" || s == "n/a" {
 		slog.Debug("empty semver value provided", slog.String("value", s))
-		semver.Major, semver.Minor, semver.Patch = 0, 0, 0
+		semver.Major, semver.Minor, semver.Patch = semverPart{value: 0}, semverPart{value: 0}, semverPart{value: 0}
 		semver.raw = "0"
 
 		return nil
@@ -45,14 +45,23 @@ func (semver *Semver) Parse(s string) error {
 		return fmt.Errorf("expected 3 parts (major.minor.patch) for version: %s", s)
 	}
 
-	var nums [3]uint64
+	var nums [3]semverPart
 	for i, p := range parts {
-		n, err := strconv.ParseUint(p, 10, 64)
-		if err != nil {
-			return fmt.Errorf("semver part '%q' is not a number, version %s: ", p, s)
+		if p == "*" {
+			// missing parts after a wildcard are wildcards too: 8.* == 8.*.*
+			for j := i; j < len(nums); j++ {
+				nums[j] = semverPart{wildcard: true}
+			}
+
+			break
 		}
 
-		nums[i] = n
+		n, err := strconv.ParseUint(p, 10, 64)
+		if err != nil {
+			return fmt.Errorf("semver part '%q' is not a number, version %s: %w", p, s, err)
+		}
+
+		nums[i] = semverPart{value: n}
 	}
 
 	semver.Major, semver.Minor, semver.Patch = nums[0], nums[1], nums[2]
@@ -67,15 +76,15 @@ func (semver *Semver) Parse(s string) error {
 }
 
 func (semver *Semver) Compare(to Semver) int {
-	if r := cmp.Compare(semver.Major, to.Major); r != 0 {
+	if r := semver.Major.compare(to.Major); r != 0 {
 		return r
 	}
 
-	if r := cmp.Compare(semver.Minor, to.Minor); r != 0 {
+	if r := semver.Minor.compare(to.Minor); r != 0 {
 		return r
 	}
 
-	if r := cmp.Compare(semver.Patch, to.Patch); r != 0 {
+	if r := semver.Patch.compare(to.Patch); r != 0 {
 		return r
 	}
 
@@ -114,6 +123,24 @@ func (semver *Semver) Compare(to Semver) int {
 	return cmp.Compare(len(semver.PrereleaseIdentifiers), len(to.PrereleaseIdentifiers))
 }
 
+// HasWildcard reports whether any of major, minor or patch is '*'.
+func (semver *Semver) HasWildcard() bool {
+	return semver.Major.wildcard || semver.Minor.wildcard || semver.Patch.wildcard
+}
+
 func (semver *Semver) String() string {
 	return semver.raw
+}
+
+type semverPart struct {
+	value    uint64
+	wildcard bool
+}
+
+func (p semverPart) compare(to semverPart) int {
+	if p.wildcard || to.wildcard {
+		return 0
+	}
+
+	return cmp.Compare(p.value, to.value)
 }

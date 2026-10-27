@@ -12,6 +12,7 @@
 /cfg/config.stage.yaml
 
 /tmp/
+**/*.tmp
 
 /internal/service/vulnerability_service/vuln_catalog/
 /.mcp.json
