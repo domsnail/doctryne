@@ -1,20 +1,10 @@
 FROM golang:1.27-alpine3.24 AS build
 
-ARG GITLAB_HOST
-ARG GITLAB_PROJECT_ID
+ARG GOPROXY="https://proxy.golang.org,direct"
+ENV GOPROXY="${GOPROXY}"
 
 RUN apk add --no-cache git build-base musl-dev && \
     rm -rf /var/cache/* /tmp/*
-
-RUN go env -w GOPRIVATE="${CI_SERVER_HOST}/*" && \
-    go env -w GONOSUMDB="${CI_SERVER_HOST}/*" && \
-    go env -w GOPROXY="https://${GITLAB_HOST}/api/v4/projects/${GITLAB_PROJECT_ID}/packages/go,https://proxy.golang.org,direct"
-
-RUN --mount=type=secret,id=ci-job-token \
-    CI_JOB_TOKEN=$(cat /run/secrets/ci-job-token) && \
-    git config --global --unset-all url."https://${CI_SERVER_HOST}".insteadOf || true && \
-    git config --global url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}".insteadOf "https://${CI_SERVER_HOST}" && \
-    git config --global --unset-all url."https://gitlab-ci-token:${CI_JOB_TOKEN}@${CI_SERVER_HOST}".insteadOf
 
 WORKDIR /src
 
