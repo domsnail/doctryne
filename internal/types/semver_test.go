@@ -22,6 +22,13 @@ func Test_Semver(t *testing.T) {
 			{version: "3.0.0.1-beta3+build.7", ok: false},
 			{version: "pre3.0.0.1-beta3+build.7", ok: false},
 			{version: "pre3.0.0.1beta3+build.7", ok: false},
+			{version: "1.x", ok: true},
+			{version: "v1.x", ok: true},
+			{version: "1.x.x", ok: true},
+			{version: "1.2.x", ok: true},
+			{version: "x", ok: true},
+			{version: "1.x.0.1", ok: false},
+			{version: "1.xx", ok: false},
 		}
 
 		for _, c := range cases {
@@ -169,6 +176,62 @@ func Test_Semver(t *testing.T) {
 			res := cv.Compare(v)
 			t.Logf("compare %s to %s, result: %d (must be: %d)", cv.raw, v.raw, res, c.must)
 			require.EqualValues(t, c.must, res)
+		}
+	})
+
+	t.Run("test x wildcard semver ranges", func(t *testing.T) {
+		var cases = []struct {
+			target  string
+			version string
+			must    int
+		}{
+			{target: "1.x", version: "0.0.0", must: 1},
+			{target: "1.x", version: "0.9.9", must: 1},
+			{target: "1.x", version: "v0.1.12", must: 1},
+			{target: "1.x", version: "1.0.0", must: 0},
+			{target: "1.x", version: "1.0.0-beta", must: 1},
+			{target: "1.x", version: "1.2.3", must: 0},
+			{target: "1.x", version: "v1.25.100", must: 0},
+			{target: "1.x", version: "2.0.0-alpha.1", must: -1},
+			{target: "1.x", version: "2.0.0", must: -1},
+			{target: "1.x.x", version: "1.4.2", must: 0},
+			{target: "1.x.x", version: "2.0.0", must: -1},
+			{target: "1.2.x", version: "1.1.9", must: 1},
+			{target: "1.2.x", version: "1.2.0", must: 0},
+			{target: "1.2.x", version: "1.2.17", must: 0},
+			{target: "1.2.x", version: "1.3.0", must: -1},
+			{target: "x", version: "0.0.1", must: 0},
+			{target: "x", version: "42.1.0", must: 0},
+		}
+
+		for _, c := range cases {
+			cv, v := Semver{}, Semver{}
+			require.NoError(t, cv.Parse(c.target))
+			require.NoError(t, v.Parse(c.version))
+			require.True(t, cv.HasWildcard(), "%s must be a wildcard version", c.target)
+
+			res := cv.Compare(v)
+			t.Logf("compare %s to %s, result: %d (must be: %d)", cv.raw, v.raw, res, c.must)
+			require.EqualValues(t, c.must, res)
+		}
+	})
+
+	t.Run("test x wildcard equals star wildcard", func(t *testing.T) {
+		var pairs = [][2]string{
+			{"1.x", "1.*"},
+			{"1.x.x", "1.*.*"},
+			{"1.2.x", "1.2.*"},
+			{"x", "*"},
+		}
+
+		for _, p := range pairs {
+			x, star := Semver{}, Semver{}
+			require.NoError(t, x.Parse(p[0]))
+			require.NoError(t, star.Parse(p[1]))
+
+			require.Equal(t, star.Major, x.Major, "%s major must match %s", p[0], p[1])
+			require.Equal(t, star.Minor, x.Minor, "%s minor must match %s", p[0], p[1])
+			require.Equal(t, star.Patch, x.Patch, "%s patch must match %s", p[0], p[1])
 		}
 	})
 

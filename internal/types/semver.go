@@ -47,7 +47,7 @@ func (semver *Semver) Parse(s string) error {
 
 	var nums [3]semverPart
 	for i, p := range parts {
-		if p == "*" || p == "x" {
+		if p == "*" || strings.EqualFold(p, "x") {
 			// missing parts after a wildcard are wildcards too: 8.* == 8.*.*
 			for j := i; j < len(nums); j++ {
 				nums[j] = semverPart{wildcard: true}

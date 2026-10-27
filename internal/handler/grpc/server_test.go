@@ -9,6 +9,7 @@ import (
 
 	inspection_v1 "github.com/domsnail/doctryne/api/gen/go/inspection/v1"
 	"github.com/domsnail/doctryne/cfg"
+	"github.com/domsnail/doctryne/internal/repos"
 	"github.com/domsnail/doctryne/internal/service/github_service"
 	"github.com/domsnail/doctryne/internal/service/inspect_service"
 	"github.com/domsnail/doctryne/internal/service/manifest_service"
@@ -34,10 +35,13 @@ func Test_InspectionHandler_JavaScript(t *testing.T) {
 	cfg.SetGlobalConfig(config)
 
 	handler := NewHandler(inspect_service.NewInspectionService(
-		manifest_service.NewManifestServiceImpl(),
-		github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
-		stack_exchange.NewClient(stack_exchange.Options{}),
-		registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
+		inspect_service.InspectionServiceOptions{
+			Manifests:     manifest_service.NewManifestServiceImpl(),
+			Registry:      registry_service.NewRegistryServiceImpl(registry_service.RegistryServiceOpts{}),
+			Github:        github_service.NewGithubServiceImpl(github_service.GithubServiceOpts{}),
+			StackExchange: stack_exchange.NewClient(stack_exchange.Options{}),
+			Repo:          repos.NewInspectionsRepoImpl(nil),
+		},
 	))
 
 	t.Run("test package.json inspection with errors", func(t *testing.T) {
