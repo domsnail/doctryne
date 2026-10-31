@@ -12,6 +12,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/domsnail/doctryne/pkg/utils"
 )
 
 const (
@@ -26,6 +28,8 @@ const (
 type Client struct {
 	baseURL string
 	h       *http.Client
+
+	retry *utils.Retrier
 
 	token string
 
@@ -96,7 +100,7 @@ func (c *Client) GetRecords(ctx context.Context, opts RecordsQueryOptions, offse
 	req.URL.RawQuery = q.Encode()
 	c.setHeaders(req)
 
-	resp, err := c.h.Do(req)
+	resp, err := c.retry.Do(c.h, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}

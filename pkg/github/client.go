@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"github.com/domsnail/doctryne/pkg/utils"
 )
 
 const (
@@ -23,6 +25,8 @@ const (
 type Client struct {
 	baseURL string
 	h       *http.Client
+
+	retry *utils.Retrier
 
 	token string
 }
@@ -97,7 +101,7 @@ func (c *Client) GetAdvisories(ctx context.Context, opts AdvisoriesQueryOptions,
 	req.URL.RawQuery = q.Encode()
 	c.setHeaders(req)
 
-	resp, err := c.h.Do(req)
+	resp, err := c.retry.Do(c.h, req)
 	if err != nil {
 		return nil, Link{}, fmt.Errorf("failed to send request: %w", err)
 	}

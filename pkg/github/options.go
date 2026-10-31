@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"time"
+
+	"github.com/domsnail/doctryne/pkg/utils"
 )
 
 type Option func(*Client)
@@ -23,5 +26,11 @@ func WithBaseURL(url *url.URL) Option {
 func WithHTTPClient(client *http.Client) Option {
 	return func(s *Client) {
 		s.h = client
+	}
+}
+
+func WithRetry(retryCodes map[int]int, delay time.Duration) Option {
+	return func(s *Client) {
+		s.retry = utils.NewRetrier(retryCodes, delay)
 	}
 }

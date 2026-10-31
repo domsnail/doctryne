@@ -67,6 +67,25 @@ func TestClient_GetAdvisories(t *testing.T) {
 		require.EqualValues(t, "CVE-2018-8768", records[0].CveId)
 	})
 
+	t.Run("test ghsa record query by ghsa id", func(t *testing.T) {
+		c := NewClient()
+
+		records, link, err := c.GetAdvisories(context.Background(), AdvisoriesQueryOptions{
+			GhsaID:    "GHSA-xxr8-833v-c7wc",
+			Sort:      "published",
+			Direction: "asc",
+		}, 2, 0)
+
+		require.NoError(t, err)
+		require.Len(t, records, 1)
+		require.NotNil(t, link)
+		require.Empty(t, link.Next)
+		require.Empty(t, link.Prev)
+
+		require.EqualValues(t, "GHSA-xxr8-833v-c7wc", records[0].GhsaId)
+		require.EqualValues(t, "CVE-2011-4319", records[0].CveId)
+	})
+
 	t.Run("test ghsa record query by cve id", func(t *testing.T) {
 		c := NewClient()
 

@@ -3,7 +3,6 @@ package types
 import (
 	"cmp"
 	"fmt"
-	"log/slog"
 	"slices"
 	"strconv"
 	"strings"
@@ -11,15 +10,16 @@ import (
 
 // Semver implements https://semver.org/
 type Semver struct {
-	Major, Minor, Patch   semverPart
+	Major, Minor, Patch, Revision semverPart
+
 	PrereleaseIdentifiers []string
+	BuildMetadata         []string
 
 	raw string
 }
 
 func (semver *Semver) Parse(s string) error {
 	if s == "" || s == "n/a" {
-		slog.Debug("empty semver value provided", slog.String("value", s))
 		semver.Major, semver.Minor, semver.Patch = semverPart{value: 0}, semverPart{value: 0}, semverPart{value: 0}
 		semver.raw = "0"
 
@@ -40,12 +40,20 @@ func (semver *Semver) Parse(s string) error {
 		}
 	}
 
-	parts := strings.Split(s, ".")
-	if len(parts) == 0 || len(parts) > 3 {
-		return fmt.Errorf("expected 3 parts (major.minor.patch) for version: '%s'", s)
+	var build string
+	if i := strings.IndexByte(s, '+'); i >= 0 {
+		s, build = s[:i], s[i+1:]
+		if pre == "" {
+			return fmt.Errorf("empty build metadata provided for version: '%s'", s)
+		}
 	}
 
-	var nums [3]semverPart
+	parts := strings.SplitN(s, ".", 4)
+	if len(parts) == 0 {
+		return fmt.Errorf("expected 4 parts (major.minor.patch.revision) for version: '%s'", s)
+	}
+
+	var nums [4]semverPart
 	for i, p := range parts {
 		if p == "*" || strings.EqualFold(p, "x") {
 			// missing parts after a wildcard are wildcards too: 8.* == 8.*.*
@@ -58,17 +66,31 @@ func (semver *Semver) Parse(s string) error {
 
 		n, err := strconv.ParseUint(p, 10, 64)
 		if err != nil {
+			if i == 3 {
+				// cases: 3.0.0.beta (GHSA-92w9-2pqw-rhjj, ruby on rails)
+				pre += p
+				continue
+			}
+
 			return fmt.Errorf("semver part '%q' is not a number, version %s: %w", p, s, err)
 		}
 
 		nums[i] = semverPart{value: n}
 	}
 
-	semver.Major, semver.Minor, semver.Patch = nums[0], nums[1], nums[2]
+	semver.Major, semver.Minor, semver.Patch, semver.Revision = nums[0], nums[1], nums[2], nums[3]
+
 	if pre != "" {
 		semver.PrereleaseIdentifiers = strings.Split(pre, ".")
 		if slices.Contains(semver.PrereleaseIdentifiers, "") {
 			return fmt.Errorf("empty prerelease identifier in version: %s", s)
+		}
+	}
+
+	if build != "" {
+		semver.BuildMetadata = strings.Split(build, ".")
+		if slices.Contains(semver.BuildMetadata, "") {
+			return fmt.Errorf("empty build metadata in version: %s", s)
 		}
 	}
 
@@ -85,6 +107,10 @@ func (semver *Semver) Compare(to Semver) int {
 	}
 
 	if r := semver.Patch.compare(to.Patch); r != 0 {
+		return r
+	}
+
+	if r := semver.Revision.compare(to.Revision); r != 0 {
 		return r
 	}
 
@@ -118,6 +144,8 @@ func (semver *Semver) Compare(to Semver) int {
 			}
 		}
 	}
+
+	// do not compare by build metadata, see: https://semver.org/#spec-item-10
 
 	// 3.0.0-rc < 3.0.0-rc.1
 	return cmp.Compare(len(semver.PrereleaseIdentifiers), len(to.PrereleaseIdentifiers))

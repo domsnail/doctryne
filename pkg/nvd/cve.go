@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/domsnail/doctryne/internal/types"
 )
 
 type Cve struct {
@@ -123,8 +125,8 @@ func (d *AffectedData) IsEmpty() bool {
 }
 
 type AffectedVersion struct {
-	Version     string `json:"version,omitempty"`
-	VersionType string `json:"versionType,omitempty"`
+	Version     string            `json:"version,omitempty"`
+	VersionType types.VersionType `json:"versionType,omitempty"`
 
 	LessThan        string `json:"lessThan,omitempty"`
 	LessThanOrEqual string `json:"lessThanOrEqual,omitempty"`

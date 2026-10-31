@@ -4,6 +4,8 @@ import (
 	"net/http"
 	"net/url"
 	"time"
+
+	"github.com/domsnail/doctryne/pkg/utils"
 )
 
 type Option func(*Client)
@@ -35,5 +37,11 @@ func WithHistoryRange(period time.Duration) Option {
 func WithPerPage(limit uint16) Option {
 	return func(s *Client) {
 		s.perPage = limit
+	}
+}
+
+func WithRetry(retryCodes map[int]int, delay time.Duration) Option {
+	return func(s *Client) {
+		s.retry = utils.NewRetrier(retryCodes, delay)
 	}
 }
